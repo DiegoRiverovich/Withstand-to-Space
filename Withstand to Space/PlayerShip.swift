@@ -9,29 +9,6 @@
 import Foundation
 import SpriteKit
 
-enum ShipStatus {
-    case noraml
-    case trio
-    case rogueOne
-    case invisible
-}
-
-struct PlayerPosition {
-    static let lowLeft620 = CGPoint(x: 620, y: 512)
-    static let lowCenter768 = CGPoint(x: 768, y: 512)
-    static let lowRight925 = CGPoint(x: 925, y: 512)
-    
-    static let middleLeft535 = CGPoint(x: 535, y: 512)
-    static let middleCenter768 = CGPoint(x: 768, y: 512)
-    static let middleRight1010 = CGPoint(x: 1010, y: 512)
-    
-    static let highLeft450 = CGPoint(x: 450, y: 512)
-    static let highCenter768 = CGPoint(x: 768, y: 512)
-    static let highRight1095 = CGPoint(x: 1095, y: 512)
-}
-
-var shipStatus = ShipStatus.noraml
-
 class PlayerShip: SKSpriteNode {
     
     weak var mainScene: SKScene?
@@ -43,14 +20,34 @@ class PlayerShip: SKSpriteNode {
     
     var rougeIsActive = true
     
-    let cD1 = CollisionDetector(color: UIColor.black, size: CGSize(width: 10, height: 10))
-    let cD2 = CollisionDetector(color: UIColor.black, size: CGSize(width: 10, height: 10))
-    let cD3 = CollisionDetector(color: UIColor.black, size: CGSize(width: 10, height: 10))
-    let cD4 = CollisionDetector(color: UIColor.black, size: CGSize(width: 10, height: 10))
+    // Second status active
+    var trioTimeActive = 100 {
+        didSet {
+            
+        }
+    }
+    var rougeOneTimeActive = 100
+    {
+        didSet {
+            
+        }
+    }
+    var InvisibleTimeActive = 100
+    {
+        didSet {
+            
+        }
+    }
+    
+    // Global collision detectors
+    let cD1 = CollisionDetector(color: UIColor.clear, size: CGSize(width: 10, height: 10))
+    let cD2 = CollisionDetector(color: UIColor.clear, size: CGSize(width: 10, height: 10))
+    let cD3 = CollisionDetector(color: UIColor.clear, size: CGSize(width: 10, height: 10))
+    let cD4 = CollisionDetector(color: UIColor.clear, size: CGSize(width: 10, height: 10))
     
     init() {
         // Initialize whith pic.
-        let texture = SKTexture(imageNamed: "playerShip")
+        let texture = SKTexture(imageNamed: "ship10001")
         
         super.init(texture: texture, color: UIColor.clear, size: texture.size())
         /*
@@ -68,6 +65,13 @@ class PlayerShip: SKSpriteNode {
         */
         // Add collision detectors
         addCollisionDetectors()
+        
+        let jetFire = SKEmitterNode(fileNamed: "jetFire.sks")
+        jetFire?.targetNode = self
+        jetFire?.zPosition = -10
+        //jetFire?.emissionAngle = 180
+        jetFire?.position = CGPoint(x: self.position.x, y: (self.position.y - (self.size.height / 2)) - 20)
+        self.addChild(jetFire!)
     }
     
     required init?(coder aDecoder: NSCoder) {
@@ -83,16 +87,18 @@ class PlayerShip: SKSpriteNode {
     
     //MARK: Scale up and move up by z position
     func moveUp() {
-        
         switch shipStatus {
         case .noraml, .invisible:
             let moveUp = true
             var actionArray: [SKAction] = []
-            if self.xScale >= 1.5 && self.zPosition == 5 {
-                self.setScale(1.5)
+            //let xScale = CGFloat(round(10 * self.xScale) / 10)
+            if self.xScale.roundTo1Decimal() >= ShipScale.big /*1.5*/ && self.zPosition == 5 {
+                self.setScale(ShipScale.big/*1.5*/)
                 self.zPosition = 5
-            } else if self.xScale == 0.5 && self.zPosition == 1 {
-                let scaleDown = SKAction.scale(to: 1, duration: 0.2)
+                print(xScale)
+                print(self.xScale)
+            } else if self.xScale.roundTo1Decimal() == ShipScale.small /*0.5*/ && self.zPosition == 1 {
+                let scaleDown = SKAction.scale(to: ShipScale.middle /*1*/, duration: 0.2)
                 let anchorPointAction: SKAction = SKAction.run(calculateAnchorPoint)
                 
                 actionArray.append(anchorPointAction)
@@ -101,8 +107,10 @@ class PlayerShip: SKSpriteNode {
                 let actionSequence = SKAction.sequence(actionArray)
                 self.run(actionSequence)
                 self.zPosition += 2
+                print(xScale)
+                print(self.xScale)
             }else {
-                let scaleDown = SKAction.scale(to: 1.5, duration: 0.2)
+                let scaleDown = SKAction.scale(to: ShipScale.big /*1.5*/, duration: 0.2)
                 let ancorPointAction: SKAction = SKAction.run(calculateAnchorPoint)
                 
                 actionArray.append(ancorPointAction)
@@ -113,6 +121,8 @@ class PlayerShip: SKSpriteNode {
                 //            self.xScale += 0.5
                 //            self.yScale += 0.5
                 self.zPosition += 2
+                print(ceil(self.xScale))
+                print(self.xScale)
             }
             //print(self.position)
         case .trio:
@@ -120,33 +130,36 @@ class PlayerShip: SKSpriteNode {
             let allShips = mainScene?.children
             for trioShip in allShips! {
                 if trioShip is PlayerShip /*&& trioShip.name == "trioShip"*/ {
-                    
                     let moveUp = true
                     var actionArray: [SKAction] = []
-                    if trioShip.xScale >= 1.5 && trioShip.zPosition == 5 {
-                        trioShip.setScale(1.5)
+                    if trioShip.xScale.roundTo1Decimal() >= ShipScale.big /*1.5*/ && trioShip.zPosition == 5 {
+                        trioShip.setScale(ShipScale.big /*1.5*/)
                         trioShip.zPosition = 5
-                    } else if trioShip.xScale == 0.5 && trioShip.zPosition == 1 {
-                        let scaleDown = SKAction.scale(to: 1, duration: 0.2)
+                    } else if trioShip.xScale.roundTo1Decimal() == ShipScale.small /*0.5*/ && trioShip.zPosition == 1 {
+                        let scaleDown = SKAction.scale(to: ShipScale.middle /*1*/, duration: 0.2)
                         //let anchorPointAction: SKAction = SKAction.run(calculateAnchorPoint)
-                        let anchorPointAction: SKAction = SKAction.run {
-                            self.calculateAnchorPointForTrio(trioShip: trioShip as! PlayerShip)
+                        if self.rougeIsActive == true {
+                            let anchorPointAction: SKAction = SKAction.run {
+                                self.calculateAnchorPointForTrio(trioShip: trioShip as! PlayerShip)
+                            }
+                            
+                            actionArray.append(anchorPointAction)
                         }
-                        
-                        actionArray.append(anchorPointAction)
                         let group = moveActionGroupSetTrioShip(trioShip: trioShip as! PlayerShip, scaleDown: scaleDown, moveUp: moveUp) //UpMoveActionGroupSet(scaleDown: scaleDown)
                         actionArray.append(group)
                         let actionSequence = SKAction.sequence(actionArray)
                         trioShip.run(actionSequence)
                         trioShip.zPosition += 2
                     }else {
-                        let scaleDown = SKAction.scale(to: 1.5, duration: 0.2)
+                        let scaleDown = SKAction.scale(to: ShipScale.big /*1.5*/, duration: 0.2)
                         //let ancorPointAction: SKAction = SKAction.run(calculateAnchorPoint)
-                        let anchorPointAction: SKAction = SKAction.run {
-                            self.calculateAnchorPointForTrio(trioShip: trioShip as! PlayerShip)
+                        if self.rougeIsActive == true {
+                            let anchorPointAction: SKAction = SKAction.run {
+                                self.calculateAnchorPointForTrio(trioShip: trioShip as! PlayerShip)
+                            }
+                            
+                            actionArray.append(anchorPointAction)
                         }
-                        
-                        actionArray.append(anchorPointAction)
                         let group = moveActionGroupSetTrioShip(trioShip: trioShip as! PlayerShip, scaleDown: scaleDown, moveUp: moveUp) //UpMoveActionGroupSet(scaleDown: scaleDown)
                         actionArray.append(group)
                         let actionSequence = SKAction.sequence(actionArray)
@@ -163,11 +176,11 @@ class PlayerShip: SKSpriteNode {
             
             let moveUp = true
             var actionArray: [SKAction] = []
-            if self.xScale >= 1.5 && self.zPosition == 5 {
-                self.setScale(1.5)
+            if self.xScale.roundTo1Decimal() >= ShipScale.big /*1.5*/ && self.zPosition == 5 {
+                self.setScale(ShipScale.big /*1.5*/)
                 self.zPosition = 5
-            } else if self.xScale == 0.5 && self.zPosition == 1 {
-                let scaleDown = SKAction.scale(to: 1, duration: 0.2)
+            } else if self.xScale.roundTo1Decimal() == ShipScale.small /*0.5*/ && self.zPosition == 1 {
+                let scaleDown = SKAction.scale(to: ShipScale.middle /*1*/, duration: 0.2)
                 let anchorPointAction: SKAction = SKAction.run(calculateAnchorPoint)
                 
                 actionArray.append(anchorPointAction)
@@ -177,7 +190,7 @@ class PlayerShip: SKSpriteNode {
                 self.run(actionSequence)
                 self.zPosition += 2
             }else {
-                let scaleDown = SKAction.scale(to: 1.5, duration: 0.2)
+                let scaleDown = SKAction.scale(to: ShipScale.big /*1.5*/, duration: 0.2)
                 let ancorPointAction: SKAction = SKAction.run(calculateAnchorPoint)
                 
                 actionArray.append(ancorPointAction)
@@ -206,12 +219,13 @@ class PlayerShip: SKSpriteNode {
         case .noraml, .invisible:
             let moveUp = false
             var actionArray: [SKAction] = []
-            if self.xScale <= 0.5 && self.zPosition == 1 {
-                self.setScale(0.5)
+            //let xScale = CGFloat(round(10 * self.xScale) / 10)
+            if self.xScale.roundTo1Decimal() <= ShipScale.small /*0.5*/ && self.zPosition == 1 {
+                self.setScale(ShipScale.small /*0.5*/)
                 self.zPosition = 1
-            } else if self.xScale == 1.5 && self.zPosition == 5 {
+            } else if self.xScale.roundTo1Decimal() == ShipScale.big /*1.5*/ && self.zPosition == 5 {
                 let anchorPointAction: SKAction = SKAction.run(calculateAnchorPoint)
-                let scaleDown = SKAction.scale(to: 1, duration: 0.2)
+                let scaleDown = SKAction.scale(to: ShipScale.middle /*1*/, duration: 0.2)
                 
                 actionArray.append(anchorPointAction)
                 let group = moveActionGroupSet(scaleDown: scaleDown, moveUp: moveUp) //DownMoveActionGroupSet(scaleDown: scaleDown)
@@ -220,7 +234,7 @@ class PlayerShip: SKSpriteNode {
                 self.run(actionSequence)
                 self.zPosition -= 2
             } else {
-                let scaleDown = SKAction.scale(to: 0.5, duration: 0.2)
+                let scaleDown = SKAction.scale(to: ShipScale.small /*0.5*/, duration: 0.2)
                 let anchorPointAction: SKAction = SKAction.run(calculateAnchorPoint)
                 
                 actionArray.append(anchorPointAction)
@@ -241,30 +255,35 @@ class PlayerShip: SKSpriteNode {
                     
                     let moveUp = false
                     var actionArray: [SKAction] = []
-                    if trioShip.xScale <= 0.5 && trioShip.zPosition == 1 {
-                        self.setScale(0.5)
+                    //let trioShipxScale = CGFloat(round(10 * trioShip.xScale) / 10)
+                    if trioShip.xScale.roundTo1Decimal() <= ShipScale.small /*0.5*/ && trioShip.zPosition == 1 {
+                        self.setScale(ShipScale.small /*0.5*/)
                         self.zPosition = 1
-                    } else if trioShip.xScale == 1.5 && trioShip.zPosition == 5 {
+                    } else if trioShip.xScale.roundTo1Decimal() == ShipScale.big /*1.5*/ && trioShip.zPosition == 5 {
                         //let anchorPointAction: SKAction = SKAction.run(calculateAnchorPointForTrio(trioShip: trioShip as! PlayerShip))
-                        let anchorPointAction: SKAction = SKAction.run {
-                            self.calculateAnchorPointForTrio(trioShip: trioShip as! PlayerShip)
+                        if self.rougeIsActive == true {
+                            let anchorPointAction: SKAction = SKAction.run {
+                                self.calculateAnchorPointForTrio(trioShip: trioShip as! PlayerShip)
+                            }
+                            actionArray.append(anchorPointAction)
                         }
-                        let scaleDown = SKAction.scale(to: 1, duration: 0.2)
-                        
-                        actionArray.append(anchorPointAction)
+                        let scaleDown = SKAction.scale(to: ShipScale.middle /*1*/, duration: 0.2)
                         let group = moveActionGroupSetTrioShip(trioShip: trioShip as! PlayerShip, scaleDown: scaleDown, moveUp: moveUp) //DownMoveActionGroupSet(scaleDown: scaleDown)
                         actionArray.append(group)
                         let actionSequence = SKAction.sequence(actionArray)
                         trioShip.run(actionSequence)
                         trioShip.zPosition -= 2
                     } else {
-                        let scaleDown = SKAction.scale(to: 0.5, duration: 0.2)
+                        let scaleDown = SKAction.scale(to: ShipScale.small /*0.5*/, duration: 0.2)
                         //let anchorPointAction: SKAction = SKAction.run(calculateAnchorPointForTrio(trioShip: trioShip as! PlayerShip))
-                        let anchorPointAction: SKAction = SKAction.run {
-                            self.calculateAnchorPointForTrio(trioShip: trioShip as! PlayerShip)
+                        if self .rougeIsActive == true {
+                            let anchorPointAction: SKAction = SKAction.run {
+                                self.calculateAnchorPointForTrio(trioShip: trioShip as! PlayerShip)
+                            }
+                            
+                            actionArray.append(anchorPointAction)
                         }
                         
-                        actionArray.append(anchorPointAction)
                         let group = moveActionGroupSetTrioShip(trioShip: trioShip as! PlayerShip, scaleDown: scaleDown, moveUp: moveUp) //DownMoveActionGroupSet(scaleDown: scaleDown)
                         actionArray.append(group)
                         let actionSequence = SKAction.sequence(actionArray)
@@ -280,12 +299,12 @@ class PlayerShip: SKSpriteNode {
             
         let moveUp = false
         var actionArray: [SKAction] = []
-        if self.xScale <= 0.5 && self.zPosition == 1 {
-            self.setScale(0.5)
+        if self.xScale.roundTo1Decimal() <= ShipScale.small /*0.5*/ && self.zPosition == 1 {
+            self.setScale(ShipScale.small /*0.5*/)
             self.zPosition = 1
-        } else if self.xScale == 1.5 && self.zPosition == 5 {
+        } else if self.xScale.roundTo1Decimal() == ShipScale.big /*1.5*/ && self.zPosition == 5 {
             let anchorPointAction: SKAction = SKAction.run(calculateAnchorPoint)
-            let scaleDown = SKAction.scale(to: 1, duration: 0.2)
+            let scaleDown = SKAction.scale(to: ShipScale.middle /*1*/, duration: 0.2)
             
             actionArray.append(anchorPointAction)
             let group = moveActionGroupSet(scaleDown: scaleDown, moveUp: moveUp) //DownMoveActionGroupSet(scaleDown: scaleDown)
@@ -294,7 +313,7 @@ class PlayerShip: SKSpriteNode {
             self.run(actionSequence)
             self.zPosition -= 2
         } else {
-            let scaleDown = SKAction.scale(to: 0.5, duration: 0.2)
+            let scaleDown = SKAction.scale(to: ShipScale.small /*0.5*/, duration: 0.2)
             let anchorPointAction: SKAction = SKAction.run(calculateAnchorPoint)
             
             actionArray.append(anchorPointAction)
@@ -701,11 +720,11 @@ class PlayerShip: SKSpriteNode {
         // CategoryBitMask, collisionBitMask, contactTestBitMask
         node.physicsBody?.categoryBitMask = BodyType.cD.rawValue
         node.physicsBody?.collisionBitMask = /* BodyType.barrier.rawValue //| */ BodyType.other.rawValue
-        node.physicsBody?.contactTestBitMask = BodyType.barrier.rawValue | BodyType.partition.rawValue
+        node.physicsBody?.contactTestBitMask = BodyType.barrier.rawValue | BodyType.partition.rawValue | BodyType.debris.rawValue
         
     }
     
-
+    
     
 }  // class
 
@@ -714,7 +733,11 @@ class CollisionDetector: SKSpriteNode {
     var isInContactWithSomething = false
 }
 
-
+public extension CGFloat {
+    mutating func roundTo1Decimal() -> CGFloat {
+        return CGFloat(Darwin.round(10 * self) / 10)
+    }
+}
 
 
 

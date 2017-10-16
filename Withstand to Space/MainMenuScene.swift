@@ -84,7 +84,7 @@ class MainMenuScene: SKScene {
         for touch in touches {
             let location = touch.location(in: self)
             if atPoint(location).name == "Start" {
-                let scene = GameScene(size: CGSize(width: 1536, height: 2048))
+                let scene = LevelsScene(size: CGSize(width: 1536, height: 2048))
                 // Set the scale mode to scale to fit the window
                 scene.scaleMode = .aspectFill
                 
@@ -97,11 +97,11 @@ class MainMenuScene: SKScene {
                     // Fallback on earlier versions
                 }
                 
-                view?.ignoresSiblingOrder = true
-                
-                view?.showsFPS = true
-                view?.showsNodeCount = true
-                view?.showsPhysics = true
+//                view?.ignoresSiblingOrder = true
+//                
+//                view?.showsFPS = true
+//                view?.showsNodeCount = true
+//                view?.showsPhysics = true
             } else if atPoint(location).name == "highScoreNodeMenu" {
                 self.view?.window?.rootViewController?.performSegue(withIdentifier: "highScoreSegue", sender: self)
             }

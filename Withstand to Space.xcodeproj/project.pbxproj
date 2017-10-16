@@ -8,6 +8,7 @@
 
 /* Begin PBXBuildFile section */
 		550DEC661F752C94003FBB13 /* Barrier.swift in Sources */ = {isa = PBXBuildFile; fileRef = 550DEC651F752C94003FBB13 /* Barrier.swift */; };
+		552C2D721F9266D600759B7E /* MiddleBarrier.swift in Sources */ = {isa = PBXBuildFile; fileRef = 552C2D711F9266D600759B7E /* MiddleBarrier.swift */; };
 		555C36DB1F715E89002A92DD /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 555C36DA1F715E89002A92DD /* AppDelegate.swift */; };
 		555C36DD1F715E89002A92DD /* GameScene.sks in Resources */ = {isa = PBXBuildFile; fileRef = 555C36DC1F715E89002A92DD /* GameScene.sks */; };
 		555C36DF1F715E89002A92DD /* Actions.sks in Resources */ = {isa = PBXBuildFile; fileRef = 555C36DE1F715E89002A92DD /* Actions.sks */; };
@@ -21,10 +22,18 @@
 		557516071F7AA43900042167 /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = 557516061F7AA43900042167 /* GoogleService-Info.plist */; };
 		557516091F7AD62300042167 /* HighscoreViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 557516081F7AD62300042167 /* HighscoreViewController.swift */; };
 		5577BE781F7E722E00364D8D /* HighscoreTableViewCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5577BE771F7E722E00364D8D /* HighscoreTableViewCell.swift */; };
+		557AB79E1F8BD3BE002A487E /* jetFire.sks in Resources */ = {isa = PBXBuildFile; fileRef = 557AB79D1F8BD3BE002A487E /* jetFire.sks */; };
+		557AB7A01F8BF14C002A487E /* elitedanger.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 557AB79F1F8BF117002A487E /* elitedanger.ttf */; };
+		557AB7A21F8BF64C002A487E /* explosion.sks in Resources */ = {isa = PBXBuildFile; fileRef = 557AB7A11F8BF64C002A487E /* explosion.sks */; };
 		558629D11F7C138F00571F89 /* Users.swift in Sources */ = {isa = PBXBuildFile; fileRef = 558629D01F7C138F00571F89 /* Users.swift */; };
 		558B55291F78285500067A08 /* MainMenuScene.swift in Sources */ = {isa = PBXBuildFile; fileRef = 558B55281F78285500067A08 /* MainMenuScene.swift */; };
 		55947D491F86579C0053D18B /* Partition.swift in Sources */ = {isa = PBXBuildFile; fileRef = 55947D481F86579C0053D18B /* Partition.swift */; };
+		55A1DDE31F8F753800B857C7 /* Model.swift in Sources */ = {isa = PBXBuildFile; fileRef = 55A1DDE21F8F753800B857C7 /* Model.swift */; };
+		55A1DDE71F912ED900B857C7 /* Debris.swift in Sources */ = {isa = PBXBuildFile; fileRef = 55A1DDE61F912ED900B857C7 /* Debris.swift */; };
+		55B18AB51F8E2CFF004F64D5 /* Planet.swift in Sources */ = {isa = PBXBuildFile; fileRef = 55B18AB41F8E2CFF004F64D5 /* Planet.swift */; };
+		55B18AB71F8E8FD7004F64D5 /* SpaceStation.swift in Sources */ = {isa = PBXBuildFile; fileRef = 55B18AB61F8E8FD7004F64D5 /* SpaceStation.swift */; };
 		55D4BCC21F796EA1003FF61A /* GameOverScene.swift in Sources */ = {isa = PBXBuildFile; fileRef = 55D4BCC11F796EA1003FF61A /* GameOverScene.swift */; };
+		55E81D661F93932000737BC1 /* LevelsScene.swift in Sources */ = {isa = PBXBuildFile; fileRef = 55E81D651F93932000737BC1 /* LevelsScene.swift */; };
 		BEF75965161124F692877A21 /* Pods_Withstand_to_Space.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 254E20F64988FA11363B90A8 /* Pods_Withstand_to_Space.framework */; };
 /* End PBXBuildFile section */
 
@@ -32,6 +41,7 @@
 		254E20F64988FA11363B90A8 /* Pods_Withstand_to_Space.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_Withstand_to_Space.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		2D7091E5BB97B6FB145FFA43 /* Pods-Withstand to Space.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Withstand to Space.debug.xcconfig"; path = "Pods/Target Support Files/Pods-Withstand to Space/Pods-Withstand to Space.debug.xcconfig"; sourceTree = "<group>"; };
 		550DEC651F752C94003FBB13 /* Barrier.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Barrier.swift; sourceTree = "<group>"; };
+		552C2D711F9266D600759B7E /* MiddleBarrier.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MiddleBarrier.swift; sourceTree = "<group>"; };
 		555C36D71F715E89002A92DD /* Withstand to Space.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Withstand to Space.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		555C36DA1F715E89002A92DD /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		555C36DC1F715E89002A92DD /* GameScene.sks */ = {isa = PBXFileReference; lastKnownFileType = file.sks; path = GameScene.sks; sourceTree = "<group>"; };
@@ -47,10 +57,18 @@
 		557516061F7AA43900042167 /* GoogleService-Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = "GoogleService-Info.plist"; sourceTree = "<group>"; };
 		557516081F7AD62300042167 /* HighscoreViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = HighscoreViewController.swift; sourceTree = "<group>"; };
 		5577BE771F7E722E00364D8D /* HighscoreTableViewCell.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = HighscoreTableViewCell.swift; sourceTree = "<group>"; };
+		557AB79D1F8BD3BE002A487E /* jetFire.sks */ = {isa = PBXFileReference; lastKnownFileType = file.sks; path = jetFire.sks; sourceTree = "<group>"; };
+		557AB79F1F8BF117002A487E /* elitedanger.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = elitedanger.ttf; sourceTree = "<group>"; };
+		557AB7A11F8BF64C002A487E /* explosion.sks */ = {isa = PBXFileReference; lastKnownFileType = file.sks; path = explosion.sks; sourceTree = "<group>"; };
 		558629D01F7C138F00571F89 /* Users.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Users.swift; sourceTree = "<group>"; };
 		558B55281F78285500067A08 /* MainMenuScene.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = MainMenuScene.swift; sourceTree = "<group>"; };
 		55947D481F86579C0053D18B /* Partition.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Partition.swift; sourceTree = "<group>"; };
+		55A1DDE21F8F753800B857C7 /* Model.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Model.swift; sourceTree = "<group>"; };
+		55A1DDE61F912ED900B857C7 /* Debris.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Debris.swift; sourceTree = "<group>"; };
+		55B18AB41F8E2CFF004F64D5 /* Planet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Planet.swift; sourceTree = "<group>"; };
+		55B18AB61F8E8FD7004F64D5 /* SpaceStation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SpaceStation.swift; sourceTree = "<group>"; };
 		55D4BCC11F796EA1003FF61A /* GameOverScene.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = GameOverScene.swift; path = ../GameOverScene.swift; sourceTree = "<group>"; };
+		55E81D651F93932000737BC1 /* LevelsScene.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LevelsScene.swift; sourceTree = "<group>"; };
 		61DD2BC079044F421F41E147 /* Pods-Withstand to Space.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Withstand to Space.release.xcconfig"; path = "Pods/Target Support Files/Pods-Withstand to Space/Pods-Withstand to Space.release.xcconfig"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -87,15 +105,23 @@
 		555C36D91F715E89002A92DD /* Withstand to Space */ = {
 			isa = PBXGroup;
 			children = (
+				557AB79D1F8BD3BE002A487E /* jetFire.sks */,
+				557AB7A11F8BF64C002A487E /* explosion.sks */,
 				558629D01F7C138F00571F89 /* Users.swift */,
 				557516081F7AD62300042167 /* HighscoreViewController.swift */,
 				5577BE771F7E722E00364D8D /* HighscoreTableViewCell.swift */,
 				557516041F7AA2AD00042167 /* HighscoreTableView.swift */,
 				55D4BCC11F796EA1003FF61A /* GameOverScene.swift */,
 				558B55281F78285500067A08 /* MainMenuScene.swift */,
+				55E81D651F93932000737BC1 /* LevelsScene.swift */,
 				555C36E01F715E89002A92DD /* GameScene.swift */,
 				555C36F21F717AC3002A92DD /* PlayerShip.swift */,
+				55B18AB41F8E2CFF004F64D5 /* Planet.swift */,
+				55B18AB61F8E8FD7004F64D5 /* SpaceStation.swift */,
+				55A1DDE21F8F753800B857C7 /* Model.swift */,
+				552C2D711F9266D600759B7E /* MiddleBarrier.swift */,
 				55947D481F86579C0053D18B /* Partition.swift */,
+				55A1DDE61F912ED900B857C7 /* Debris.swift */,
 				550DEC651F752C94003FBB13 /* Barrier.swift */,
 				555C36E21F715E89002A92DD /* GameViewController.swift */,
 				555C36F51F717B48002A92DD /* Scenes */,
@@ -108,6 +134,7 @@
 			isa = PBXGroup;
 			children = (
 				555C36E71F715E89002A92DD /* Assets.xcassets */,
+				557AB79F1F8BF117002A487E /* elitedanger.ttf */,
 				557516061F7AA43900042167 /* GoogleService-Info.plist */,
 				555C36DA1F715E89002A92DD /* AppDelegate.swift */,
 				555C36E41F715E89002A92DD /* Main.storyboard */,
@@ -207,10 +234,13 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				557AB7A01F8BF14C002A487E /* elitedanger.ttf in Resources */,
 				555C36E61F715E89002A92DD /* Main.storyboard in Resources */,
 				555C36DD1F715E89002A92DD /* GameScene.sks in Resources */,
+				557AB7A21F8BF64C002A487E /* explosion.sks in Resources */,
 				555C36E81F715E89002A92DD /* Assets.xcassets in Resources */,
 				555C36EB1F715E89002A92DD /* LaunchScreen.storyboard in Resources */,
+				557AB79E1F8BD3BE002A487E /* jetFire.sks in Resources */,
 				555C36DF1F715E89002A92DD /* Actions.sks in Resources */,
 				557516071F7AA43900042167 /* GoogleService-Info.plist in Resources */,
 			);
@@ -283,11 +313,16 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				55A1DDE71F912ED900B857C7 /* Debris.swift in Sources */,
+				55E81D661F93932000737BC1 /* LevelsScene.swift in Sources */,
+				55A1DDE31F8F753800B857C7 /* Model.swift in Sources */,
 				5577BE781F7E722E00364D8D /* HighscoreTableViewCell.swift in Sources */,
+				552C2D721F9266D600759B7E /* MiddleBarrier.swift in Sources */,
 				557516091F7AD62300042167 /* HighscoreViewController.swift in Sources */,
 				558B55291F78285500067A08 /* MainMenuScene.swift in Sources */,
 				558629D11F7C138F00571F89 /* Users.swift in Sources */,
 				555C36F31F717AC3002A92DD /* PlayerShip.swift in Sources */,
+				55B18AB51F8E2CFF004F64D5 /* Planet.swift in Sources */,
 				557516051F7AA2AD00042167 /* HighscoreTableView.swift in Sources */,
 				55D4BCC21F796EA1003FF61A /* GameOverScene.swift in Sources */,
 				550DEC661F752C94003FBB13 /* Barrier.swift in Sources */,
@@ -295,6 +330,7 @@
 				555C36E11F715E89002A92DD /* GameScene.swift in Sources */,
 				555C36E31F715E89002A92DD /* GameViewController.swift in Sources */,
 				555C36DB1F715E89002A92DD /* AppDelegate.swift in Sources */,
+				55B18AB71F8E8FD7004F64D5 /* SpaceStation.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

@@ -126,7 +126,7 @@ class GameOverScene: SKScene {
     
     // MARK: Score label
     func setScoreLabel() {
-        let scoreLabel = SKLabelNode(fontNamed: "Helvetica")
+        let scoreLabel = SKLabelNode(fontNamed: SomeNames.fontName)
         scoreLabel.text = "Score: \(score)"
         scoreLabel.fontSize = 120
         scoreLabel.fontColor = UIColor.white
@@ -137,7 +137,7 @@ class GameOverScene: SKScene {
     
     // MARK: Highscore label
     func setHithScoreLabel() {
-        let highScoreLabel = SKLabelNode(fontNamed: "Helvetica")
+        let highScoreLabel = SKLabelNode(fontNamed: SomeNames.fontName)
         highScoreLabel.text = "High score: \(highScoreNumber)"
         highScoreLabel.fontSize = 120
         highScoreLabel.fontColor = UIColor.white
@@ -187,11 +187,11 @@ class GameOverScene: SKScene {
                     // Fallback on earlier versions
                 }
                 
-                view?.ignoresSiblingOrder = true
-                
-                view?.showsFPS = true
-                view?.showsNodeCount = true
-                view?.showsPhysics = true
+//                view?.ignoresSiblingOrder = true
+//                
+//                view?.showsFPS = true
+//                view?.showsNodeCount = true
+//                view?.showsPhysics = true
             } else if atPoint(location).name == "highScoreNodeMenu" {
                 self.view?.window?.rootViewController?.performSegue(withIdentifier: "highScoreSegue", sender: self)
             }
