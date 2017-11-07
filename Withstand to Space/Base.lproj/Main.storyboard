@@ -10,6 +10,11 @@
         <capability name="Constraints to layout margins" minToolsVersion="6.0"/>
         <capability name="documents saved in the Xcode 8 format" minToolsVersion="8.0"/>
     </dependencies>
+    <customFonts key="customFonts">
+        <array key="HelveticaNeue.ttc">
+            <string>HelveticaNeue</string>
+        </array>
+    </customFonts>
     <scenes>
         <!--Game View Controller-->
         <scene sceneID="tXr-a1-R10">
@@ -45,11 +50,14 @@
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <subviews>
                             <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="19x-tf-ZXM">
-                                <rect key="frame" x="16" y="20" width="46" height="30"/>
+                                <rect key="frame" x="16" y="20" width="107" height="30"/>
                                 <constraints>
                                     <constraint firstAttribute="height" constant="30" id="weM-b0-FbG"/>
                                 </constraints>
-                                <state key="normal" title="Button"/>
+                                <fontDescription key="fontDescription" name="HelveticaNeue" family="Helvetica Neue" pointSize="17"/>
+                                <state key="normal" title="Back to Menu">
+                                    <color key="titleColor" red="0.84069699050000002" green="0.84071677919999999" blue="0.8407061696" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
+                                </state>
                                 <connections>
                                     <action selector="dissmissVC:" destination="Du2-AU-OgG" eventType="touchUpInside" id="waL-uK-Wsi"/>
                                 </connections>
@@ -57,6 +65,7 @@
                             <tableView clipsSubviews="YES" contentMode="scaleToFill" alwaysBounceVertical="YES" dataMode="prototypes" style="plain" separatorStyle="default" rowHeight="44" sectionHeaderHeight="28" sectionFooterHeight="28" translatesAutoresizingMaskIntoConstraints="NO" id="NT1-o1-rlM">
                                 <rect key="frame" x="46" y="78" width="283" height="539"/>
                                 <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
+                                <color key="sectionIndexBackgroundColor" white="0.0" alpha="0.0" colorSpace="calibratedWhite"/>
                                 <prototypes>
                                     <tableViewCell clipsSubviews="YES" contentMode="scaleToFill" selectionStyle="blue" hidesAccessoryWhenEditing="NO" indentationLevel="1" indentationWidth="0.0" reuseIdentifier="HighscoreCell" id="j0E-gS-3fS" customClass="HighscoreTableViewCell" customModule="Withstand_to_Space" customModuleProvider="target">
                                         <rect key="frame" x="0.0" y="28" width="283" height="44"/>
@@ -72,30 +81,32 @@
                                                     <nil key="highlightedColor"/>
                                                 </label>
                                                 <label opaque="NO" userInteractionEnabled="NO" contentMode="left" verticalHuggingPriority="251" text="Label" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="HnT-tB-Nn5">
-                                                    <rect key="frame" x="58" y="8" width="175" height="28"/>
+                                                    <rect key="frame" x="58" y="8" width="165" height="28"/>
                                                     <fontDescription key="fontDescription" type="system" pointSize="17"/>
                                                     <nil key="textColor"/>
                                                     <nil key="highlightedColor"/>
                                                 </label>
                                                 <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Label" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="Lrs-az-aqV">
-                                                    <rect key="frame" x="241" y="12" width="42" height="21"/>
+                                                    <rect key="frame" x="231" y="12.5" width="42" height="20"/>
                                                     <fontDescription key="fontDescription" type="system" pointSize="17"/>
                                                     <nil key="textColor"/>
                                                     <nil key="highlightedColor"/>
                                                 </label>
                                             </subviews>
+                                            <color key="backgroundColor" white="0.0" alpha="0.0" colorSpace="calibratedWhite"/>
                                             <constraints>
                                                 <constraint firstItem="LZ8-HG-dKW" firstAttribute="leading" secondItem="oxf-yN-7jB" secondAttribute="leadingMargin" id="7YN-qF-AlR"/>
                                                 <constraint firstItem="HnT-tB-Nn5" firstAttribute="leading" secondItem="LZ8-HG-dKW" secondAttribute="trailing" constant="8" symbolic="YES" id="8nU-Fd-0ML"/>
                                                 <constraint firstItem="Lrs-az-aqV" firstAttribute="leading" secondItem="HnT-tB-Nn5" secondAttribute="trailing" constant="8" symbolic="YES" id="Ino-7b-P8s"/>
                                                 <constraint firstItem="LZ8-HG-dKW" firstAttribute="firstBaseline" secondItem="HnT-tB-Nn5" secondAttribute="firstBaseline" id="fO6-tx-O9X"/>
-                                                <constraint firstAttribute="trailing" secondItem="Lrs-az-aqV" secondAttribute="trailing" id="hgI-rE-4Uy"/>
+                                                <constraint firstAttribute="trailing" secondItem="Lrs-az-aqV" secondAttribute="trailing" constant="10" id="hgI-rE-4Uy"/>
                                                 <constraint firstItem="LZ8-HG-dKW" firstAttribute="baseline" secondItem="HnT-tB-Nn5" secondAttribute="baseline" id="l0T-ym-Vbe"/>
                                                 <constraint firstItem="HnT-tB-Nn5" firstAttribute="centerY" secondItem="Lrs-az-aqV" secondAttribute="centerY" id="lMv-nf-Arc"/>
                                                 <constraint firstItem="LZ8-HG-dKW" firstAttribute="centerY" secondItem="oxf-yN-7jB" secondAttribute="centerY" id="tDn-dM-IF5"/>
                                                 <constraint firstItem="LZ8-HG-dKW" firstAttribute="top" secondItem="oxf-yN-7jB" secondAttribute="topMargin" id="tEd-EH-r3p"/>
                                             </constraints>
                                         </tableViewCellContentView>
+                                        <color key="backgroundColor" white="0.0" alpha="0.0" colorSpace="calibratedWhite"/>
                                         <connections>
                                             <outlet property="nicknameLabel" destination="HnT-tB-Nn5" id="EEx-6e-DS4"/>
                                             <outlet property="placeLabel" destination="LZ8-HG-dKW" id="f11-aA-ZDs"/>
@@ -109,7 +120,7 @@
                                 </connections>
                             </tableView>
                         </subviews>
-                        <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
+                        <color key="backgroundColor" white="0.0" alpha="0.0" colorSpace="calibratedWhite"/>
                         <constraints>
                             <constraint firstItem="NT1-o1-rlM" firstAttribute="centerX" secondItem="B3p-Mz-ZYR" secondAttribute="centerX" id="19N-FF-7Cw"/>
                             <constraint firstItem="H8y-5f-x9s" firstAttribute="top" secondItem="NT1-o1-rlM" secondAttribute="bottom" constant="50" id="8Ek-p9-iDW"/>
@@ -122,6 +133,7 @@
                         </constraints>
                     </view>
                     <connections>
+                        <outlet property="backButton" destination="19x-tf-ZXM" id="ysp-N7-S9k"/>
                         <outlet property="highScoreTableView" destination="NT1-o1-rlM" id="uYt-Cy-9ro"/>
                     </connections>
                 </viewController>

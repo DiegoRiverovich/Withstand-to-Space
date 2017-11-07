@@ -14,6 +14,7 @@ class Debris: SKSpriteNode {
     let barriers = ["alien1_85"]
     
     var isActive: Bool = true
+    var isSlowing: Bool = false
     
     weak var mainScene: SKScene?
     
@@ -32,7 +33,12 @@ class Debris: SKSpriteNode {
         self.init()
         self.physicsBody = nil
         //let texture = SKTexture(imageNamed: barriers[Int(arc4random()%4)])
-        self.texture = SKTexture(imageNamed: "mine01")
+        let mine = Int(arc4random()%1)
+        if mine == 0 {
+            self.texture = SKTexture(imageNamed: "mine01")
+        } else if mine == 1 {
+            self.texture = SKTexture(imageNamed: "mine02")
+        }
         self.zPosition = zPosition
         //self.position.x = XPosition
         
@@ -44,14 +50,16 @@ class Debris: SKSpriteNode {
         if XPosition == 1 {
             if zPosition == 1 {
                 self.position = DebrisPosition.lowRight925 //CGPoint(x: mainScene!.size.width * 0.70 - 170, y: mainScene!.size.height * 1.2)
-                self.xScale -= 0.4
-                self.yScale -= 0.4
+                self.xScale -= 0.2 //0.4
+                self.yScale -= 0.2
             } else if zPosition == 3 {
                 self.position = DebrisPosition.middleRight1010//CGPoint(x: mainScene!.size.width * 0.70 - 60, y: mainScene!.size.height * 1.2)
+                self.xScale += 0.3 //0.4
+                self.yScale += 0.3
             } else if zPosition == 5 {
                 self.position = DebrisPosition.highRight1095 //CGPoint(x: mainScene!.size.width * 0.70 + 25, y: mainScene!.size.height * 1.2)
-                self.xScale += 0.4
-                self.yScale += 0.4
+                self.xScale += 0.8 //0.4
+                self.yScale += 0.8
             }
         } else if XPosition == 2 {
             
@@ -59,28 +67,32 @@ class Debris: SKSpriteNode {
             
             if zPosition == 1 {
                 self.position = DebrisPosition.lowCenter768 //CGPoint(x: mainScene!.size.width * 0.5, y: mainScene!.size.height * 1.2)
-                self.xScale -= 0.4
-                self.yScale -= 0.4
+                self.xScale -= 0.2 //0.4
+                self.yScale -= 0.2
             } else if zPosition == 3 {
                 self.position = DebrisPosition.middleCenter768 //CGPoint(x: mainScene!.size.width * 0.5, y: mainScene!.size.height * 1.2)
+                self.xScale += 0.3 //0.4
+                self.yScale += 0.3
             } else if zPosition == 5 {
                 self.position = DebrisPosition.highCenter768 //CGPoint(x: mainScene!.size.width * 0.5, y: mainScene!.size.height * 1.2)
-                self.xScale += 0.4
-                self.yScale += 0.4
+                self.xScale += 0.8 //0.4
+                self.yScale += 0.8
             }
         } else if XPosition == 3 {
             
             //case 3:
             if zPosition == 1 {
                 self.position = DebrisPosition.lowLeft620 //CGPoint(x: mainScene!.size.width * 0.30 + 170, y: mainScene!.size.height * 1.2)
-                self.xScale -= 0.4
-                self.yScale -= 0.4
+                self.xScale -= 0.2 //0.4
+                self.yScale -= 0.2
             } else if zPosition == 3 {
                 self.position = DebrisPosition.middleLeft535 //CGPoint(x: mainScene!.size.width * 0.30 + 60, y: mainScene!.size.height * 1.2)
+                self.xScale += 0.3 //0.4
+                self.yScale += 0.3
             } else if zPosition == 5  {
                 self.position = DebrisPosition.highLeft450 //CGPoint(x: mainScene!.size.width * 0.30 - 25, y: mainScene!.size.height * 1.2)
-                self.xScale += 0.4
-                self.yScale += 0.4
+                self.xScale += 0.8 //0.4
+                self.yScale += 0.8
             }
         }
         /*default:

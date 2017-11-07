@@ -16,7 +16,12 @@ class HighscoreViewController: UIViewController, UITableViewDelegate, UITableVie
     
     @IBOutlet weak var highScoreTableView: UITableView!
     
+    @IBOutlet weak var backButton: UIButton!
     //var userDictionary: [ String : Int ] = [:]
+    
+    var placeTimer: Timer?
+    var myPlaceCell: HighscoreTableViewCell?
+    var mainPlaceCell: HighscoreTableViewCell?
     
     var nicknameArray: [String] = []
     var highscoreArray: [Int] = []
@@ -41,12 +46,46 @@ class HighscoreViewController: UIViewController, UITableViewDelegate, UITableVie
         ref = Database.database().reference().child("user")
         auth()
         
-        fetchData()
+        //fetchData()
         
         setupActivityIndicator()
         
         //var reloadRowTimer = Timer.scheduledTimer(timeInterval: TimeInterval(2), target: self, selector: #selector(HighscoreViewController.reloadRowInTable), userInfo: nil, repeats: false)
         
+        // SetUp cell font
+        self.view.backgroundColor = UIColor(patternImage: UIImage(named: "menuBackground2")!)
+        highScoreTableView.backgroundColor = UIColor.clear
+        //highScoreTableView.alwaysBounceVertical = false
+        
+        // SetUp BackButton Font
+        
+        backButton.titleLabel?.font = UIFont(name: SomeNames.fontNameVenusrising, size: 20)
+        backButton.titleLabel?.textColor = UIColor.white
+        if preferredLanguage == .ru {
+            backButton.setTitle("назад", for: .normal)   //.titleLabel?.text = "В МЕНЮ"
+        }
+        
+        
+        highScoreTableView.estimatedRowHeight = 50
+        //highScoreTableView.rowHeight = UITableViewAutomaticDimension
+        
+        placeTimer = Timer.scheduledTimer(timeInterval: TimeInterval(1), target: self, selector: #selector(HighscoreViewController.setPlace), userInfo: nil, repeats: false)
+    }
+    
+    @objc func setPlace() {
+        //if let myplace = place {
+        var index = 0
+        for i in 1...nicknameArray.count {
+            if nicknameArray[i-1] == nickName && highscoreArray[i-1] == highScoreNumber {
+                if index == 0 {
+                mainPlaceCell?.placeLabel.text = "\(i)" //String(describing: myplace)
+                print("sdfasdfasdfsfasdfsdfas")
+                    index += 1
+                }
+            }
+        }
+        //myPlaceCell?.placeLabel.text = nicknameArray[myplace] //String(describing: myplace)
+        //}
     }
     
     override func viewWillDisappear(_ animated: Bool) {
@@ -149,9 +188,22 @@ class HighscoreViewController: UIViewController, UITableViewDelegate, UITableVie
             }
             
             self.highScoreTableView.reloadData()
+            
+            //self.countPlaceFunc()
         })
     }
     
+    /*
+    func countPlaceFunc() {
+        
+        for i in 1...nicknameArray.count {
+            if nicknameArray[i-1] == nickName && String(highscoreArray[i-1]) == scoreScoreForColor {
+                cell?.placeLabel.text = "\(nicknameArray[i].count )"
+            }
+        }
+        
+    }
+    */
     
     func isKeyPresentInUserDefaults(key: String) -> Bool {
         return UserDefaults.standard.object(forKey: key) != nil
@@ -172,21 +224,33 @@ class HighscoreViewController: UIViewController, UITableViewDelegate, UITableVie
         }
     }
     
+//    func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
+//        return 50
+//    }
+    
     var nickScoreForColor = ""
     var scoreScoreForColor = ""
     var myPlaceScoreForColor = "" {
         didSet {
-            _ = Timer.scheduledTimer(timeInterval: TimeInterval(0.1), target: self, selector: #selector(HighscoreViewController.reloadRowInTable), userInfo: nil, repeats: false)
+            _ = Timer.scheduledTimer(timeInterval: TimeInterval(0.5), target: self, selector: #selector(HighscoreViewController.reloadRowInTable), userInfo: nil, repeats: false)
         }
     }
     var myIndexPath = IndexPath()
     var countPlace = 1
+    var oneIndexPath: IndexPath?
+    var place: Int?
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         
         //let cell = UITableViewCell(style: .subtitle, reuseIdentifier: "cell")
         let dequeued = tableView.dequeueReusableCell(withIdentifier: "HighscoreCell", for: indexPath) as? HighscoreTableViewCell
         
         //var mainCell = UITableViewCell()
+        
+        
+//        if (tableView.indexPathsForVisibleRows!.contains(myIndexPath)) {
+//            countPlace = 1
+//        }
+        
 
         
         let cell = dequeued
@@ -201,13 +265,15 @@ class HighscoreViewController: UIViewController, UITableViewDelegate, UITableVie
             cell?.nicknameLabel?.text = nickName
             cell?.scoreLabel?.text = String(highscore)
             cell?.placeLabel?.text = myPlaceScoreForColor
+            cell?.nicknameLabel.textColor = UIColor.white
             
             nickScoreForColor = nickName
             scoreScoreForColor = String(highscore)
             
             myIndexPath = indexPath
             
-            
+            mainPlaceCell = cell
+           
             
         } else {
             
@@ -215,32 +281,65 @@ class HighscoreViewController: UIViewController, UITableViewDelegate, UITableVie
             
             //cell?.textLabel?.text = nicknameArray[indexPath.row] //key //String(describing: array) //self.items[indexPath.row]
             //cell?.detailTextLabel?.text = String(highscoreArray[indexPath.row])
-            
+            print("\(nickScoreForColor)")
+            print("\(scoreScoreForColor)")
             if nicknameArray[indexPath.row] == nickScoreForColor && String(highscoreArray[indexPath.row]) == scoreScoreForColor {
                 
                 cell?.nicknameLabel?.text = nicknameArray[indexPath.row]
                 cell?.scoreLabel?.text = String(highscoreArray[indexPath.row])
                 cell?.placeLabel?.text = "\(indexPath.row + 1)"
-                
+                cell?.nicknameLabel.textColor = UIColor.white
+                print("yo1")
+                //countPlace = 1
                 if countPlace != 0 {
-                    cell?.backgroundColor = UIColor.red
+                    if oneIndexPath == nil {
+                    //cell?.backgroundColor = UIColor.red
+                    cell?.nicknameLabel.textColor = UIColor.red
                     myPlaceScoreForColor = "\(indexPath.row + 1)"
                     //print(myPlaceScoreForColor)
                     //highScoreTableView.moveRow(at: indexPath, to: myIndexPath)
                     countPlace -= 1
+                    print("yo2")
+                    if oneIndexPath == nil {
+                        oneIndexPath = indexPath
+                        place = indexPath.row + 1
+                        myPlaceCell = cell
+                    }
+                    
+                    //highScoreTableView.reloadRows(at: [myIndexPath], with: .none)
+                    //highScoreTableView.reloadSections([0], with: .none)
+                    }
                 }
             } else {
                 cell?.nicknameLabel?.text = nicknameArray[indexPath.row]
                 cell?.scoreLabel?.text = String(highscoreArray[indexPath.row])
                 cell?.placeLabel?.text = "\(indexPath.row + 1)"
+                cell?.nicknameLabel.textColor = UIColor.white
+                print("yo3")
             }
             //highScoreTableView.reloadSections([0], with: .none)
-            highScoreTableView.reloadRows(at: [myIndexPath], with: .none)
+            //highScoreTableView.reloadRows(at: [myIndexPath], with: .none)
             
         }
         
+        if let indices = tableView.indexPathsForVisibleRows {
+            var exist: Bool = false
+            for index in indices {
+                if index == oneIndexPath {
+                    //countPlace = 0
+                    exist = true
+                }
+            }
+            
+            if !exist {
+                countPlace = 1
+                oneIndexPath = nil
+                
+            }
+        }
         
-        
+        //cell?.layer.backgroundColor = UIColor.clear.cgColor
+        //cell!.backgroundColor = UIColor(white: 1, alpha: 0)
         return cell!
     }
     
@@ -314,6 +413,27 @@ class HighscoreViewController: UIViewController, UITableViewDelegate, UITableVie
         }
         return false
     }
+    
+    func tableView(_ tableView: UITableView, willDisplayHeaderView view: UIView, forSection section: Int) {
+        let header = view as! UITableViewHeaderFooterView
+        header.textLabel?.font = UIFont(name: SomeNames.fontNameVenusrising, size: 20)
+    }
+    
+    func tableView(_ tableView: UITableView, willDisplay cell: UITableViewCell, forRowAt indexPath: IndexPath) {
+        if (indexPath.row) == (tableView.numberOfRows(inSection: 1) - 1) {
+            countPlace = 1
+        }
+    }
+    
+    /*
+    func tableView(_ tableView: UITableView, didEndDisplaying cell: UITableViewCell, forRowAt indexPath: IndexPath) {
+        <#code#>
+    }
+     */
+ 
+//    func tableView(_ tableView: UITableView, willDisplay cell: UITableViewCell, forRowAt indexPath: IndexPath) {
+//        
+//    }
     
     //var userDictionaryCopy = Array(userDictionary.keys)
     

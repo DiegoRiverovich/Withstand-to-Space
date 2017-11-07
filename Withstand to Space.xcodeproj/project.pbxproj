@@ -7,8 +7,11 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		550A35401FAB911E00651635 /* engineNew.m4a in Resources */ = {isa = PBXBuildFile; fileRef = 550A353F1FAB910B00651635 /* engineNew.m4a */; };
 		550DEC661F752C94003FBB13 /* Barrier.swift in Sources */ = {isa = PBXBuildFile; fileRef = 550DEC651F752C94003FBB13 /* Barrier.swift */; };
 		552C2D721F9266D600759B7E /* MiddleBarrier.swift in Sources */ = {isa = PBXBuildFile; fileRef = 552C2D711F9266D600759B7E /* MiddleBarrier.swift */; };
+		554C6AA31FA79DAD00F5ACE7 /* gameMusicNew1.m4a in Resources */ = {isa = PBXBuildFile; fileRef = 554C6AA21FA79D6B00F5ACE7 /* gameMusicNew1.m4a */; };
+		555B3AEC1FA60571002185DA /* venusrising.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 555B3AEB1FA60494002185DA /* venusrising.ttf */; };
 		555C36DB1F715E89002A92DD /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 555C36DA1F715E89002A92DD /* AppDelegate.swift */; };
 		555C36DD1F715E89002A92DD /* GameScene.sks in Resources */ = {isa = PBXBuildFile; fileRef = 555C36DC1F715E89002A92DD /* GameScene.sks */; };
 		555C36DF1F715E89002A92DD /* Actions.sks in Resources */ = {isa = PBXBuildFile; fileRef = 555C36DE1F715E89002A92DD /* Actions.sks */; };
@@ -25,6 +28,9 @@
 		557AB79E1F8BD3BE002A487E /* jetFire.sks in Resources */ = {isa = PBXBuildFile; fileRef = 557AB79D1F8BD3BE002A487E /* jetFire.sks */; };
 		557AB7A01F8BF14C002A487E /* elitedanger.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 557AB79F1F8BF117002A487E /* elitedanger.ttf */; };
 		557AB7A21F8BF64C002A487E /* explosion.sks in Resources */ = {isa = PBXBuildFile; fileRef = 557AB7A11F8BF64C002A487E /* explosion.sks */; };
+		557C3A8D1F9A5BC400B92683 /* CreditsScene.swift in Sources */ = {isa = PBXBuildFile; fileRef = 557C3A8C1F9A5BC400B92683 /* CreditsScene.swift */; };
+		5580A52C1FAA208F00CA930E /* shipTurnSound.m4a in Resources */ = {isa = PBXBuildFile; fileRef = 5580A52B1FAA208200CA930E /* shipTurnSound.m4a */; };
+		5580A52E1FAA2E5400CA930E /* vicrotySound.m4a in Resources */ = {isa = PBXBuildFile; fileRef = 5580A52D1FAA2E4C00CA930E /* vicrotySound.m4a */; };
 		558629D11F7C138F00571F89 /* Users.swift in Sources */ = {isa = PBXBuildFile; fileRef = 558629D01F7C138F00571F89 /* Users.swift */; };
 		558B55291F78285500067A08 /* MainMenuScene.swift in Sources */ = {isa = PBXBuildFile; fileRef = 558B55281F78285500067A08 /* MainMenuScene.swift */; };
 		55947D491F86579C0053D18B /* Partition.swift in Sources */ = {isa = PBXBuildFile; fileRef = 55947D481F86579C0053D18B /* Partition.swift */; };
@@ -32,7 +38,16 @@
 		55A1DDE71F912ED900B857C7 /* Debris.swift in Sources */ = {isa = PBXBuildFile; fileRef = 55A1DDE61F912ED900B857C7 /* Debris.swift */; };
 		55B18AB51F8E2CFF004F64D5 /* Planet.swift in Sources */ = {isa = PBXBuildFile; fileRef = 55B18AB41F8E2CFF004F64D5 /* Planet.swift */; };
 		55B18AB71F8E8FD7004F64D5 /* SpaceStation.swift in Sources */ = {isa = PBXBuildFile; fileRef = 55B18AB61F8E8FD7004F64D5 /* SpaceStation.swift */; };
+		55BC79CD1FA8852200A7F1F6 /* boom1.m4a in Resources */ = {isa = PBXBuildFile; fileRef = 554C6AA41FA7A95200F5ACE7 /* boom1.m4a */; };
+		55BC79CF1FA8889C00A7F1F6 /* getStarsScore.m4a in Resources */ = {isa = PBXBuildFile; fileRef = 55BC79CE1FA887E400A7F1F6 /* getStarsScore.m4a */; };
+		55BC79D51FA8954500A7F1F6 /* spActivated1.m4a in Resources */ = {isa = PBXBuildFile; fileRef = 55BC79D41FA8953F00A7F1F6 /* spActivated1.m4a */; };
+		55BC79D71FA89C7500A7F1F6 /* youLoseSound.m4a in Resources */ = {isa = PBXBuildFile; fileRef = 55BC79D61FA89C6900A7F1F6 /* youLoseSound.m4a */; };
+		55BC79DB1FA8B10600A7F1F6 /* coinSound.m4a in Resources */ = {isa = PBXBuildFile; fileRef = 55BC79DA1FA8B0F900A7F1F6 /* coinSound.m4a */; };
+		55BC79DD1FA8BAB000A7F1F6 /* pause1.m4a in Resources */ = {isa = PBXBuildFile; fileRef = 55BC79DC1FA8BAA900A7F1F6 /* pause1.m4a */; };
 		55D4BCC21F796EA1003FF61A /* GameOverScene.swift in Sources */ = {isa = PBXBuildFile; fileRef = 55D4BCC11F796EA1003FF61A /* GameOverScene.swift */; };
+		55DEF2481FAC7ECD002CEE42 /* turnDone4.m4a in Resources */ = {isa = PBXBuildFile; fileRef = 55DEF2471FAC7E86002CEE42 /* turnDone4.m4a */; };
+		55DEF24A1FAC8425002CEE42 /* engineStart.m4a in Resources */ = {isa = PBXBuildFile; fileRef = 55DEF2491FAC8411002CEE42 /* engineStart.m4a */; };
+		55DEF24C1FAC867D002CEE42 /* engineStart1.m4a in Resources */ = {isa = PBXBuildFile; fileRef = 55DEF24B1FAC8678002CEE42 /* engineStart1.m4a */; };
 		55E81D661F93932000737BC1 /* LevelsScene.swift in Sources */ = {isa = PBXBuildFile; fileRef = 55E81D651F93932000737BC1 /* LevelsScene.swift */; };
 		BEF75965161124F692877A21 /* Pods_Withstand_to_Space.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 254E20F64988FA11363B90A8 /* Pods_Withstand_to_Space.framework */; };
 /* End PBXBuildFile section */
@@ -40,8 +55,12 @@
 /* Begin PBXFileReference section */
 		254E20F64988FA11363B90A8 /* Pods_Withstand_to_Space.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_Withstand_to_Space.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		2D7091E5BB97B6FB145FFA43 /* Pods-Withstand to Space.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Withstand to Space.debug.xcconfig"; path = "Pods/Target Support Files/Pods-Withstand to Space/Pods-Withstand to Space.debug.xcconfig"; sourceTree = "<group>"; };
+		550A353F1FAB910B00651635 /* engineNew.m4a */ = {isa = PBXFileReference; lastKnownFileType = file; path = engineNew.m4a; sourceTree = "<group>"; };
 		550DEC651F752C94003FBB13 /* Barrier.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Barrier.swift; sourceTree = "<group>"; };
 		552C2D711F9266D600759B7E /* MiddleBarrier.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MiddleBarrier.swift; sourceTree = "<group>"; };
+		554C6AA21FA79D6B00F5ACE7 /* gameMusicNew1.m4a */ = {isa = PBXFileReference; lastKnownFileType = file; path = gameMusicNew1.m4a; sourceTree = "<group>"; };
+		554C6AA41FA7A95200F5ACE7 /* boom1.m4a */ = {isa = PBXFileReference; lastKnownFileType = file; path = boom1.m4a; sourceTree = "<group>"; };
+		555B3AEB1FA60494002185DA /* venusrising.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = venusrising.ttf; sourceTree = "<group>"; };
 		555C36D71F715E89002A92DD /* Withstand to Space.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Withstand to Space.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		555C36DA1F715E89002A92DD /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		555C36DC1F715E89002A92DD /* GameScene.sks */ = {isa = PBXFileReference; lastKnownFileType = file.sks; path = GameScene.sks; sourceTree = "<group>"; };
@@ -60,6 +79,9 @@
 		557AB79D1F8BD3BE002A487E /* jetFire.sks */ = {isa = PBXFileReference; lastKnownFileType = file.sks; path = jetFire.sks; sourceTree = "<group>"; };
 		557AB79F1F8BF117002A487E /* elitedanger.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = elitedanger.ttf; sourceTree = "<group>"; };
 		557AB7A11F8BF64C002A487E /* explosion.sks */ = {isa = PBXFileReference; lastKnownFileType = file.sks; path = explosion.sks; sourceTree = "<group>"; };
+		557C3A8C1F9A5BC400B92683 /* CreditsScene.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CreditsScene.swift; sourceTree = "<group>"; };
+		5580A52B1FAA208200CA930E /* shipTurnSound.m4a */ = {isa = PBXFileReference; lastKnownFileType = file; path = shipTurnSound.m4a; sourceTree = "<group>"; };
+		5580A52D1FAA2E4C00CA930E /* vicrotySound.m4a */ = {isa = PBXFileReference; lastKnownFileType = file; path = vicrotySound.m4a; sourceTree = "<group>"; };
 		558629D01F7C138F00571F89 /* Users.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Users.swift; sourceTree = "<group>"; };
 		558B55281F78285500067A08 /* MainMenuScene.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = MainMenuScene.swift; sourceTree = "<group>"; };
 		55947D481F86579C0053D18B /* Partition.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Partition.swift; sourceTree = "<group>"; };
@@ -67,7 +89,15 @@
 		55A1DDE61F912ED900B857C7 /* Debris.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Debris.swift; sourceTree = "<group>"; };
 		55B18AB41F8E2CFF004F64D5 /* Planet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Planet.swift; sourceTree = "<group>"; };
 		55B18AB61F8E8FD7004F64D5 /* SpaceStation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SpaceStation.swift; sourceTree = "<group>"; };
+		55BC79CE1FA887E400A7F1F6 /* getStarsScore.m4a */ = {isa = PBXFileReference; lastKnownFileType = file; path = getStarsScore.m4a; sourceTree = "<group>"; };
+		55BC79D41FA8953F00A7F1F6 /* spActivated1.m4a */ = {isa = PBXFileReference; lastKnownFileType = file; path = spActivated1.m4a; sourceTree = "<group>"; };
+		55BC79D61FA89C6900A7F1F6 /* youLoseSound.m4a */ = {isa = PBXFileReference; lastKnownFileType = file; path = youLoseSound.m4a; sourceTree = "<group>"; };
+		55BC79DA1FA8B0F900A7F1F6 /* coinSound.m4a */ = {isa = PBXFileReference; lastKnownFileType = file; path = coinSound.m4a; sourceTree = "<group>"; };
+		55BC79DC1FA8BAA900A7F1F6 /* pause1.m4a */ = {isa = PBXFileReference; lastKnownFileType = file; path = pause1.m4a; sourceTree = "<group>"; };
 		55D4BCC11F796EA1003FF61A /* GameOverScene.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = GameOverScene.swift; path = ../GameOverScene.swift; sourceTree = "<group>"; };
+		55DEF2471FAC7E86002CEE42 /* turnDone4.m4a */ = {isa = PBXFileReference; lastKnownFileType = file; path = turnDone4.m4a; sourceTree = "<group>"; };
+		55DEF2491FAC8411002CEE42 /* engineStart.m4a */ = {isa = PBXFileReference; lastKnownFileType = file; path = engineStart.m4a; sourceTree = "<group>"; };
+		55DEF24B1FAC8678002CEE42 /* engineStart1.m4a */ = {isa = PBXFileReference; lastKnownFileType = file; path = engineStart1.m4a; sourceTree = "<group>"; };
 		55E81D651F93932000737BC1 /* LevelsScene.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LevelsScene.swift; sourceTree = "<group>"; };
 		61DD2BC079044F421F41E147 /* Pods-Withstand to Space.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Withstand to Space.release.xcconfig"; path = "Pods/Target Support Files/Pods-Withstand to Space/Pods-Withstand to Space.release.xcconfig"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -84,6 +114,26 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		554C6A9B1FA747A700F5ACE7 /* Audio */ = {
+			isa = PBXGroup;
+			children = (
+				55BC79D41FA8953F00A7F1F6 /* spActivated1.m4a */,
+				55BC79DA1FA8B0F900A7F1F6 /* coinSound.m4a */,
+				5580A52B1FAA208200CA930E /* shipTurnSound.m4a */,
+				55BC79D61FA89C6900A7F1F6 /* youLoseSound.m4a */,
+				55DEF2471FAC7E86002CEE42 /* turnDone4.m4a */,
+				55DEF2491FAC8411002CEE42 /* engineStart.m4a */,
+				55BC79DC1FA8BAA900A7F1F6 /* pause1.m4a */,
+				55DEF24B1FAC8678002CEE42 /* engineStart1.m4a */,
+				550A353F1FAB910B00651635 /* engineNew.m4a */,
+				5580A52D1FAA2E4C00CA930E /* vicrotySound.m4a */,
+				55BC79CE1FA887E400A7F1F6 /* getStarsScore.m4a */,
+				554C6AA41FA7A95200F5ACE7 /* boom1.m4a */,
+				554C6AA21FA79D6B00F5ACE7 /* gameMusicNew1.m4a */,
+			);
+			name = Audio;
+			sourceTree = "<group>";
+		};
 		555C36CE1F715E89002A92DD = {
 			isa = PBXGroup;
 			children = (
@@ -105,6 +155,7 @@
 		555C36D91F715E89002A92DD /* Withstand to Space */ = {
 			isa = PBXGroup;
 			children = (
+				554C6A9B1FA747A700F5ACE7 /* Audio */,
 				557AB79D1F8BD3BE002A487E /* jetFire.sks */,
 				557AB7A11F8BF64C002A487E /* explosion.sks */,
 				558629D01F7C138F00571F89 /* Users.swift */,
@@ -114,6 +165,7 @@
 				55D4BCC11F796EA1003FF61A /* GameOverScene.swift */,
 				558B55281F78285500067A08 /* MainMenuScene.swift */,
 				55E81D651F93932000737BC1 /* LevelsScene.swift */,
+				557C3A8C1F9A5BC400B92683 /* CreditsScene.swift */,
 				555C36E01F715E89002A92DD /* GameScene.swift */,
 				555C36F21F717AC3002A92DD /* PlayerShip.swift */,
 				55B18AB41F8E2CFF004F64D5 /* Planet.swift */,
@@ -135,6 +187,7 @@
 			children = (
 				555C36E71F715E89002A92DD /* Assets.xcassets */,
 				557AB79F1F8BF117002A487E /* elitedanger.ttf */,
+				555B3AEB1FA60494002185DA /* venusrising.ttf */,
 				557516061F7AA43900042167 /* GoogleService-Info.plist */,
 				555C36DA1F715E89002A92DD /* AppDelegate.swift */,
 				555C36E41F715E89002A92DD /* Main.storyboard */,
@@ -234,6 +287,20 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				55DEF24C1FAC867D002CEE42 /* engineStart1.m4a in Resources */,
+				55DEF24A1FAC8425002CEE42 /* engineStart.m4a in Resources */,
+				55DEF2481FAC7ECD002CEE42 /* turnDone4.m4a in Resources */,
+				550A35401FAB911E00651635 /* engineNew.m4a in Resources */,
+				5580A52E1FAA2E5400CA930E /* vicrotySound.m4a in Resources */,
+				5580A52C1FAA208F00CA930E /* shipTurnSound.m4a in Resources */,
+				55BC79DD1FA8BAB000A7F1F6 /* pause1.m4a in Resources */,
+				55BC79DB1FA8B10600A7F1F6 /* coinSound.m4a in Resources */,
+				55BC79D71FA89C7500A7F1F6 /* youLoseSound.m4a in Resources */,
+				55BC79D51FA8954500A7F1F6 /* spActivated1.m4a in Resources */,
+				55BC79CF1FA8889C00A7F1F6 /* getStarsScore.m4a in Resources */,
+				55BC79CD1FA8852200A7F1F6 /* boom1.m4a in Resources */,
+				554C6AA31FA79DAD00F5ACE7 /* gameMusicNew1.m4a in Resources */,
+				555B3AEC1FA60571002185DA /* venusrising.ttf in Resources */,
 				557AB7A01F8BF14C002A487E /* elitedanger.ttf in Resources */,
 				555C36E61F715E89002A92DD /* Main.storyboard in Resources */,
 				555C36DD1F715E89002A92DD /* GameScene.sks in Resources */,
@@ -329,6 +396,7 @@
 				55947D491F86579C0053D18B /* Partition.swift in Sources */,
 				555C36E11F715E89002A92DD /* GameScene.swift in Sources */,
 				555C36E31F715E89002A92DD /* GameViewController.swift in Sources */,
+				557C3A8D1F9A5BC400B92683 /* CreditsScene.swift in Sources */,
 				555C36DB1F715E89002A92DD /* AppDelegate.swift in Sources */,
 				55B18AB71F8E8FD7004F64D5 /* SpaceStation.swift in Sources */,
 			);

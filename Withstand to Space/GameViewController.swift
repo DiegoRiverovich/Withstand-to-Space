@@ -11,6 +11,7 @@ import SpriteKit
 import GameplayKit
 
 class GameViewController: UIViewController {
+    
 
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -33,11 +34,11 @@ class GameViewController: UIViewController {
                 // Fallback on earlier versions
             }
             
-            //view.ignoresSiblingOrder = true
-            
-            //view.showsFPS = true
-           // view.showsNodeCount = true
-            //view.showsPhysics = true
+//            view.ignoresSiblingOrder = true
+//            
+//            view.showsFPS = true
+//            view.showsNodeCount = true
+//            view.showsPhysics = true
         }
     }
 
@@ -61,4 +62,5 @@ class GameViewController: UIViewController {
     override var prefersStatusBarHidden: Bool {
         return true
     }
+    
 }

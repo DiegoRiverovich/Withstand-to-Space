@@ -6,6 +6,7 @@
 //  Copyright © 2017 Андрей Бабий. All rights reserved.
 //
 
+/*
 import SpriteKit
 import UIKit
 
@@ -22,7 +23,7 @@ class HighscoreTableView: UITableView,UITableViewDelegate,UITableViewDataSource 
         super.init(coder: aDecoder)
         fatalError("init(coder:) has not been implemented")
     }
-    
+
     
     // MARK: - Table view data source
 //    func numberOfSections(in tableView: UITableView) -> Int {
@@ -34,7 +35,7 @@ class HighscoreTableView: UITableView,UITableViewDelegate,UITableViewDataSource 
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let cell:UITableViewCell = tableView.dequeueReusableCell(withIdentifier: "cell")! as UITableViewCell
         cell.textLabel?.text = self.items[indexPath.row]
-        cell.backgroundColor = UIColor.blue
+        //cell.backgroundColor = UIColor.blue
         return cell
     }
     func tableView(_ tableView: UITableView, titleForHeaderInSection section: Int) -> String? {
@@ -43,4 +44,9 @@ class HighscoreTableView: UITableView,UITableViewDelegate,UITableViewDataSource 
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         print("You selected cell #\(indexPath.row)!")
     }
+    
+    func tableView(_ tableView: UITableView, willDisplay cell: UITableViewCell, forRowAt indexPath: IndexPath) {
+        cell.backgroundColor = UIColor(white: 1, alpha: 0.5)
+    }
 }
+*/

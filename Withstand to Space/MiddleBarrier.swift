@@ -14,6 +14,7 @@ class MiddleBarrier: SKSpriteNode {
     let barriers = ["alien1_85"]
     
     var isActive: Bool = true
+    var isSlowing: Bool = false
     
     weak var mainScene: SKScene?
     
@@ -44,14 +45,16 @@ class MiddleBarrier: SKSpriteNode {
         if XPosition == 1 {
             if zPosition == 1 {
                 self.position = MiddleBarrierPosition.lowRight925 //DebrisPosition.lowRight925 //CGPoint(x: mainScene!.size.width * 0.70 - 170, y: mainScene!.size.height * 1.2)
-                self.xScale -= 0.5
-                self.yScale -= 0.5
+                self.xScale -= 0.1 //0.5
+                self.yScale -= 0.1
             } else if zPosition == 3 {
                 self.position = MiddleBarrierPosition.middleRight1010 //DebrisPosition.middleRight1010//CGPoint(x: mainScene!.size.width * 0.70 - 60, y: mainScene!.size.height * 1.2)
+                self.xScale += 0.4
+                self.yScale += 0.4
             } else if zPosition == 5 {
                 self.position = MiddleBarrierPosition.highRight1095 //DebrisPosition.highRight1095 //CGPoint(x: mainScene!.size.width * 0.70 + 25, y: mainScene!.size.height * 1.2)
-                self.xScale += 0.5
-                self.yScale += 0.5
+                self.xScale += 0.9//0.5
+                self.yScale += 0.9
             }
             self.texture = SKTexture(imageNamed: "mine01")
             
@@ -61,14 +64,16 @@ class MiddleBarrier: SKSpriteNode {
             
             if zPosition == 1 {
                 self.position = MiddleBarrierPosition.lowLeft620 //DebrisPosition.lowCenter768 //CGPoint(x: mainScene!.size.width * 0.5, y: mainScene!.size.height * 1.2)
-                self.xScale -= 0.5
-                self.yScale -= 0.5
+                self.xScale -= 0.1 //0.5
+                self.yScale -= 0.1
             } else if zPosition == 3 {
                 self.position = MiddleBarrierPosition.middleLeft535 //DebrisPosition.middleCenter768 //CGPoint(x: mainScene!.size.width * 0.5, y: mainScene!.size.height * 1.2)
+                self.xScale += 0.4
+                self.yScale += 0.4
             } else if zPosition == 5 {
                 self.position = MiddleBarrierPosition.highLeft450 //DebrisPosition.highCenter768 //CGPoint(x: mainScene!.size.width * 0.5, y: mainScene!.size.height * 1.2)
-                self.xScale += 0.5
-                self.yScale += 0.5
+                self.xScale += 0.9//0.5
+                self.yScale += 0.9
             }
             self.texture = SKTexture(imageNamed: "mine01")
            
@@ -96,7 +101,7 @@ class MiddleBarrier: SKSpriteNode {
          print("default")
          }*/
         //self.size = (self.texture?.size())!
-        self.physicsBody = SKPhysicsBody(texture: self.texture!, size: (self.texture?.size())!)
+        self.physicsBody = SKPhysicsBody(texture: self.texture!, size: /*(self.texture?.size())!*/ self.size)
         self.physicsBody?.isDynamic = true
         
         

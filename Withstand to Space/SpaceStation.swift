@@ -10,6 +10,7 @@ import UIKit
 import SpriteKit
 
 class SpaceStation: SKSpriteNode {
+
     
     let stations = ["ISS", "Space_Station", "Sputnik"]
     let positionsX: [CGFloat] = [-500, -500, -500, -500, 1800, 1800, 1800, 1800]

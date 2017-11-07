@@ -11,15 +11,22 @@ import SpriteKit
 
 class Barrier: SKSpriteNode {
     
-    let barriers = ["alien1", "alien2", "alien3", "coin1"]
+    let barriers = ["alien1_85"/*"alien1", "alien2", "alien3", "coin1"*/]
+    var coinMovingArray: [SKTexture] = [SKTexture(imageNamed: "newCoin1"),SKTexture(imageNamed: "newCoin2"),SKTexture(imageNamed: "newCoin3"),SKTexture(imageNamed: "newCoin4"),SKTexture(imageNamed: "newCoin5"),SKTexture(imageNamed: "newCoin6"),SKTexture(imageNamed: "newCoin7"),SKTexture(imageNamed: "newCoin8"), SKTexture(imageNamed: "newCoin9"),SKTexture(imageNamed: "newCoin10"),SKTexture(imageNamed: "newCoin11"),SKTexture(imageNamed: "newCoin12"),SKTexture(imageNamed: "newCoin13"),SKTexture(imageNamed: "newCoin14"),SKTexture(imageNamed: "newCoin15"),SKTexture(imageNamed: "newCoin16")]
+    
+    var coinMovingArray1: [SKTexture] = [SKTexture(imageNamed: "newCoin21"),SKTexture(imageNamed: "newCoin22"),SKTexture(imageNamed: "newCoin23"),SKTexture(imageNamed: "newCoin24"),SKTexture(imageNamed: "newCoin25"),SKTexture(imageNamed: "newCoin26"),SKTexture(imageNamed: "newCoin27"),SKTexture(imageNamed: "newCoin28")]
+    
+    var coinMovingArray2: [SKTexture] = [SKTexture(imageNamed: "newCoin3_1"),SKTexture(imageNamed: "newCoin3_2"),SKTexture(imageNamed: "newCoin3_3"),SKTexture(imageNamed: "newCoin3_4"),SKTexture(imageNamed: "newCoin3_5"),SKTexture(imageNamed: "newCoin3_6"),SKTexture(imageNamed: "newCoin3_7")]
+    
     
     var isActive: Bool = true
+    var isSlowing: Bool = false
     
     weak var mainScene: SKScene?
     
     init() {
         // Initialize whith RANDOM pic from array barriers.
-        let texture = SKTexture(imageNamed: barriers[Int(arc4random()%4)])
+        let texture = SKTexture(imageNamed: barriers[Int(arc4random()%1)])
         
         super.init(texture: texture, color: UIColor.clear, size: texture.size())
         
@@ -81,21 +88,39 @@ class Barrier: SKSpriteNode {
         self.init()
         self.physicsBody = nil
         //let texture = SKTexture(imageNamed: barriers[Int(arc4random()%4)])
-        self.texture = SKTexture(imageNamed: "boxTrio")
+        //self.texture = SKTexture(imageNamed: "boxTrio")
         self.zPosition = zPosition
         //self.position.x = XPosition
+        
+        var coin = Int(arc4random()%2)
+        coin = 2
+        if coin == 0 {
+            let coinMovingAction = SKAction.animate(with: coinMovingArray, timePerFrame: 0.06)
+            let forever = SKAction.repeatForever(coinMovingAction)
+            self.run(forever)
+        } else if coin == 1 {
+            let coinMovingAction = SKAction.animate(with: coinMovingArray1, timePerFrame: 0.06)
+            let forever = SKAction.repeatForever(coinMovingAction)
+            self.run(forever)
+        } else if coin == 2 {
+            let coinMovingAction = SKAction.animate(with: coinMovingArray2, timePerFrame: 0.06)
+            let forever = SKAction.repeatForever(coinMovingAction)
+            self.run(forever)
+        }
         
         if XPosition == 1 {
             if zPosition == 1 {
                 self.position = DebrisPosition.lowRight925 //CGPoint(x: mainScene!.size.width * 0.70 - 170, y: mainScene!.size.height * 1.2)
-                self.xScale -= 0.5
-                self.yScale -= 0.5
+                self.xScale -= 0.1
+                self.yScale -= 0.1
             } else if zPosition == 3 {
                 self.position = DebrisPosition.middleRight1010//CGPoint(x: mainScene!.size.width * 0.70 - 60, y: mainScene!.size.height * 1.2)
+                self.xScale += 0.4
+                self.yScale += 0.4
             } else if zPosition == 5 {
                 self.position = DebrisPosition.highRight1095 //CGPoint(x: mainScene!.size.width * 0.70 + 25, y: mainScene!.size.height * 1.2)
-                self.xScale += 0.5
-                self.yScale += 0.5
+                self.xScale += 0.9
+                self.yScale += 0.9
             }
         } else if XPosition == 2 {
             
@@ -103,28 +128,32 @@ class Barrier: SKSpriteNode {
             
             if zPosition == 1 {
                 self.position = DebrisPosition.lowCenter768 //CGPoint(x: mainScene!.size.width * 0.5, y: mainScene!.size.height * 1.2)
-                self.xScale -= 0.5
-                self.yScale -= 0.5
+                self.xScale -= 0.1
+                self.yScale -= 0.1
             } else if zPosition == 3 {
                 self.position = DebrisPosition.middleCenter768 //CGPoint(x: mainScene!.size.width * 0.5, y: mainScene!.size.height * 1.2)
+                self.xScale += 0.4
+                self.yScale += 0.4
             } else if zPosition == 5 {
                 self.position = DebrisPosition.highCenter768 //CGPoint(x: mainScene!.size.width * 0.5, y: mainScene!.size.height * 1.2)
-                self.xScale += 0.5
-                self.yScale += 0.5
+                self.xScale += 0.9
+                self.yScale += 0.9
             }
         } else if XPosition == 3 {
             
             //case 3:
             if zPosition == 1 {
                 self.position = DebrisPosition.lowLeft620 //CGPoint(x: mainScene!.size.width * 0.30 + 170, y: mainScene!.size.height * 1.2)
-                self.xScale -= 0.5
-                self.yScale -= 0.5
+                self.xScale -= 0.1
+                self.yScale -= 0.1
             } else if zPosition == 3 {
                 self.position = DebrisPosition.middleLeft535 //CGPoint(x: mainScene!.size.width * 0.30 + 60, y: mainScene!.size.height * 1.2)
+                self.xScale += 0.4
+                self.yScale += 0.4
             } else if zPosition == 5  {
                 self.position = DebrisPosition.highLeft450 //CGPoint(x: mainScene!.size.width * 0.30 - 25, y: mainScene!.size.height * 1.2)
-                self.xScale += 0.5
-                self.yScale += 0.5
+                self.xScale += 0.9
+                self.yScale += 0.9
             }
         }
         
