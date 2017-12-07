@@ -535,10 +535,11 @@
 			isa = XCBuildConfiguration;
 			baseConfigurationReference = 2D7091E5BB97B6FB145FFA43 /* Pods-Withstand to Space.debug.xcconfig */;
 			buildSettings = {
+				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = NO;
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				DEVELOPMENT_TEAM = V2U6X73M7K;
 				INFOPLIST_FILE = "Withstand to Space/Info.plist";
-				IPHONEOS_DEPLOYMENT_TARGET = 10.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 9.0;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
 				PRODUCT_BUNDLE_IDENTIFIER = "NiceAttireGames.com.Withstand-to-Space";
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -552,10 +553,11 @@
 			isa = XCBuildConfiguration;
 			baseConfigurationReference = 61DD2BC079044F421F41E147 /* Pods-Withstand to Space.release.xcconfig */;
 			buildSettings = {
+				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = NO;
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				DEVELOPMENT_TEAM = V2U6X73M7K;
 				INFOPLIST_FILE = "Withstand to Space/Info.plist";
-				IPHONEOS_DEPLOYMENT_TARGET = 10.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 9.0;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
 				PRODUCT_BUNDLE_IDENTIFIER = "NiceAttireGames.com.Withstand-to-Space";
 				PRODUCT_NAME = "$(TARGET_NAME)";

@@ -8,6 +8,7 @@
 
 import UIKit
 import Firebase
+import SpriteKit
 
 var userId = ""
 
@@ -53,7 +54,7 @@ class HighscoreViewController: UIViewController, UITableViewDelegate, UITableVie
         //var reloadRowTimer = Timer.scheduledTimer(timeInterval: TimeInterval(2), target: self, selector: #selector(HighscoreViewController.reloadRowInTable), userInfo: nil, repeats: false)
         
         // SetUp cell font
-        self.view.backgroundColor = UIColor(patternImage: UIImage(named: "menuBackground2")!)
+        self.view.backgroundColor = UIColor(patternImage: UIImage(named: "backgroundStars02" /*"menuBackground2"*/)!)
         highScoreTableView.backgroundColor = UIColor.clear
         //highScoreTableView.alwaysBounceVertical = false
         
@@ -62,7 +63,13 @@ class HighscoreViewController: UIViewController, UITableViewDelegate, UITableVie
         backButton.titleLabel?.font = UIFont(name: SomeNames.fontNameVenusrising, size: 20)
         backButton.titleLabel?.textColor = UIColor.white
         if preferredLanguage == .ru {
-            backButton.setTitle("назад", for: .normal)   //.titleLabel?.text = "В МЕНЮ"
+            backButton.setTitle("на3ад", for: .normal)   //.titleLabel?.text = "В МЕНЮ"
+        } else if preferredLanguage == .ch {
+            backButton.setTitle("后退", for: .normal)
+        } else if preferredLanguage == .es {
+            backButton.setTitle("Atrás", for: .normal)
+        } else {
+            backButton.setTitle("back", for: .normal)
         }
         
         
@@ -75,14 +82,26 @@ class HighscoreViewController: UIViewController, UITableViewDelegate, UITableVie
     @objc func setPlace() {
         //if let myplace = place {
         var index = 0
-        for i in 1...nicknameArray.count {
-            if nicknameArray[i-1] == nickName && highscoreArray[i-1] == highScoreNumber {
-                if index == 0 {
-                mainPlaceCell?.placeLabel.text = "\(i)" //String(describing: myplace)
-                print("sdfasdfasdfsfasdfsdfas")
-                    index += 1
+        //nicknameArray.removeAll()
+        if !nicknameArray.isEmpty {
+            for i in 1...nicknameArray.count {
+                if nicknameArray[i-1] == nickName && highscoreArray[i-1] == highScoreNumber {
+                    if index == 0 {
+                        mainPlaceCell?.placeLabel.text = "\(i)" //String(describing: myplace)
+                        //print("sdfasdfasdfsfasdfsdfas")
+                        index += 1
+                    }
                 }
             }
+        } else if nicknameArray.isEmpty {
+            let alertView = UIAlertController(title: "Error.", message: "Try later.", preferredStyle: .alert)
+            let action = UIAlertAction(title: "Ok.", style: .default, handler: { (alert) in
+                
+            })
+            alertView.addAction(action)
+            //self.presentedViewController(alert, animated: true, completion: nil)
+            self.present(alertView, animated: true, completion: nil)
+            //exit(0)
         }
         //myPlaceCell?.placeLabel.text = nicknameArray[myplace] //String(describing: myplace)
         //}
@@ -110,7 +129,7 @@ class HighscoreViewController: UIViewController, UITableViewDelegate, UITableVie
     
     // Auth
     func auth() {
-        Auth.auth().signIn(withEmail: "withstandtospace@test.com", password: "123ASDasd") { (user, error) in
+        Auth.auth().signIn(withEmail: "withstandtospace@test.com", password: "123ASDasd") { [weak self] (user, error) in
             if error != nil {
                 print(error!)
                 return
@@ -119,10 +138,10 @@ class HighscoreViewController: UIViewController, UITableViewDelegate, UITableVie
             DispatchQueue.main.async {
                 //self.ref?.child("Score").child(self.userName).setValue(self.highScoreNumber)
                 let defaults = UserDefaults()
-                let defaultsIsExist = self.isKeyPresentInUserDefaults(key: "userId")
-                if !defaultsIsExist {
+                let defaultsIsExist = self?.isKeyPresentInUserDefaults(key: "userId")
+                if !defaultsIsExist! {
                     // Set user id
-                    let childRef = self.ref?.childByAutoId()
+                    let childRef = self?.ref?.childByAutoId()
                     
                     // read user id
                     let userKey = childRef?.key
@@ -142,7 +161,7 @@ class HighscoreViewController: UIViewController, UITableViewDelegate, UITableVie
                 }
             }
             
-            self.observeUsers()
+            self?.observeUsers()
             
         }
     }
@@ -151,15 +170,15 @@ class HighscoreViewController: UIViewController, UITableViewDelegate, UITableVie
     func observeUsers() {
         let userRef = Database.database().reference().child("user")      //.queryOrdered(byChild: "highscore")
         var index = 0
-        userRef.observe(.childAdded , with: { (snapshot) in
+        userRef.observe(.childAdded , with: { [weak self] (snapshot) in
 
                 if let dictionary = snapshot.value as? [String : Any] {
                     
                     if let _ = dictionary["highscore"] as? Int, let _ = dictionary["nickname"] as? String {
 
-                        self.dictArray.append(dictionary)
+                        self?.dictArray.append(dictionary)
 
-                        self.activityIndicator.stopAnimating()
+                        self?.activityIndicator.stopAnimating()
                         index += 1
 
                     }
@@ -262,7 +281,7 @@ class HighscoreViewController: UIViewController, UITableViewDelegate, UITableVie
             //cell.textLabel?.text = String(highscore)
             //cell.detailTextLabel?.text = nickName
             
-            cell?.nicknameLabel?.text = nickName
+            cell?.nicknameLabel?.text = "\(nickName) ✏️"
             cell?.scoreLabel?.text = String(highscore)
             cell?.placeLabel?.text = myPlaceScoreForColor
             cell?.nicknameLabel.textColor = UIColor.white
@@ -281,15 +300,15 @@ class HighscoreViewController: UIViewController, UITableViewDelegate, UITableVie
             
             //cell?.textLabel?.text = nicknameArray[indexPath.row] //key //String(describing: array) //self.items[indexPath.row]
             //cell?.detailTextLabel?.text = String(highscoreArray[indexPath.row])
-            print("\(nickScoreForColor)")
-            print("\(scoreScoreForColor)")
+            //print("\(nickScoreForColor)")
+            //print("\(scoreScoreForColor)")
             if nicknameArray[indexPath.row] == nickScoreForColor && String(highscoreArray[indexPath.row]) == scoreScoreForColor {
                 
                 cell?.nicknameLabel?.text = nicknameArray[indexPath.row]
                 cell?.scoreLabel?.text = String(highscoreArray[indexPath.row])
                 cell?.placeLabel?.text = "\(indexPath.row + 1)"
                 cell?.nicknameLabel.textColor = UIColor.white
-                print("yo1")
+                //print("yo1")
                 //countPlace = 1
                 if countPlace != 0 {
                     if oneIndexPath == nil {
@@ -299,7 +318,7 @@ class HighscoreViewController: UIViewController, UITableViewDelegate, UITableVie
                     //print(myPlaceScoreForColor)
                     //highScoreTableView.moveRow(at: indexPath, to: myIndexPath)
                     countPlace -= 1
-                    print("yo2")
+                    //print("yo2")
                     if oneIndexPath == nil {
                         oneIndexPath = indexPath
                         place = indexPath.row + 1
@@ -315,7 +334,7 @@ class HighscoreViewController: UIViewController, UITableViewDelegate, UITableVie
                 cell?.scoreLabel?.text = String(highscoreArray[indexPath.row])
                 cell?.placeLabel?.text = "\(indexPath.row + 1)"
                 cell?.nicknameLabel.textColor = UIColor.white
-                print("yo3")
+                //print("yo3")
             }
             //highScoreTableView.reloadSections([0], with: .none)
             //highScoreTableView.reloadRows(at: [myIndexPath], with: .none)
@@ -351,15 +370,33 @@ class HighscoreViewController: UIViewController, UITableViewDelegate, UITableVie
     func tableView(_ tableView: UITableView, titleForHeaderInSection section: Int) -> String? {
         
         if section == 0 {
-            return "Your score"
+            if preferredLanguage == .ru {
+                return "Мои очки"
+            } else if preferredLanguage == .ch {
+                return "你的积分 / 得分"
+            } else if preferredLanguage == .es {
+                return "Tu puntuación"
+            } else {
+                return "Your score"
+            }
+            
         } else {
-            return "Highscore"
+            if preferredLanguage == .ru {
+                return "Лучший счет"
+            } else if preferredLanguage == .ch {
+                return "开始"
+            } else if preferredLanguage == .es {
+                return "Puntuación máxima"
+            } else {
+                return "Highscore"
+            }
+            
         }
         
     }
     
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
-        print("You selected cell #\(indexPath.row)!")
+        //print("You selected cell #\(indexPath.row)!")
         
         let selectedIndexPath = self.highScoreTableView.indexPathForSelectedRow
         
@@ -452,5 +489,9 @@ class HighscoreViewController: UIViewController, UITableViewDelegate, UITableVie
         // Pass the selected object to the new view controller.
     }
     */
+    
+    deinit {
+        print("high score scene deinit")
+    }
 
 }

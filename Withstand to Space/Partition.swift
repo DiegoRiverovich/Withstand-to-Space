@@ -12,6 +12,7 @@ import SpriteKit
 class Partition: SKSpriteNode {
     
     weak var mainScene: GameScene?
+    weak var playerShipNotDeinit: PlayerShip?
     
     //var isActive: Bool = true
     
@@ -21,7 +22,7 @@ class Partition: SKSpriteNode {
     
     var higherThenShip: Bool {
         didSet {
-            if self.contactWithShip && oldValue != higherThenShip {
+            if self.contactWithShip && oldValue != higherThenShip /*&& shipStatus != .invisible*/ {
                 print("hello contact")
                 var playerShip = PlayerShip()
                 var rougeOneShip = PlayerShip()
@@ -44,18 +45,23 @@ class Partition: SKSpriteNode {
                 
                 if playerShip.rougeIsActive == true  {
                     if shipStatus == .rogueOne {
+                        explosion(pos: rougeOneShip.position)
                         explosion(pos: playerShip.position)
                         playerShip.removeFromParent()
+                        rougeOneShip.removeFromParent()
                         mainScene?.rougeOneShipGlobal?.name = "playerShip"
                         
                         mainScene?.ship = mainScene!.rougeOneShipGlobal!
                         mainScene?.ship.rougeIsActive = true
                         mainScene?.changeShipStatus()
+                        print("yo1")
                         
                     } else if shipStatus == .noraml /*|| shipStatus == .trio*/ {
-                        explosion(pos: playerShip.position)
-                        playerShip.removeFromParent()
+                        //explosion(pos: playerShip.position)
+                        mainScene?.explosion(pos: playerShipNotDeinit!.position, zPos: playerShipNotDeinit!.zPosition)
+                        playerShipNotDeinit!.removeFromParent()
                         NotificationCenter.default.post(name: SomeNames.blowTheShip, object: nil)
+                        print("yo222")
                     } else if shipStatus == .trio {
                         for trioShip in trioShips {
                             explosion(pos: trioShip.position)
@@ -66,6 +72,7 @@ class Partition: SKSpriteNode {
                             
                             NotificationCenter.default.post(name: SomeNames.blowTheShip, object: nil)
                             mainScene?.changeShipStatus()
+                            print("yo3")
                         }
                     }
                  
@@ -105,7 +112,7 @@ class Partition: SKSpriteNode {
     
     var contactWithShip: Bool = false
     
-    let partitions = ["partition10.jpg"]
+    let partitions = ["testTxtr2.png"]
     
     init() {
         /*
@@ -200,12 +207,12 @@ class Partition: SKSpriteNode {
             let randomNumber24 = CGFloat(arc4random_uniform(2) + 2)
             if randomNumber24 == 2 {
                 self.zPosition = 2
-                self.xScale = 0.7
-                self.yScale = 0.7
+                self.xScale = 0.9
+                self.yScale = 0.9
             } else if randomNumber24 == 3 {
                 self.zPosition = 4
-                self.xScale = 1.0
-                self.yScale = 1.0
+                self.xScale = 1.2
+                self.yScale = 1.2
                 //        } else if randomNumber24 == 4 {
                 //            self.zPosition = 5
                 //            self.xScale = 1.0
@@ -260,44 +267,44 @@ class Partition: SKSpriteNode {
             
             switch level {
             case 0:
-                texture = SKTexture(imageNamed: "testTxtr")
+                texture = SKTexture(imageNamed: "testTxtr2")
                 
             case 1:
-                texture = SKTexture(imageNamed: "testTxtr")
+                texture = SKTexture(imageNamed: "testTxtr2")
             case 2:
                 //texture = SKTexture(imageNamed: partitions[Int(arc4random()%2)])
-                texture = SKTexture(imageNamed: "partition10")
+                texture = SKTexture(imageNamed: "testTxtr2")
             case 3:
-                texture = SKTexture(imageNamed: "testTxtr")
+                texture = SKTexture(imageNamed: "testTxtr2")
             case 4:
-                texture = SKTexture(imageNamed: "testTxtr")
+                texture = SKTexture(imageNamed: "testTxtr2")
             case 5:
-                texture = SKTexture(imageNamed: "testTxtr")
+                texture = SKTexture(imageNamed: "testTxtr2")
             case 6:
-                texture = SKTexture(imageNamed: "testTxtr")
+                texture = SKTexture(imageNamed: "testTxtr2")
             case 7:
-                texture = SKTexture(imageNamed: "testTxtr")
+                texture = SKTexture(imageNamed: "testTxtr2")
             case 8:
-                texture = SKTexture(imageNamed: "testTxtr")
+                texture = SKTexture(imageNamed: "testTxtr2")
             case 9:
-                texture = SKTexture(imageNamed: "testTxtr")
+                texture = SKTexture(imageNamed: "testTxtr2")
             case 10:
-                texture = SKTexture(imageNamed: "testTxtr")
+                texture = SKTexture(imageNamed: "testTxtr2")
             case 11:
-                texture = SKTexture(imageNamed: "testTxtr")
+                texture = SKTexture(imageNamed: "testTxtr2")
             default:
-                texture = SKTexture(imageNamed: "testTxtr")
+                texture = SKTexture(imageNamed: "testTxtr2")
             }
  
             
             if zPosition == 2 {
                 self.zPosition = 2
-                self.xScale = 2.3
-                self.yScale = 2.3
+                self.xScale = 2.9
+                self.yScale = 2.9
             } else if zPosition == 4 {
                 self.zPosition = 4
-                self.xScale = 3.1
-                self.yScale = 3.1
+                self.xScale = 3.7
+                self.yScale = 3.7
             } else {
                 // do nothing
             }
@@ -346,7 +353,29 @@ class Partition: SKSpriteNode {
         shipExplode = true
         
     }
-    
+    /*
+    func explosionFromGameScene(pos: CGPoint, zPos: CGFloat) {
+        if let explosion = SKEmitterNode(fileNamed: "explosion.sks") {
+            if soundsIsOn {
+                run(SKAction.playSoundFileNamed("boom1.m4a", waitForCompletion: false))
+                //engineSoundsAction.speed = 0.0
+                removeAction(forKey: "shipEngineSound")
+            }
+            explosion.particlePosition = pos
+            explosion.zPosition = zPos
+            //scene?.addChild(explosion)
+            self.gameLayer.addChild(explosion)
+            scene?.run(SKAction.wait(forDuration: TimeInterval(2)), completion: { explosion.removeFromParent() } )
+            shipExplode = true
+            puzzleCurrentGameStatus = false
+            
+            changeShipStatus()
+            triggerNormalStatus()
+            
+        }
+        
+    }
+    */
     
 }     // class
 

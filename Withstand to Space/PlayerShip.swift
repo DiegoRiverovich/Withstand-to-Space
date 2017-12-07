@@ -12,7 +12,7 @@ import simd
 
 class PlayerShip: SKSpriteNode {
     
-    weak var mainScene: SKScene?
+    weak var mainScene: GameScene? //SKScene?
     
     var shipSize: CGSize?
     
@@ -27,30 +27,18 @@ class PlayerShip: SKSpriteNode {
     var shipTurningDownArray: [SKTexture] = [SKTexture(imageNamed: "ship20"),SKTexture(imageNamed: "ship21"),SKTexture(imageNamed: "ship22"),SKTexture(imageNamed: "ship23"),SKTexture(imageNamed: "ship24"),SKTexture(imageNamed: "ship25"),SKTexture(imageNamed: "ship26")]
     var shipTurningUpArray: [SKTexture] = [SKTexture(imageNamed: "ship30"),SKTexture(imageNamed: "ship31"),SKTexture(imageNamed: "ship32"),SKTexture(imageNamed: "ship33"),SKTexture(imageNamed: "ship34"),SKTexture(imageNamed: "ship35"),SKTexture(imageNamed: "ship36")]
     
+    var shipRougeOneEffect: [SKTexture] = [SKTexture(imageNamed: "r1"),SKTexture(imageNamed: "r2"),SKTexture(imageNamed: "r3"),SKTexture(imageNamed: "r4"),SKTexture(imageNamed: "r5"),SKTexture(imageNamed: "r6")]
+    
+    var distortEffectOutArray: [SKTexture] = [SKTexture(imageNamed: "shipDist1"),SKTexture(imageNamed: "shipDist2"),SKTexture(imageNamed: "shipDist3"),SKTexture(imageNamed: "shipDist4")]
+    var distortEffectInArray: [SKTexture] = [SKTexture(imageNamed: "shipDist4"),SKTexture(imageNamed: "shipDist3"),SKTexture(imageNamed: "shipDist2"),SKTexture(imageNamed: "shipDist1")]
+    
     let jetFire = SKEmitterNode(fileNamed: "jetFire.sks")
     
     var rougeIsActive = true
     
     var actionIsActive: Bool
     
-    // Second status active
-    var trioTimeActive = 100 {
-        didSet {
-            
-        }
-    }
-    var rougeOneTimeActive = 100
-    {
-        didSet {
-            
-        }
-    }
-    var InvisibleTimeActive = 100
-    {
-        didSet {
-            
-        }
-    }
+    
     
     // Global collision detectors
     let cD1 = CollisionDetector(color: UIColor.clear, size: CGSize(width: 10, height: 10))
@@ -62,7 +50,10 @@ class PlayerShip: SKSpriteNode {
     let cD7 = CollisionDetector(color: UIColor.clear, size: CGSize(width: 10, height: 10))
     let cD8 = CollisionDetector(color: UIColor.clear, size: CGSize(width: 10, height: 10))
     
+    let rougeOnedot = SKSpriteNode(color: UIColor.clear, size: CGSize(width: 100, height: 100))
+    
     init() {
+        //print("playerShip INIT")
         // Initialize whith pic.
         actionIsActive = false
         let texture = SKTexture(imageNamed: "ship10001")
@@ -91,6 +82,7 @@ class PlayerShip: SKSpriteNode {
         particleToNormalTimer = Timer.scheduledTimer(timeInterval: TimeInterval(3), target: self, selector: #selector(PlayerShip.particleToNormal), userInfo: nil, repeats: false)
         
         //jetFire?.particleScale = 1.5
+        rougeOnePositionDot()
     }
     
     required init?(coder aDecoder: NSCoder) {
@@ -109,6 +101,43 @@ class PlayerShip: SKSpriteNode {
         
         jetFire?.particleSpeed = 200
         jetFire?.particleLifetime = 0.2
+    }
+    
+    func distortOutEffect() {
+        let fadeOutAction = SKAction.fadeOut(withDuration: 0.25)
+        let distortAction = SKAction.animate(with: distortEffectOutArray, timePerFrame: 0.08)
+        let removeFromParent = SKAction.removeFromParent()
+        let distortGroup = SKAction.group([fadeOutAction, distortAction])
+        let sequence = SKAction.sequence([distortGroup, removeFromParent])
+        self.run(sequence)
+    }
+    
+    func distortInEffect() {
+        let fadeInAction = SKAction.fadeIn(withDuration: 0.25)
+        let distortAction = SKAction.animate(with: distortEffectInArray, timePerFrame: 0.08)
+        let distortGroup = SKAction.group([fadeInAction, distortAction])
+        self.run(distortGroup)
+    }
+    
+    //MARK: RougeOne Effect
+    func rougeOneEffect() {
+        let effect = SKAction.animate(with: shipRougeOneEffect, timePerFrame: 0.06)
+        rougeOnedot.run(SKAction.repeatForever(effect), withKey: "rougeOneEffectAction")
+        rougeOnedot.isHidden = false
+    }
+    
+    func stopRougeOneEffect() {
+        rougeOnedot.removeAction(forKey: "rougeOneEffectAction")
+        rougeOnedot.isHidden = true
+    }
+    
+    func rougeOnePositionDot() {
+        rougeOnedot.zPosition = 100
+        rougeOnedot.position = CGPoint(x: (self.size.width - self.size.width) , y: (self.size.height - self.size.height))
+        //rougeOnedot.position = CGPoint(x: 200, y: 200)
+        rougeOnedot.size = CGSize(width: self.size.width + 150, height: self.size.height + 150)
+        self.addChild(rougeOnedot)
+        //print("adsfhaskdjflsadfhjashdfjakdhfkshadlfjksdf")
     }
     
     //MARK: ParticleEmitter to normal after start
@@ -167,10 +196,12 @@ class PlayerShip: SKSpriteNode {
                 }
             //print(self.position)
             case .trio:
-                
-                let allShips = mainScene?.children
+                print("trio up 1")
+                let allShips = mainScene?.gameLayer.children //mainScene?.children
                 for trioShip in allShips! {
+                    print("trio up 2")
                     if trioShip is PlayerShip /*&& trioShip.name == "trioShip"*/ {
+                        print("trio up 3")
                         let moveUp = true
                         var actionArray: [SKAction] = []
                         if trioShip.xScale.roundTo1Decimal() >= ShipScale.big /*1.5*/ && trioShip.zPosition == 5 {
@@ -338,7 +369,7 @@ class PlayerShip: SKSpriteNode {
             //print(self.position)
             case .trio:
                 
-                let allShips = mainScene?.children
+                let allShips = mainScene?.gameLayer.children //mainScene?.children
                 for trioShip in allShips! {
                     if trioShip is PlayerShip /*&& trioShip.name == "trioShip"*/ {
                         
@@ -458,7 +489,7 @@ class PlayerShip: SKSpriteNode {
         let moveToAction2: SKAction
         let moveToAction3: SKAction
         let moveToAction4: SKAction
-        let moveUpOrDown: SKAction
+        var moveUpOrDown = SKAction()
         //let moveDownAction: SKAction
         
         if moveUp {
@@ -476,7 +507,16 @@ class PlayerShip: SKSpriteNode {
                 moveToAction3 = SKAction.moveTo(x: self.position.x /*scene!.size.width * 0.70 - 65*/, duration: shipSpeedMovement.rawValue)
                 moveToAction4 = SKAction.moveTo(x: PlayerPosition.highRight1095.x, duration: shipSpeedMovement.rawValue)
             }
-            moveUpOrDown = SKAction.animate(with: shipTurningUpArray, timePerFrame: 0.1)
+            
+            if shipSpeedMovement == .slow {
+                moveUpOrDown = SKAction.animate(with: shipTurningUpArray, timePerFrame: 0.06)
+            } else if shipSpeedMovement == .normal {
+                moveUpOrDown = SKAction.animate(with: shipTurningUpArray, timePerFrame: 0.05)
+            } else if shipSpeedMovement == .fast {
+                moveUpOrDown = SKAction.animate(with: shipTurningUpArray, timePerFrame: 0.04)
+            }
+            
+            //moveUpOrDown = SKAction.animate(with: shipTurningUpArray, timePerFrame: 0.08)
             
             /* Old calculated points from scene
             if self.zPosition == 2 {
@@ -515,7 +555,15 @@ class PlayerShip: SKSpriteNode {
                 moveToAction3 = SKAction.moveTo(x: self.position.x /*scene!.size.width * 0.70 - 65*/, duration: 0.2)
                 moveToAction4 = SKAction.moveTo(x: PlayerPosition.middleRight1010.x /*scene!.size.width * 0.70 + 20*/, duration: shipSpeedMovement.rawValue)
             }
-            moveUpOrDown = SKAction.animate(with: shipTurningDownArray, timePerFrame: 0.1)
+            
+            //var moveUpOrDown = SKAction()
+            if shipSpeedMovement == .slow {
+                moveUpOrDown = SKAction.animate(with: shipTurningDownArray, timePerFrame: 0.06)
+            } else if shipSpeedMovement == .normal {
+                moveUpOrDown = SKAction.animate(with: shipTurningDownArray, timePerFrame: 0.05)
+            } else if shipSpeedMovement == .fast {
+                moveUpOrDown = SKAction.animate(with: shipTurningDownArray, timePerFrame: 0.04)
+            }
             /* Old calculated points from scene
             if self.zPosition == 2 {
                 moveToAction2 = SKAction.moveTo(x: self.position.x /*scene!.size.width * 0.30 + 160*/, duration: 0.2)  //
@@ -559,6 +607,7 @@ class PlayerShip: SKSpriteNode {
         let moveToAction2: SKAction
         let moveToAction3: SKAction
         let moveToAction4: SKAction
+        var moveUpOrDown = SKAction()
         
         if moveUp {
             
@@ -575,6 +624,16 @@ class PlayerShip: SKSpriteNode {
                 moveToAction3 = SKAction.moveTo(x: trioShip.position.x /*scene!.size.width * 0.70 - 65*/, duration: shipSpeedMovement.rawValue)
                 moveToAction4 = SKAction.moveTo(x: PlayerPosition.highRight1095.x, duration: shipSpeedMovement.rawValue)
             }
+            
+            if shipSpeedMovement == .slow {
+                moveUpOrDown = SKAction.animate(with: shipTurningUpArray, timePerFrame: 0.06)
+            } else if shipSpeedMovement == .normal {
+                moveUpOrDown = SKAction.animate(with: shipTurningUpArray, timePerFrame: 0.05)
+            } else if shipSpeedMovement == .fast {
+                moveUpOrDown = SKAction.animate(with: shipTurningUpArray, timePerFrame: 0.04)
+            }
+            
+            //moveUpOrDown = SKAction.animate(with: shipTurningUpArray, timePerFrame: 0.8)
             
             /* Old calculated points from scene
             if trioShip.zPosition == 2 {
@@ -614,6 +673,16 @@ class PlayerShip: SKSpriteNode {
                 moveToAction4 = SKAction.moveTo(x: PlayerPosition.middleRight1010.x /*scene!.size.width * 0.70 + 20*/, duration: shipSpeedMovement.rawValue)
             }
             
+            if shipSpeedMovement == .slow {
+                moveUpOrDown = SKAction.animate(with: shipTurningDownArray, timePerFrame: 0.06)
+            } else if shipSpeedMovement == .normal {
+                moveUpOrDown = SKAction.animate(with: shipTurningDownArray, timePerFrame: 0.05)
+            } else if shipSpeedMovement == .fast {
+                moveUpOrDown = SKAction.animate(with: shipTurningDownArray, timePerFrame: 0.04)
+            }
+            
+            //moveUpOrDown = SKAction.animate(with: shipTurningDownArray, timePerFrame: 0.08)
+            
             /* Old calculated points from scene
             if trioShip.zPosition == 2 {
                 moveToAction2 = SKAction.moveTo(x: trioShip.position.x /*scene!.size.width * 0.30 + 160*/, duration: 0.2)   // Left side
@@ -640,17 +709,18 @@ class PlayerShip: SKSpriteNode {
         
         var group: SKAction
         if trioShip.centerLeftOrRightPosition == 2 {
-            group = SKAction.group([scaleDown, moveToAction2])
+            group = SKAction.group([scaleDown, moveToAction2,moveUpOrDown])
         } else if trioShip.centerLeftOrRightPosition == 3 {
-            group = SKAction.group([scaleDown, moveToAction3])
+            group = SKAction.group([scaleDown, moveToAction3,moveUpOrDown])
         } else /* if centerLeftOrRightPosition == 4 */ {
-            group = SKAction.group([scaleDown, moveToAction4])
+            group = SKAction.group([scaleDown, moveToAction4,moveUpOrDown])
         }
         group.timingMode = SKActionTimingMode.easeInEaseOut
         return group
     }
     
     func moveLeft() {
+        //stopRougeOneEffect()
         if (!actionIsActive) {
             actionIsActive = true
             switch shipStatus {
@@ -661,7 +731,16 @@ class PlayerShip: SKSpriteNode {
                 let currentPosition = self.position
                 if ceil(currentPosition.x) == scene!.size.width / 2 {
                     //self.position = CGPoint(x: scene!.size.width * 0.30, y: scene!.size.height * 0.25)
-                    let turnLeftAction = SKAction.animate(with: shipTurningLeftArray, timePerFrame: 0.06)
+                    var turnLeftAction = SKAction()
+                    if shipSpeedMovement == .slow {
+                        turnLeftAction = SKAction.animate(with: shipTurningLeftArray, timePerFrame: 0.06)
+                    } else if shipSpeedMovement == .normal {
+                        turnLeftAction = SKAction.animate(with: shipTurningLeftArray, timePerFrame: 0.05)
+                    } else if shipSpeedMovement == .fast {
+                        turnLeftAction = SKAction.animate(with: shipTurningLeftArray, timePerFrame: 0.04)
+                    }
+                    
+                    //let turnLeftAction = SKAction.animate(with: shipTurningLeftArray, timePerFrame: 0.06)
                     
                     var moveAction: SKAction
                     if self.zPosition == 1 {
@@ -684,7 +763,16 @@ class PlayerShip: SKSpriteNode {
                     }
                 } else if ceil(currentPosition.x) > scene!.size.width * 0.5 {
                     //self.position = CGPoint(x: scene!.size.width * 0.5, y: scene!.size.height * 0.25)
-                    let turnLeftAction = SKAction.animate(with: shipTurningLeftArray, timePerFrame: 0.06)
+                    var turnLeftAction = SKAction()
+                    if shipSpeedMovement == .slow {
+                        turnLeftAction = SKAction.animate(with: shipTurningLeftArray, timePerFrame: 0.06)
+                    } else if shipSpeedMovement == .normal {
+                        turnLeftAction = SKAction.animate(with: shipTurningLeftArray, timePerFrame: 0.05)
+                    } else if shipSpeedMovement == .fast {
+                        turnLeftAction = SKAction.animate(with: shipTurningLeftArray, timePerFrame: 0.04)
+                    }
+                    
+                    //let turnLeftAction = SKAction.animate(with: shipTurningLeftArray, timePerFrame: 0.06)
                     
                     var moveAction: SKAction
                     /* moveAction = SKAction.move(to: CGPoint(x: scene!.size.width * 0.5, y: scene!.size.height * 0.25), duration: 0.2) */
@@ -719,6 +807,7 @@ class PlayerShip: SKSpriteNode {
     
     
     func moveRight() {
+        //rougeOneEffect()
         if (!actionIsActive) {
             actionIsActive = true
             switch shipStatus {
@@ -729,8 +818,16 @@ class PlayerShip: SKSpriteNode {
                 let currentPosition = self.position
                 if ceil(currentPosition.x) == ceil(scene!.size.width / 2) {
                     //self.position = CGPoint(x: scene!.size.width * 0.70, y: scene!.size.height * 0.25)
+                    var turnRightAction = SKAction()
+                    if shipSpeedMovement == .slow {
+                        turnRightAction = SKAction.animate(with: shipTurningRightArray, timePerFrame: 0.06)
+                    } else if shipSpeedMovement == .normal {
+                        turnRightAction = SKAction.animate(with: shipTurningRightArray, timePerFrame: 0.05)
+                    } else if shipSpeedMovement == .fast {
+                        turnRightAction = SKAction.animate(with: shipTurningRightArray, timePerFrame: 0.04)
+                    }
                     
-                    let turnRightAction = SKAction.animate(with: shipTurningRightArray, timePerFrame: 0.06)
+                    //let turnRightAction = SKAction.animate(with: shipTurningRightArray, timePerFrame: 0.06)
                     
                     var moveAction: SKAction
                     
@@ -755,8 +852,16 @@ class PlayerShip: SKSpriteNode {
                 } else if ceil(currentPosition.x) < scene!.size.width * 0.5  {
                     //self.position = CGPoint(x: scene!.size.width * 0.5, y: scene!.size.height * 0.25)
                     //let moveAction: SKAction = SKAction.move(to: CGPoint(x: scene!.size.width * 0.5, y: scene!.size.height * 0.25), duration: 0.2)
+                    var turnRightAction = SKAction()
+                    if shipSpeedMovement == .slow {
+                        turnRightAction = SKAction.animate(with: shipTurningRightArray, timePerFrame: 0.06)
+                    } else if shipSpeedMovement == .normal {
+                        turnRightAction = SKAction.animate(with: shipTurningRightArray, timePerFrame: 0.05)
+                    } else if shipSpeedMovement == .fast {
+                        turnRightAction = SKAction.animate(with: shipTurningRightArray, timePerFrame: 0.04)
+                    }
                     
-                    let turnRightAction = SKAction.animate(with: shipTurningRightArray, timePerFrame: 0.06)
+                    //let turnRightAction = SKAction.animate(with: shipTurningRightArray, timePerFrame: 0.06)
                     
                     var moveAction: SKAction
                     
@@ -908,7 +1013,8 @@ class PlayerShip: SKSpriteNode {
     }
     
     deinit {
-        print("player deinit")
+        /*print("playerShip deinit \(self.playerName) \(self.texture) \(self.name)")*/
+        print("playerShip deinit")
     }
     
     
@@ -922,6 +1028,12 @@ class CollisionDetector: SKSpriteNode {
 public extension CGFloat {
     mutating func roundTo1Decimal() -> CGFloat {
         return CGFloat(Darwin.round(10 * self) / 10)
+    }
+}
+
+extension Double {
+    func truncate(places: Int) -> Double {
+        return Double(floor(pow(10.0, Double(places)) * self) / pow(10.0, Double(places)))
     }
 }
 

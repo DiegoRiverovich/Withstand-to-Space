@@ -92,35 +92,50 @@ class Barrier: SKSpriteNode {
         self.zPosition = zPosition
         //self.position.x = XPosition
         
-        var coin = Int(arc4random()%2)
-        coin = 2
-        if coin == 0 {
+//        var coin = Int(arc4random()%2)
+//        coin = 2
+        if planet == 3 {
             let coinMovingAction = SKAction.animate(with: coinMovingArray, timePerFrame: 0.06)
             let forever = SKAction.repeatForever(coinMovingAction)
             self.run(forever)
-        } else if coin == 1 {
+        } else if planet == 2 {
             let coinMovingAction = SKAction.animate(with: coinMovingArray1, timePerFrame: 0.06)
             let forever = SKAction.repeatForever(coinMovingAction)
             self.run(forever)
-        } else if coin == 2 {
+        } else if planet == 1 {
             let coinMovingAction = SKAction.animate(with: coinMovingArray2, timePerFrame: 0.06)
             let forever = SKAction.repeatForever(coinMovingAction)
             self.run(forever)
+        } else if planet == 5 {  // Random Texture
+            let textureNumber = Int(arc4random()%2)
+            if textureNumber == 0 {
+                let coinMovingAction = SKAction.animate(with: coinMovingArray, timePerFrame: 0.06)
+                let forever = SKAction.repeatForever(coinMovingAction)
+                self.run(forever)
+            } else if textureNumber == 1 {
+                let coinMovingAction = SKAction.animate(with: coinMovingArray2, timePerFrame: 0.06)
+                let forever = SKAction.repeatForever(coinMovingAction)
+                self.run(forever)
+            } else if textureNumber == 2 {
+                let coinMovingAction = SKAction.animate(with: coinMovingArray1, timePerFrame: 0.06)
+                let forever = SKAction.repeatForever(coinMovingAction)
+                self.run(forever)
+            }
         }
         
         if XPosition == 1 {
             if zPosition == 1 {
                 self.position = DebrisPosition.lowRight925 //CGPoint(x: mainScene!.size.width * 0.70 - 170, y: mainScene!.size.height * 1.2)
-                self.xScale -= 0.1
-                self.yScale -= 0.1
+                self.xScale -= 0.0
+                self.yScale -= 0.0
             } else if zPosition == 3 {
                 self.position = DebrisPosition.middleRight1010//CGPoint(x: mainScene!.size.width * 0.70 - 60, y: mainScene!.size.height * 1.2)
-                self.xScale += 0.4
-                self.yScale += 0.4
+                self.xScale += 0.5
+                self.yScale += 0.5
             } else if zPosition == 5 {
                 self.position = DebrisPosition.highRight1095 //CGPoint(x: mainScene!.size.width * 0.70 + 25, y: mainScene!.size.height * 1.2)
-                self.xScale += 0.9
-                self.yScale += 0.9
+                self.xScale += 1.0
+                self.yScale += 1.0
             }
         } else if XPosition == 2 {
             
@@ -128,32 +143,32 @@ class Barrier: SKSpriteNode {
             
             if zPosition == 1 {
                 self.position = DebrisPosition.lowCenter768 //CGPoint(x: mainScene!.size.width * 0.5, y: mainScene!.size.height * 1.2)
-                self.xScale -= 0.1
-                self.yScale -= 0.1
+                self.xScale -= 0.0
+                self.yScale -= 0.0
             } else if zPosition == 3 {
                 self.position = DebrisPosition.middleCenter768 //CGPoint(x: mainScene!.size.width * 0.5, y: mainScene!.size.height * 1.2)
-                self.xScale += 0.4
-                self.yScale += 0.4
+                self.xScale += 0.5
+                self.yScale += 0.5
             } else if zPosition == 5 {
                 self.position = DebrisPosition.highCenter768 //CGPoint(x: mainScene!.size.width * 0.5, y: mainScene!.size.height * 1.2)
-                self.xScale += 0.9
-                self.yScale += 0.9
+                self.xScale += 1.0
+                self.yScale += 1.0
             }
         } else if XPosition == 3 {
             
             //case 3:
             if zPosition == 1 {
                 self.position = DebrisPosition.lowLeft620 //CGPoint(x: mainScene!.size.width * 0.30 + 170, y: mainScene!.size.height * 1.2)
-                self.xScale -= 0.1
-                self.yScale -= 0.1
+                self.xScale -= 0.0
+                self.yScale -= 0.0
             } else if zPosition == 3 {
                 self.position = DebrisPosition.middleLeft535 //CGPoint(x: mainScene!.size.width * 0.30 + 60, y: mainScene!.size.height * 1.2)
-                self.xScale += 0.4
-                self.yScale += 0.4
+                self.xScale += 0.5
+                self.yScale += 0.5
             } else if zPosition == 5  {
                 self.position = DebrisPosition.highLeft450 //CGPoint(x: mainScene!.size.width * 0.30 - 25, y: mainScene!.size.height * 1.2)
-                self.xScale += 0.9
-                self.yScale += 0.9
+                self.xScale += 1.0
+                self.yScale += 1.0
             }
         }
         
@@ -186,7 +201,11 @@ class Barrier: SKSpriteNode {
         self.physicsBody?.categoryBitMask = BodyType.barrier.rawValue
         self.physicsBody?.collisionBitMask = 0
         //        self.physicsBody?.contactTestBitMask = BodyType.player.rawValue
+        
+        
     }
+    
+    
     
 
     

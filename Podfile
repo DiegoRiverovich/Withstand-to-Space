@@ -11,5 +11,6 @@ target 'Withstand to Space' do
 	pod 'Firebase/Database'
 	pod 'Firebase/Auth'
 	pod 'Firebase/Storage'
+	pod 'Firebase/AdMob’
 
 end
