@@ -134,7 +134,7 @@ class HighscoreViewController: UIViewController, UITableViewDelegate, UITableVie
     
     // Auth
     func auth() {
-        Auth.auth().signIn(withEmail: "withstandtospace@test.com", password: "123ASDasd") { [weak self] (user, error) in
+        Auth.auth().signIn(withEmail: "***", password: "***") { [weak self] (user, error) in  //PASSWORD GITHUB
             if error != nil {
                 print(error!)
                 return
