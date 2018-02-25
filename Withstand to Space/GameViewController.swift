@@ -13,6 +13,8 @@ import GoogleMobileAds
 
 class GameViewController: UIViewController {
     
+    
+    
     var interstitial: GADInterstitial!
 
     override func viewDidLoad() {
@@ -67,6 +69,10 @@ class GameViewController: UIViewController {
 
     override var prefersStatusBarHidden: Bool {
         return true
+    }
+    
+    deinit {
+        //print("service deinit")
     }
     
 }

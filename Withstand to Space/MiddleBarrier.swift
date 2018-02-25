@@ -11,7 +11,7 @@ import SpriteKit
 
 class MiddleBarrier: SKSpriteNode {
 
-    let barriers = ["alien1_85"]
+    private let barriers = ["alien1_85"]
     
     var isActive: Bool = true
     var isSlowing: Bool = false

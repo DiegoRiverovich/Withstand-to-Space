@@ -11,8 +11,8 @@ import SpriteKit
 
 class Planet: SKSpriteNode {
 
-    let planets = ["asteroidCloud", "galaxy01", "meteorit300", "planet01_400", "planet02_300"]
-    let positions: [CGFloat] = [1536 * 0.20, 1536 * 0.40, 1536 * 0.60, 1536 * 0.80,]
+    private let planets = ["asteroidCloud", "galaxy01", "meteorit300", "planet01_400", "planet02_300"]
+    private let positions: [CGFloat] = [1536 * 0.20, 1536 * 0.40, 1536 * 0.60, 1536 * 0.80,]
     
     init() {
         

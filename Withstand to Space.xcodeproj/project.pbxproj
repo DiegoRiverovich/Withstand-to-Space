@@ -32,8 +32,10 @@
 		5580A52C1FAA208F00CA930E /* shipTurnSound.m4a in Resources */ = {isa = PBXBuildFile; fileRef = 5580A52B1FAA208200CA930E /* shipTurnSound.m4a */; };
 		5580A52E1FAA2E5400CA930E /* vicrotySound.m4a in Resources */ = {isa = PBXBuildFile; fileRef = 5580A52D1FAA2E4C00CA930E /* vicrotySound.m4a */; };
 		558629D11F7C138F00571F89 /* Users.swift in Sources */ = {isa = PBXBuildFile; fileRef = 558629D01F7C138F00571F89 /* Users.swift */; };
+		558741461FE2B4BE00D3C98C /* PurchaseScene.swift in Sources */ = {isa = PBXBuildFile; fileRef = 558741451FE2B4BE00D3C98C /* PurchaseScene.swift */; };
 		558B55291F78285500067A08 /* MainMenuScene.swift in Sources */ = {isa = PBXBuildFile; fileRef = 558B55281F78285500067A08 /* MainMenuScene.swift */; };
 		55947D491F86579C0053D18B /* Partition.swift in Sources */ = {isa = PBXBuildFile; fileRef = 55947D481F86579C0053D18B /* Partition.swift */; };
+		5598505F1FEA9ED300FA20AB /* StoreKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 5598505E1FEA9ED300FA20AB /* StoreKit.framework */; };
 		55A1DDE31F8F753800B857C7 /* Model.swift in Sources */ = {isa = PBXBuildFile; fileRef = 55A1DDE21F8F753800B857C7 /* Model.swift */; };
 		55A1DDE71F912ED900B857C7 /* Debris.swift in Sources */ = {isa = PBXBuildFile; fileRef = 55A1DDE61F912ED900B857C7 /* Debris.swift */; };
 		55B18AB51F8E2CFF004F64D5 /* Planet.swift in Sources */ = {isa = PBXBuildFile; fileRef = 55B18AB41F8E2CFF004F64D5 /* Planet.swift */; };
@@ -44,6 +46,7 @@
 		55BC79D71FA89C7500A7F1F6 /* youLoseSound.m4a in Resources */ = {isa = PBXBuildFile; fileRef = 55BC79D61FA89C6900A7F1F6 /* youLoseSound.m4a */; };
 		55BC79DB1FA8B10600A7F1F6 /* coinSound.m4a in Resources */ = {isa = PBXBuildFile; fileRef = 55BC79DA1FA8B0F900A7F1F6 /* coinSound.m4a */; };
 		55BC79DD1FA8BAB000A7F1F6 /* pause1.m4a in Resources */ = {isa = PBXBuildFile; fileRef = 55BC79DC1FA8BAA900A7F1F6 /* pause1.m4a */; };
+		55D350CC1FE3D046005318C5 /* IAPService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 55D350CB1FE3D046005318C5 /* IAPService.swift */; };
 		55D4BCC21F796EA1003FF61A /* GameOverScene.swift in Sources */ = {isa = PBXBuildFile; fileRef = 55D4BCC11F796EA1003FF61A /* GameOverScene.swift */; };
 		55DEF2481FAC7ECD002CEE42 /* turnDone4.m4a in Resources */ = {isa = PBXBuildFile; fileRef = 55DEF2471FAC7E86002CEE42 /* turnDone4.m4a */; };
 		55DEF24A1FAC8425002CEE42 /* engineStart.m4a in Resources */ = {isa = PBXBuildFile; fileRef = 55DEF2491FAC8411002CEE42 /* engineStart.m4a */; };
@@ -83,8 +86,11 @@
 		5580A52B1FAA208200CA930E /* shipTurnSound.m4a */ = {isa = PBXFileReference; lastKnownFileType = file; path = shipTurnSound.m4a; sourceTree = "<group>"; };
 		5580A52D1FAA2E4C00CA930E /* vicrotySound.m4a */ = {isa = PBXFileReference; lastKnownFileType = file; path = vicrotySound.m4a; sourceTree = "<group>"; };
 		558629D01F7C138F00571F89 /* Users.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Users.swift; sourceTree = "<group>"; };
+		558741451FE2B4BE00D3C98C /* PurchaseScene.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PurchaseScene.swift; sourceTree = "<group>"; };
 		558B55281F78285500067A08 /* MainMenuScene.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = MainMenuScene.swift; sourceTree = "<group>"; };
 		55947D481F86579C0053D18B /* Partition.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Partition.swift; sourceTree = "<group>"; };
+		5598505D1FEA9D7500FA20AB /* Withstand to Space.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = "Withstand to Space.entitlements"; sourceTree = "<group>"; };
+		5598505E1FEA9ED300FA20AB /* StoreKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = StoreKit.framework; path = System/Library/Frameworks/StoreKit.framework; sourceTree = SDKROOT; };
 		55A1DDE21F8F753800B857C7 /* Model.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Model.swift; sourceTree = "<group>"; };
 		55A1DDE61F912ED900B857C7 /* Debris.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Debris.swift; sourceTree = "<group>"; };
 		55B18AB41F8E2CFF004F64D5 /* Planet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Planet.swift; sourceTree = "<group>"; };
@@ -94,6 +100,7 @@
 		55BC79D61FA89C6900A7F1F6 /* youLoseSound.m4a */ = {isa = PBXFileReference; lastKnownFileType = file; path = youLoseSound.m4a; sourceTree = "<group>"; };
 		55BC79DA1FA8B0F900A7F1F6 /* coinSound.m4a */ = {isa = PBXFileReference; lastKnownFileType = file; path = coinSound.m4a; sourceTree = "<group>"; };
 		55BC79DC1FA8BAA900A7F1F6 /* pause1.m4a */ = {isa = PBXFileReference; lastKnownFileType = file; path = pause1.m4a; sourceTree = "<group>"; };
+		55D350CB1FE3D046005318C5 /* IAPService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IAPService.swift; sourceTree = "<group>"; };
 		55D4BCC11F796EA1003FF61A /* GameOverScene.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = GameOverScene.swift; path = ../GameOverScene.swift; sourceTree = "<group>"; };
 		55DEF2471FAC7E86002CEE42 /* turnDone4.m4a */ = {isa = PBXFileReference; lastKnownFileType = file; path = turnDone4.m4a; sourceTree = "<group>"; };
 		55DEF2491FAC8411002CEE42 /* engineStart.m4a */ = {isa = PBXFileReference; lastKnownFileType = file; path = engineStart.m4a; sourceTree = "<group>"; };
@@ -108,6 +115,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				BEF75965161124F692877A21 /* Pods_Withstand_to_Space.framework in Frameworks */,
+				5598505F1FEA9ED300FA20AB /* StoreKit.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -155,6 +163,7 @@
 		555C36D91F715E89002A92DD /* Withstand to Space */ = {
 			isa = PBXGroup;
 			children = (
+				5598505D1FEA9D7500FA20AB /* Withstand to Space.entitlements */,
 				554C6A9B1FA747A700F5ACE7 /* Audio */,
 				557AB79D1F8BD3BE002A487E /* jetFire.sks */,
 				557AB7A11F8BF64C002A487E /* explosion.sks */,
@@ -164,6 +173,8 @@
 				557516041F7AA2AD00042167 /* HighscoreTableView.swift */,
 				55D4BCC11F796EA1003FF61A /* GameOverScene.swift */,
 				558B55281F78285500067A08 /* MainMenuScene.swift */,
+				558741451FE2B4BE00D3C98C /* PurchaseScene.swift */,
+				55D350CB1FE3D046005318C5 /* IAPService.swift */,
 				55E81D651F93932000737BC1 /* LevelsScene.swift */,
 				557C3A8C1F9A5BC400B92683 /* CreditsScene.swift */,
 				555C36E01F715E89002A92DD /* GameScene.swift */,
@@ -218,6 +229,7 @@
 		AA5E51CC1A26099AA97479C6 /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				5598505E1FEA9ED300FA20AB /* StoreKit.framework */,
 				254E20F64988FA11363B90A8 /* Pods_Withstand_to_Space.framework */,
 			);
 			name = Frameworks;
@@ -261,6 +273,14 @@
 						DevelopmentTeam = V2U6X73M7K;
 						LastSwiftMigration = 0900;
 						ProvisioningStyle = Automatic;
+						SystemCapabilities = {
+							com.apple.InAppPurchase = {
+								enabled = 1;
+							};
+							com.apple.Push = {
+								enabled = 1;
+							};
+						};
 					};
 				};
 			};
@@ -358,6 +378,7 @@
 				"${SRCROOT}/Pods/Target Support Files/Pods-Withstand to Space/Pods-Withstand to Space-frameworks.sh",
 				"${BUILT_PRODUCTS_DIR}/GTMSessionFetcher/GTMSessionFetcher.framework",
 				"${BUILT_PRODUCTS_DIR}/GoogleToolboxForMac/GoogleToolboxForMac.framework",
+				"${BUILT_PRODUCTS_DIR}/NVActivityIndicatorView/NVActivityIndicatorView.framework",
 				"${BUILT_PRODUCTS_DIR}/leveldb-library/leveldb.framework",
 				"${BUILT_PRODUCTS_DIR}/nanopb/nanopb.framework",
 			);
@@ -365,6 +386,7 @@
 			outputPaths = (
 				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/GTMSessionFetcher.framework",
 				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/GoogleToolboxForMac.framework",
+				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/NVActivityIndicatorView.framework",
 				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/leveldb.framework",
 				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/nanopb.framework",
 			);
@@ -391,6 +413,8 @@
 				555C36F31F717AC3002A92DD /* PlayerShip.swift in Sources */,
 				55B18AB51F8E2CFF004F64D5 /* Planet.swift in Sources */,
 				557516051F7AA2AD00042167 /* HighscoreTableView.swift in Sources */,
+				55D350CC1FE3D046005318C5 /* IAPService.swift in Sources */,
+				558741461FE2B4BE00D3C98C /* PurchaseScene.swift in Sources */,
 				55D4BCC21F796EA1003FF61A /* GameOverScene.swift in Sources */,
 				550DEC661F752C94003FBB13 /* Barrier.swift in Sources */,
 				55947D491F86579C0053D18B /* Partition.swift in Sources */,
@@ -471,12 +495,13 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 10.3;
+				IPHONEOS_DEPLOYMENT_TARGET = 9.0;
 				MTL_ENABLE_DEBUG_INFO = YES;
 				ONLY_ACTIVE_ARCH = YES;
 				SDKROOT = iphoneos;
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_REFLECTION_METADATA_LEVEL = all;
 				TARGETED_DEVICE_FAMILY = "1,2";
 			};
 			name = Debug;
@@ -522,10 +547,11 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 10.3;
+				IPHONEOS_DEPLOYMENT_TARGET = 9.0;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				SDKROOT = iphoneos;
 				SWIFT_OPTIMIZATION_LEVEL = "-Owholemodule";
+				SWIFT_REFLECTION_METADATA_LEVEL = all;
 				TARGETED_DEVICE_FAMILY = "1,2";
 				VALIDATE_PRODUCT = YES;
 			};
@@ -537,6 +563,7 @@
 			buildSettings = {
 				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = NO;
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_ENTITLEMENTS = "Withstand to Space/Withstand to Space.entitlements";
 				DEVELOPMENT_TEAM = V2U6X73M7K;
 				INFOPLIST_FILE = "Withstand to Space/Info.plist";
 				IPHONEOS_DEPLOYMENT_TARGET = 9.0;
@@ -555,6 +582,7 @@
 			buildSettings = {
 				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = NO;
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_ENTITLEMENTS = "Withstand to Space/Withstand to Space.entitlements";
 				DEVELOPMENT_TEAM = V2U6X73M7K;
 				INFOPLIST_FILE = "Withstand to Space/Info.plist";
 				IPHONEOS_DEPLOYMENT_TARGET = 9.0;

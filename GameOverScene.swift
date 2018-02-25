@@ -10,20 +10,24 @@ import UIKit
 import SpriteKit
 import Firebase
 import GoogleMobileAds
+import NVActivityIndicatorView
+import StoreKit
 
 class GameOverScene: SKScene, GADInterstitialDelegate {
     
-    var ref: DatabaseReference?
+    private var newActivityIndicator: NVActivityIndicatorView?
     
-    let highScore = SKSpriteNode(imageNamed: "alien3")
+    private var ref: DatabaseReference?
     
-    let overallHighScoreLabel = SKLabelNode(fontNamed: SomeNames.fontNameVenusrising)
-    let lvlHighScoreLabel = SKLabelNode(fontNamed: SomeNames.fontNameVenusrising)
-    let survivalScoreLabel = SKLabelNode(fontNamed: SomeNames.fontNameVenusrising)
-    let levelNumberLabel = SKLabelNode(fontNamed: SomeNames.fontNameVenusrising)
-    let planetNumberLabel = SKLabelNode(fontNamed: SomeNames.fontNameVenusrising)
+    private let highScore = SKSpriteNode(imageNamed: "alien3")
     
-    var starsTimer: Timer?
+    private let overallHighScoreLabel = SKLabelNode(fontNamed: SomeNames.fontNameVenusrising)
+    private let lvlHighScoreLabel = SKLabelNode(fontNamed: SomeNames.fontNameVenusrising)
+    private let survivalScoreLabel = SKLabelNode(fontNamed: SomeNames.fontNameVenusrising)
+    private let levelNumberLabel = SKLabelNode(fontNamed: SomeNames.fontNameVenusrising)
+    private let planetNumberLabel = SKLabelNode(fontNamed: SomeNames.fontNameVenusrising)
+    
+    private var starsTimer: Timer?
     
     let levelScene = LevelsScene()
     
@@ -33,14 +37,24 @@ class GameOverScene: SKScene, GADInterstitialDelegate {
     
     //weak var mainScene: SKScene?
     
-    var interstitial: GADInterstitial! = ads
+    private var interstitial: GADInterstitial! = ads
     
     override func didMove(to view: SKView) {
-        
+        let defaults = UserDefaults()
         interstitial.delegate = self
         //loadMainScene()
         if !programmIsPaid {
-            runAds()
+            if adsAttemtps <= 0 {
+                adsAttemtps = 4
+                defaults.set(adsAttemtps, forKey: "adsAttempts")
+                runAds()
+            } else {
+                adsAttemtps -= 1
+                defaults.set(adsAttemtps, forKey: "adsAttempts")
+                loadMainScene()
+            }
+            
+            //runAds()
         } else {
             loadMainScene()
         }
@@ -51,7 +65,7 @@ class GameOverScene: SKScene, GADInterstitialDelegate {
         //  highscoreTableView.removeFromSuperview()
     }
     
-    func loadMainScene() {
+    private func loadMainScene() {
         
         ref = Database.database().reference()
         
@@ -71,10 +85,13 @@ class GameOverScene: SKScene, GADInterstitialDelegate {
                 youLoseSetup()
                 setHithScoreLabel()
                 setOverallHithScoreLabel()
+                addLevelAndPlanetNumberLabel()
             } else if gameMode == .survival {
+                setOverallHithScoreLabel()
                 setSurvivalScoreLabel()
                 setScoreLabel()
                 saveUserDefaults()
+                
             }
             
             if soundsIsOn {
@@ -87,7 +104,7 @@ class GameOverScene: SKScene, GADInterstitialDelegate {
                 setHithScoreLabel()
                 setOverallHithScoreLabel()
                 //sethighScoreMenu()
-                
+                addLevelAndPlanetNumberLabel()
                 highScore.alpha = 0.0
                 
                 saveUserDefaults()
@@ -100,6 +117,7 @@ class GameOverScene: SKScene, GADInterstitialDelegate {
                 }
                 unlockNextLevel()
             } else if gameMode == .survival {
+                setOverallHithScoreLabel()
                 setSurvivalScoreLabel()
                 setScoreLabel()
                 saveUserDefaults()
@@ -113,38 +131,93 @@ class GameOverScene: SKScene, GADInterstitialDelegate {
         nextLevelButtonSetup()
         saveTimeActiveSeconds()
         
-        addLevelAndPlanetNumberLabel()
+        
         addPlanetFunc()
+        
+        popupReviewInvite()
+    }
+    
+    private func popupReviewInvite() {
+        let defaults = UserDefaults()
+        if inviteToReview {
+            if #available(iOS 10.3, *) {
+                SKStoreReviewController.requestReview()
+            } else {
+                //do nothing
+            }
+            inviteToReview = false
+            defaults.set(inviteToReview, forKey: "reviewInvintation")
+        }
+    }
+    
+    private func startNewAcitivityIndicator() {
+        if let viewLoc = view {
+            newActivityIndicator = NVActivityIndicatorView(frame: CGRect(x: (viewLoc.center.x - 50), y: (viewLoc.center.y - 50), width: 100, height: 100),
+                                                           type: .ballTrianglePath,
+                                                           color: UIColor.white,
+                                                           padding: nil)
+        } else {
+            newActivityIndicator?.center = CGPoint(x: 700, y: 900)
+        }
+        //myActivityIndicator.hidesWhenStopped = true
+        //scene!.view?.addSubview(newActivityIndicator!)
+        
+        
+        DispatchQueue.main.async { [weak self] in
+            self?.scene!.view?.addSubview(self!.newActivityIndicator!)
+        }
+        
+        newActivityIndicator?.startAnimating()
+    }
+    
+    private func stopNewAcitvityIndicator() {
+        newActivityIndicator?.stopAnimating()
+        newActivityIndicator?.removeFromSuperview()
     }
     
     func interstitialWillDismissScreen(_ ad: GADInterstitial) {
-        print("interstitialWillDismissScreen")
+        //print("interstitialWillDismissScreen")
         loadMainScene()
         //loadMainScene()
     }
     
-    func runAds() {
+    private func runAds() {
         
         if interstitial.isReady {
+            /*
+            let defaults = UserDefaults()
+            InvisibleTimeActive += 3
+            rougeOneTimeActive += 3
+            trioTimeActive += 3
+            defaults.set(InvisibleTimeActive, forKey: "InvisibleSeconds")
+            defaults.set(rougeOneTimeActive, forKey: "RougeSeconds")
+            defaults.set(trioTimeActive, forKey: "TrioSeconds")
+            */
             interstitial.present(fromRootViewController: (self.view?.window?.rootViewController)!)
         } else {
-            print("Ad wasn't ready")
+            //print("Ad wasn't ready")
+            loadMainScene()
         }
     }
     
     // MARK: START BUTTON
-    func addPlanetFunc() {
+    private func addPlanetFunc() {
         let mainPlanet = SKSpriteNode(imageNamed: "venus_500")
+        mainPlanet.position = CGPoint(x: self.size.width * (0.22), y: self.size.height * (0.05))
         if planet == 1 {
             mainPlanet.texture = SKTexture(imageNamed: "planet01_400")
+            mainPlanet.zRotation = 0.6
         } else if planet == 2 {
             mainPlanet.texture = SKTexture(imageNamed: "venus_500")
+            mainPlanet.position = CGPoint(x: self.size.width * (0.22), y: self.size.height * (0.01))
         } else if planet == 3 {
             mainPlanet.texture = SKTexture(imageNamed: "planet_31")
+            mainPlanet.zRotation = 1.0
         }
         mainPlanet.name = "Main Planet"
         mainPlanet.xScale = 2.6
         mainPlanet.yScale = 2.6
+        
         //startButton.size = self.size
         mainPlanet.position = CGPoint(x: self.size.width * (0.22), y: self.size.height * (0.05))
         mainPlanet.zPosition = -100
@@ -152,7 +225,7 @@ class GameOverScene: SKScene, GADInterstitialDelegate {
     }
     
     // MARK: Level and planet number
-    func addLevelAndPlanetNumberLabel() {
+    private func addLevelAndPlanetNumberLabel() {
         levelNumberLabel.position = CGPoint(x: self.size.width * 0.68, y: self.size.height * 0.77)
         levelNumberLabel.zPosition = -99
         levelNumberLabel.fontSize = 60
@@ -180,6 +253,15 @@ class GameOverScene: SKScene, GADInterstitialDelegate {
         } else if preferredLanguage == .es {
             levelNumberLabel.text = "Nivel \(level + 1)"
             planetNumberLabel.text = "Planeta \(planet)"
+        } else if preferredLanguage == .jp {
+            levelNumberLabel.text = "レベル \(level + 1)"
+            planetNumberLabel.text = "惑星 \(planet)"
+        } else if preferredLanguage == .fr {
+            levelNumberLabel.text = "Niveau \(level + 1)"
+            planetNumberLabel.text = "Planète \(planet)"
+        } else if preferredLanguage == .gr {
+            levelNumberLabel.text = "Niveau \(level + 1)"
+            planetNumberLabel.text = "Planet \(planet)"
         } else if preferredLanguage == .en {
             levelNumberLabel.text = "Level \(level + 1)"
             planetNumberLabel.text = "Planet \(planet)"
@@ -193,7 +275,7 @@ class GameOverScene: SKScene, GADInterstitialDelegate {
     }
     
     // Auth
-    func auth() {
+    private func auth() {
         Auth.auth().signIn(withEmail: "withstandtospace@test.com", password: "123ASDasd") { [weak self] (user, error) in
             if error != nil {
                 print(error!)
@@ -204,9 +286,9 @@ class GameOverScene: SKScene, GADInterstitialDelegate {
                 if let weakSelf = self {
                     if weakSelf.isKeyPresentInUserDefaults(key: "userId") {
                         //let userId = defaults.string(forKey: "userId")
-                        print(userId)
-                        print(highScoreNumber)
-                        print(nickName)
+                        //print(userId)
+                        //print(highScoreNumber)
+                        //print(nickName)
                         
                         if gameMode == .normal {
                             weakSelf.ref?.child("user").child(userId).child("highscore"/*self.userName*/).setValue(highScoreNumber)
@@ -256,7 +338,7 @@ class GameOverScene: SKScene, GADInterstitialDelegate {
  */
     
     // MARK: Background setup
-    func backgroundSetup() {
+    private func backgroundSetup() {
         
         let background = SKSpriteNode(imageNamed: "backgroundStars02" /*"menuBackground2"*/ /*"menuBackground"*/)
         background.size = self.size
@@ -266,7 +348,7 @@ class GameOverScene: SKScene, GADInterstitialDelegate {
     }
     
     // MARK: START BUTTON
-    func startButtonSetup() {
+    private func startButtonSetup() {
         
         let defaults = UserDefaults()
         if planet == 1 {
@@ -303,6 +385,30 @@ class GameOverScene: SKScene, GADInterstitialDelegate {
                     startButton = SKSpriteNode(imageNamed: "restartButtonSP1" /*"gameOverButton"*/)
                     startButton.position = CGPoint(x: self.size.width * 0.5, y: self.size.height * 0.60)
                 }
+            } else if preferredLanguage == .jp {
+                if level < 11 {
+                    startButton = SKSpriteNode(imageNamed: "replayGameOverButtonJP1" /*"gameOverButton"*/)
+                    startButton.position = CGPoint(x: self.size.width * 0.35, y: self.size.height * 0.60)
+                } else {
+                    startButton = SKSpriteNode(imageNamed: "restartButtonJP1" /*"gameOverButton"*/)
+                    startButton.position = CGPoint(x: self.size.width * 0.5, y: self.size.height * 0.60)
+                }
+            } else if preferredLanguage == .fr {
+                if level < 11 {
+                    startButton = SKSpriteNode(imageNamed: "replayGameOverButtonFR1" /*"gameOverButton"*/)
+                    startButton.position = CGPoint(x: self.size.width * 0.35, y: self.size.height * 0.60)
+                } else {
+                    startButton = SKSpriteNode(imageNamed: "restartButtonFR1" /*"gameOverButton"*/)
+                    startButton.position = CGPoint(x: self.size.width * 0.5, y: self.size.height * 0.60)
+                }
+            } else if preferredLanguage == .gr {
+                if level < 11 {
+                    startButton = SKSpriteNode(imageNamed: "replayGameOverButtonDE1" /*"gameOverButton"*/)
+                    startButton.position = CGPoint(x: self.size.width * 0.35, y: self.size.height * 0.60)
+                } else {
+                    startButton = SKSpriteNode(imageNamed: "restartButtonDE1" /*"gameOverButton"*/)
+                    startButton.position = CGPoint(x: self.size.width * 0.5, y: self.size.height * 0.60)
+                }
             } else {
                 if level < 11 {
                     startButton = SKSpriteNode(imageNamed: "replayGameOverButton1" /*"gameOverButton"*/)
@@ -330,6 +436,12 @@ class GameOverScene: SKScene, GADInterstitialDelegate {
                 startButton = SKSpriteNode(imageNamed: "restartButtonCH1" /*"gameOverButton"*/)
             } else if preferredLanguage == .es {
                 startButton = SKSpriteNode(imageNamed: "restartButtonSP1" /*"gameOverButton"*/)
+            } else if preferredLanguage == .jp {
+                startButton = SKSpriteNode(imageNamed: "restartButtonJP1" /*"gameOverButton"*/)
+            } else if preferredLanguage == .fr {
+                startButton = SKSpriteNode(imageNamed: "restartButtonFR1" /*"gameOverButton"*/)
+            } else if preferredLanguage == .gr {
+                startButton = SKSpriteNode(imageNamed: "restartButtonDE1" /*"gameOverButton"*/)
             } else {
                 startButton = SKSpriteNode(imageNamed: "restartButton1" /*"gameOverButton"*/)
             }
@@ -343,7 +455,7 @@ class GameOverScene: SKScene, GADInterstitialDelegate {
     }
     
     // MARK: NEXT LEVEL BUTTON
-    func nextLevelButtonSetup() {
+    private func nextLevelButtonSetup() {
         
         let defaults = UserDefaults()
         if planet == 1 {
@@ -359,105 +471,52 @@ class GameOverScene: SKScene, GADInterstitialDelegate {
             if preferredLanguage == .ru {
                 nextLevelButton = SKSpriteNode(imageNamed: "nextLevelButtonRU1" /*"gameOverButton"*/)
                 
-                let levelLock = SKSpriteNode(imageNamed: "levelLock")
-                levelLock.yScale = 0.7
-                levelLock.xScale = 0.7
-                levelLock.position = CGPoint(x: nextLevelButton.size.width - (nextLevelButton.size.width), y: nextLevelButton.size.height - (nextLevelButton.size.height))
-                
-                if level < 11 {
-                    if planet == 1 && paidLevel[level + 1] == 1 {
-                        
-                    } else if planet == 1 && paidLevel[level + 1] == 0 {
-                        nextLevelButton.addChild(levelLock)
-                    } else if planet == 2 && paid2Level[level + 1] == 1 {
-                        
-                    } else if planet == 2 && paid2Level[level + 1] == 0 {
-                        nextLevelButton.addChild(levelLock)
-                    } else if planet == 3 && paid3Level[level + 1] == 1 {
-                        
-                    } else if planet == 3 && paid3Level[level + 1] == 0 {
-                        nextLevelButton.addChild(levelLock)
-                    }
-                } else if level == 11 {
-                    
-                }
                 
             } else if preferredLanguage == .ch {
                 nextLevelButton = SKSpriteNode(imageNamed: "nextLevelButtonCH1" /*"gameOverButton"*/)
                 
-                let levelLock = SKSpriteNode(imageNamed: "levelLock")
-                levelLock.yScale = 0.7
-                levelLock.xScale = 0.7
-                levelLock.position = CGPoint(x: nextLevelButton.size.width - (nextLevelButton.size.width), y: nextLevelButton.size.height - (nextLevelButton.size.height))
-                
-                if level < 11 {
-                    if planet == 1 && paidLevel[level + 1] == 1 {
-                        
-                    } else if planet == 1 && paidLevel[level + 1] == 0 {
-                        nextLevelButton.addChild(levelLock)
-                    } else if planet == 2 && paid2Level[level + 1] == 1 {
-                        
-                    } else if planet == 2 && paid2Level[level + 1] == 0 {
-                        nextLevelButton.addChild(levelLock)
-                    } else if planet == 3 && paid3Level[level + 1] == 1 {
-                        
-                    } else if planet == 3 && paid3Level[level + 1] == 0 {
-                        nextLevelButton.addChild(levelLock)
-                    }
-
-                } else if level == 11 {
-                    
-                }
             } else if preferredLanguage == .es {
                 nextLevelButton = SKSpriteNode(imageNamed: "nextLevelButtonSP1" /*"gameOverButton"*/)
                 
-                let levelLock = SKSpriteNode(imageNamed: "levelLock")
-                levelLock.yScale = 0.7
-                levelLock.xScale = 0.7
-                levelLock.position = CGPoint(x: nextLevelButton.size.width - (nextLevelButton.size.width), y: nextLevelButton.size.height - (nextLevelButton.size.height))
+            } else if preferredLanguage == .jp {
+                nextLevelButton = SKSpriteNode(imageNamed: "nextLevelButtonJP1" /*"gameOverButton"*/)
                 
-                if level < 11 {
-                    if planet == 1 && paidLevel[level + 1] == 1 {
-                        
-                    } else if planet == 1 && paidLevel[level + 1] == 0 {
-                        nextLevelButton.addChild(levelLock)
-                    } else if planet == 2 && paid2Level[level + 1] == 1 {
-                        
-                    } else if planet == 2 && paid2Level[level + 1] == 0 {
-                        nextLevelButton.addChild(levelLock)
-                    } else if planet == 3 && paid3Level[level + 1] == 1 {
-                        
-                    } else if planet == 3 && paid3Level[level + 1] == 0 {
-                        nextLevelButton.addChild(levelLock)
-                    }
-                } else if level == 11 {
-                    
-                }
+            } else if preferredLanguage == .fr {
+                nextLevelButton = SKSpriteNode(imageNamed: "nextLevelButtonFR1" /*"gameOverButton"*/)
+                
+            } else if preferredLanguage == .gr {
+                nextLevelButton = SKSpriteNode(imageNamed: "nextLevelButtonDE1" /*"gameOverButton"*/)
+                
             } else {
                 nextLevelButton = SKSpriteNode(imageNamed: "nextLevelButton1" /*"gameOverButton"*/)
                 
-                let levelLock = SKSpriteNode(imageNamed: "levelLock")
-                levelLock.yScale = 0.7
-                levelLock.xScale = 0.7
-                levelLock.position = CGPoint(x: nextLevelButton.size.width - (nextLevelButton.size.width), y: nextLevelButton.size.height - (nextLevelButton.size.height))
-                
-                if level < 11  {
-                    if planet == 1 && paidLevel[level + 1] == 1 {
-                        
-                    } else if planet == 1 && paidLevel[level + 1] == 0 {
-                        nextLevelButton.addChild(levelLock)
-                    } else if planet == 2 && paid2Level[level + 1] == 1 {
-                        
-                    } else if planet == 2 && paid2Level[level + 1] == 0 {
-                        nextLevelButton.addChild(levelLock)
-                    } else if planet == 3 && paid3Level[level + 1] == 1 {
-                        
-                    } else if planet == 3 && paid3Level[level + 1] == 0 {
-                        nextLevelButton.addChild(levelLock)
-                    }
+            }
+            
+            
+            let levelLock = SKSpriteNode(imageNamed: "levelLock")
+            levelLock.yScale = 0.7
+            levelLock.xScale = 0.7
+            levelLock.position = CGPoint(x: nextLevelButton.size.width - (nextLevelButton.size.width), y: nextLevelButton.size.height - (nextLevelButton.size.height))
+            
+            if level < 11 {
+                if planet == 1 && paidLevel[level + 1] == 1 {
+                    
+                } else if planet == 1 && paidLevel[level + 1] == 0 {
+                    nextLevelButton.addChild(levelLock)
+                } else if planet == 2 && paid2Level[level + 1] == 1 {
+                    
+                } else if planet == 2 && paid2Level[level + 1] == 0 {
+                    nextLevelButton.addChild(levelLock)
+                } else if planet == 3 && paid3Level[level + 1] == 1 {
+                    
+                } else if planet == 3 && paid3Level[level + 1] == 0 {
+                    nextLevelButton.addChild(levelLock)
                 }
+            } else if level == 11 {
                 
             }
+            
+            
             //let startButton = SKSpriteNode(imageNamed: "playAgainButton" /*"gameOverButton"*/)
             nextLevelButton.name = "Next level"
             //startButton.size = self.size
@@ -470,7 +529,7 @@ class GameOverScene: SKScene, GADInterstitialDelegate {
     }
     
     // MARK: SCORE BUTTON
-    func scoreButtonSetup() {
+    private func scoreButtonSetup() {
         var startButton = SKSpriteNode()
         if preferredLanguage == .ru {
             startButton = SKSpriteNode(imageNamed: "topScoreIcon" /*"gameOverButton"*/)
@@ -491,7 +550,7 @@ class GameOverScene: SKScene, GADInterstitialDelegate {
  
     
     // MARK: SCORE BUTTON
-    func levelsButtonSetup() {
+    private func levelsButtonSetup() {
         var startButton = SKSpriteNode()
         if preferredLanguage == .ru {
             startButton = SKSpriteNode(imageNamed: "levelsMenuButtonRU1" /*"gameOverButton"*/)
@@ -499,6 +558,12 @@ class GameOverScene: SKScene, GADInterstitialDelegate {
             startButton = SKSpriteNode(imageNamed: "levelsMenuButtonCH1" /*"gameOverButton"*/)
         } else if preferredLanguage == .es {
             startButton = SKSpriteNode(imageNamed: "levelsMenuButtonSP1" /*"gameOverButton"*/)
+        } else if preferredLanguage == .jp {
+            startButton = SKSpriteNode(imageNamed: "levelsMenuButtonJP1" /*"gameOverButton"*/)
+        } else if preferredLanguage == .fr {
+            startButton = SKSpriteNode(imageNamed: "levelsMenuButtonFR1" /*"gameOverButton"*/)
+        } else if preferredLanguage == .gr {
+            startButton = SKSpriteNode(imageNamed: "levelsMenuButtonDE1" /*"gameOverButton"*/)
         } else {
             startButton = SKSpriteNode(imageNamed: "levelsMenuButton1" /*"gameOverButton"*/)
         }
@@ -511,7 +576,7 @@ class GameOverScene: SKScene, GADInterstitialDelegate {
     }
     
     // MARK: GO To menu Button
-    func goToMenuButtonSetup() {
+    private func goToMenuButtonSetup() {
         var startButton = SKSpriteNode()
         if preferredLanguage == .ru {
             startButton = SKSpriteNode(imageNamed: "goToMenuButtonRU1" /*"gameOverButton"*/)
@@ -519,6 +584,12 @@ class GameOverScene: SKScene, GADInterstitialDelegate {
             startButton = SKSpriteNode(imageNamed: "goToMenuButtonCH1" /*"gameOverButton"*/)
         } else if preferredLanguage == .es {
             startButton = SKSpriteNode(imageNamed: "goToMenuButtonSP1" /*"gameOverButton"*/)
+        } else if preferredLanguage == .jp {
+            startButton = SKSpriteNode(imageNamed: "goToMenuButtonJP1" /*"gameOverButton"*/)
+        } else if preferredLanguage == .fr {
+            startButton = SKSpriteNode(imageNamed: "goToMenuButtonFR1" /*"gameOverButton"*/)
+        } else if preferredLanguage == .gr {
+            startButton = SKSpriteNode(imageNamed: "goToMenuButtonDE1" /*"gameOverButton"*/)
         } else {
             startButton = SKSpriteNode(imageNamed: "goToMenuButton1" /*"gameOverButton"*/)
         }
@@ -531,7 +602,7 @@ class GameOverScene: SKScene, GADInterstitialDelegate {
     }
     
     // MARK: Share Button
-    func shareButtonSetup() {
+    private func shareButtonSetup() {
         var shareButton = SKSpriteNode()
         if preferredLanguage == .ru {
             shareButton = SKSpriteNode(imageNamed: "shareButtonRU1" /*"gameOverButton"*/)
@@ -539,6 +610,12 @@ class GameOverScene: SKScene, GADInterstitialDelegate {
             shareButton = SKSpriteNode(imageNamed: "shareButtonCH1" /*"gameOverButton"*/)
         } else if preferredLanguage == .es {
             shareButton = SKSpriteNode(imageNamed: "shareButtonSP1" /*"gameOverButton"*/)
+        } else if preferredLanguage == .jp {
+            shareButton = SKSpriteNode(imageNamed: "shareButtonJP1" /*"gameOverButton"*/)
+        } else if preferredLanguage == .fr {
+            shareButton = SKSpriteNode(imageNamed: "shareButtonFR1" /*"gameOverButton"*/)
+        } else if preferredLanguage == .gr {
+            shareButton = SKSpriteNode(imageNamed: "shareButtonDE1" /*"gameOverButton"*/)
         } else {
             shareButton = SKSpriteNode(imageNamed: "shareButton1" /*"gameOverButton"*/)
         }
@@ -550,7 +627,7 @@ class GameOverScene: SKScene, GADInterstitialDelegate {
     }
     
     // MARK: You lose sign setup
-    func youLoseSetup() {
+    private func youLoseSetup() {
         var youLose = SKSpriteNode()
         if preferredLanguage == .ru {
             youLose = SKSpriteNode(imageNamed: "youLoseRU1" /*"gameOverButton"*/)
@@ -558,13 +635,19 @@ class GameOverScene: SKScene, GADInterstitialDelegate {
             youLose = SKSpriteNode(imageNamed: "youLoseCH1" /*"gameOverButton"*/)
         } else if preferredLanguage == .es {
             youLose = SKSpriteNode(imageNamed: "youLoseSP1" /*"gameOverButton"*/)
+        } else if preferredLanguage == .jp {
+            youLose = SKSpriteNode(imageNamed: "youLoseJP1" /*"gameOverButton"*/)
+        } else if preferredLanguage == .fr {
+            youLose = SKSpriteNode(imageNamed: "youLoseFR1" /*"gameOverButton"*/)
+        } else if preferredLanguage == .gr {
+            youLose = SKSpriteNode(imageNamed: "youLoseDE1" /*"gameOverButton"*/)
         } else {
             youLose = SKSpriteNode(imageNamed: "youLose1" /*"gameOverButton"*/)
         }
         //let youLose = SKSpriteNode(imageNamed: "youLose" /*"gameOverButton"*/)
         youLose.name = "You lose"
         //startButton.size = self.size
-        youLose.position = CGPoint(x: self.size.width * 0.5, y: self.size.height * 0.91)
+        youLose.position = CGPoint(x: self.size.width * 0.5, y: self.size.height * 0.88)
         youLose.zPosition = -99
         //youLose.xScale += 0.4
         //youLose.yScale += 0.4
@@ -572,7 +655,7 @@ class GameOverScene: SKScene, GADInterstitialDelegate {
     }
     
     // MARK: Score label
-    func setScoreLabel() {
+    private func setScoreLabel() {
         let scoreLabel = SKLabelNode(fontNamed: SomeNames.fontNameVenusrising)
         scoreLabel.fontSize = 140
         if preferredLanguage == .ru {
@@ -582,19 +665,37 @@ class GameOverScene: SKScene, GADInterstitialDelegate {
         } else if preferredLanguage == .es {
             scoreLabel.fontSize = 75
             scoreLabel.text = "Puntuaciones: \(score)"
+        } else if preferredLanguage == .jp {
+            scoreLabel.fontSize = 85
+            scoreLabel.text = "スコア: \(score)"
+        } else if preferredLanguage == .fr {
+            scoreLabel.fontSize = 75
+            scoreLabel.text = "Score: \(score)"
+        } else if preferredLanguage == .gr {
+            scoreLabel.fontSize = 75
+            scoreLabel.text = "Punktestand: \(score)"
         } else {
             scoreLabel.text = "Score: \(score)"
         }
         
+        if gameMode == .normal {
+            if score < scoreOneStar {
+                scoreLabel.position = CGPoint(x: self.size.width * 0.5, y: self.size.height * 0.85)
+            } else {
+                scoreLabel.position = CGPoint(x: self.size.width * 0.5, y: self.size.height * 0.91)
+            }
+        } else if gameMode == .survival {
+            scoreLabel.position = CGPoint(x: self.size.width * 0.5, y: self.size.height * 0.85)
+        }
         
         scoreLabel.fontColor = UIColor.red
-        scoreLabel.position = CGPoint(x: self.size.width * 0.5, y: self.size.height * 0.91)
+        
         scoreLabel.zPosition = -99
         self.addChild(scoreLabel)
     }
     
     // MARK: Level Highscore label
-    func setHithScoreLabel() {
+    private func setHithScoreLabel() {
         
         let defaults = UserDefaults()
         if planet == 1 {
@@ -614,6 +715,15 @@ class GameOverScene: SKScene, GADInterstitialDelegate {
         } else if preferredLanguage == .es {
             lvlHighScoreLabel.text = "Nivel alto puntaje: \(currentLevelHighScore)"
             lvlHighScoreLabel.fontSize = 40
+        } else if preferredLanguage == .jp {
+            lvlHighScoreLabel.text = "レベルベストスコア: \(currentLevelHighScore)"
+            lvlHighScoreLabel.fontSize = 60
+        } else if preferredLanguage == .fr {
+            lvlHighScoreLabel.text = "Meilleur score de niveau: \(currentLevelHighScore)"
+            lvlHighScoreLabel.fontSize = 40
+        } else if preferredLanguage == .gr {
+            lvlHighScoreLabel.text = "Level beste Punktzahl: \(currentLevelHighScore)"
+            lvlHighScoreLabel.fontSize = 40
         } else {
             lvlHighScoreLabel.text = "Level high score: \(currentLevelHighScore)"
             lvlHighScoreLabel.fontSize = 40
@@ -627,20 +737,31 @@ class GameOverScene: SKScene, GADInterstitialDelegate {
     }
     
     // MARK: Overall Highscore label
-    func setOverallHithScoreLabel() {
+    private func setOverallHithScoreLabel() {
         if shipExplode {
-            if preferredLanguage == .ru {
-                overallHighScoreLabel.text = "Суммарный счет уровней: \(highScoreNumber)"
-                overallHighScoreLabel.fontSize = 40
-            } else if preferredLanguage == .ch {
-                overallHighScoreLabel.text = "總結水平高分: \(highScoreNumber)"
-                overallHighScoreLabel.fontSize = 60
-            } else if preferredLanguage == .es {
-                overallHighScoreLabel.text = "Resumen puntaje alto: \(highScoreNumber)"
-                overallHighScoreLabel.fontSize = 40
-            } else {
-                overallHighScoreLabel.text = "Summary levels high score: \(highScoreNumber)"
-                overallHighScoreLabel.fontSize = 40
+            if gameMode == .normal {
+                if preferredLanguage == .ru {
+                    overallHighScoreLabel.text = "Суммарный счет уровней: \(highScoreNumber)"
+                    overallHighScoreLabel.fontSize = 40
+                } else if preferredLanguage == .ch {
+                    overallHighScoreLabel.text = "總結水平高分: \(highScoreNumber)"
+                    overallHighScoreLabel.fontSize = 60
+                } else if preferredLanguage == .es {
+                    overallHighScoreLabel.text = "Resumen puntaje alto: \(highScoreNumber)"
+                    overallHighScoreLabel.fontSize = 40
+                } else if preferredLanguage == .jp {
+                    overallHighScoreLabel.text = "要約レベルのスコア: \(highScoreNumber)"
+                    overallHighScoreLabel.fontSize = 60
+                } else if preferredLanguage == .fr {
+                    overallHighScoreLabel.text = "Score des niveaux sommaires: \(highScoreNumber)"
+                    overallHighScoreLabel.fontSize = 40
+                } else if preferredLanguage == .gr {
+                    overallHighScoreLabel.text = "Zusammenfassung: \(highScoreNumber)"
+                    overallHighScoreLabel.fontSize = 40
+                } else {
+                    overallHighScoreLabel.text = "Summary levels high score: \(highScoreNumber)"
+                    overallHighScoreLabel.fontSize = 40
+                }
             }
             
         }
@@ -652,7 +773,7 @@ class GameOverScene: SKScene, GADInterstitialDelegate {
     }
     
     // MARK: Survival score label
-    func setSurvivalScoreLabel() {
+    private func setSurvivalScoreLabel() {
         
         if preferredLanguage == .ru {
             survivalScoreLabel.text = "Лучший ре3ультат: \(highScoreNumberSurvival)"
@@ -662,6 +783,15 @@ class GameOverScene: SKScene, GADInterstitialDelegate {
             survivalScoreLabel.fontSize = 60
         } else if preferredLanguage == .es {
             survivalScoreLabel.text = "Mejores resultados: \(highScoreNumberSurvival)"
+            survivalScoreLabel.fontSize = 40
+        } else if preferredLanguage == .jp {
+            survivalScoreLabel.text = "最高の結果: \(highScoreNumberSurvival)"
+            survivalScoreLabel.fontSize = 60
+        } else if preferredLanguage == .fr {
+            survivalScoreLabel.text = "Meilleurs résultats: \(highScoreNumberSurvival)"
+            survivalScoreLabel.fontSize = 40
+        } else if preferredLanguage == .gr {
+            survivalScoreLabel.text = "Beste Ergebnisse: \(highScoreNumberSurvival)"
             survivalScoreLabel.fontSize = 40
         } else {
             survivalScoreLabel.text = "Best results: \(highScoreNumberSurvival)"
@@ -677,7 +807,7 @@ class GameOverScene: SKScene, GADInterstitialDelegate {
     }
     
     // MARK: HighScore menu button
-    func sethighScoreMenu() {
+    private func sethighScoreMenu() {
         
         
         highScore.name = "highScoreNodeMenu"
@@ -688,7 +818,7 @@ class GameOverScene: SKScene, GADInterstitialDelegate {
         self.addChild(highScore)
     }
     
-    func saveTimeActiveSeconds() {
+    private func saveTimeActiveSeconds() {
         let defaults = UserDefaults()
         
         defaults.set(InvisibleTimeActive, forKey: "InvisibleSeconds")
@@ -696,7 +826,7 @@ class GameOverScene: SKScene, GADInterstitialDelegate {
         defaults.set(trioTimeActive, forKey: "TrioSeconds")
     }
     
-    func unlockNextLevel() {
+    private func unlockNextLevel() {
         if planet == 1 {
             if score >= scoreOneStar {
                 let defaults = UserDefaults()
@@ -732,20 +862,20 @@ class GameOverScene: SKScene, GADInterstitialDelegate {
         }
     }
     
-    @objc func addStar() {
+    @objc private func addStar() {
         
         var stars = SKSpriteNode()
         if score < scoreOneStar {
-            print("zore")
+            //print("zore")
         } else if score >= scoreOneStar && score < scoreTwoStar {
            stars = SKSpriteNode(imageNamed: "gameOverOneStar"/*"gameOverButton"*/)
-            print("one")
+            //print("one")
         } else if score >= scoreTwoStar && score < scoreThreeStars {
             stars = SKSpriteNode(imageNamed: "gameOverTwoStars" /*"gameOverButton"*/)
-            print("two")
+            //print("two")
         } else if score >= scoreThreeStars {
             stars = SKSpriteNode(imageNamed: "gameOverThreeStars" /*"gameOverButton"*/)
-            print("three")
+            //print("three")
         } else {
             // do nothing
         }
@@ -790,7 +920,7 @@ class GameOverScene: SKScene, GADInterstitialDelegate {
         
     }
     
-    func saveUserDefaults() {
+    private func saveUserDefaults() {
         let defaults = UserDefaults()
         highScoreNumber = defaults.integer(forKey: "highScoreSaved")
         highScoreNumberSurvival = defaults.integer(forKey: "highScoreSavedSurvival")
@@ -810,12 +940,18 @@ class GameOverScene: SKScene, GADInterstitialDelegate {
                 defaults.set(score, forKey: "A\(level+1)")
                 currentLevelHighScore = score
             }
-            print("\(defaults.integer(forKey: "A\(level+1)")) + yyyy")
-            print("A\(level+1)")
+            //print("\(defaults.integer(forKey: "A\(level+1)")) + yyyy")
+            //print("A\(level+1)")
             
             tempHighScore = 0
             for i in 1...lvlScore.count {
                 tempHighScore += lvlScore[i-1]
+            }
+            for i in 1...lvl2Score.count {
+                tempHighScore += lvl2Score[i-1]
+            }
+            for i in 1...lvl3Score.count {
+                tempHighScore += lvl3Score[i-1]
             }
             
         } else if planet == 2 {
@@ -832,12 +968,18 @@ class GameOverScene: SKScene, GADInterstitialDelegate {
                 defaults.set(score, forKey: "B\(level+1)")
                 currentLevelHighScore = score
             }
-            print("\(defaults.integer(forKey: "B\(level+1)")) + yyyy")
-            print("B\(level+1)")
+            //print("\(defaults.integer(forKey: "B\(level+1)")) + yyyy")
+            //print("B\(level+1)")
             
             tempHighScore = 0
+            for i in 1...lvlScore.count {
+                tempHighScore += lvlScore[i-1]
+            }
             for i in 1...lvl2Score.count {
                 tempHighScore += lvl2Score[i-1]
+            }
+            for i in 1...lvl3Score.count {
+                tempHighScore += lvl3Score[i-1]
             }
             
         } else if planet == 3 {
@@ -854,10 +996,16 @@ class GameOverScene: SKScene, GADInterstitialDelegate {
                 defaults.set(score, forKey: "C\(level+1)")
                 currentLevelHighScore = score
             }
-            print("\(defaults.integer(forKey: "C\(level+1)")) + yyyy")
-            print("C\(level+1)")
+            //print("\(defaults.integer(forKey: "C\(level+1)")) + yyyy")
+            //print("C\(level+1)")
             
             tempHighScore = 0
+            for i in 1...lvlScore.count {
+                tempHighScore += lvlScore[i-1]
+            }
+            for i in 1...lvl2Score.count {
+                tempHighScore += lvl2Score[i-1]
+            }
             for i in 1...lvl3Score.count {
                 tempHighScore += lvl3Score[i-1]
             }
@@ -865,10 +1013,13 @@ class GameOverScene: SKScene, GADInterstitialDelegate {
         } else if planet == 5 {
             
             if score > highScoreNumberSurvival {
+                highScoreNumber = highScoreNumber - highScoreNumberSurvival
+                highScoreNumber = highScoreNumber + score
                 highScoreNumberSurvival = score
                 defaults.set(score, forKey: "highScoreSavedSurvival")
+                defaults.set(highScoreNumber, forKey: "highScoreSaved")
             }
-            
+            tempHighScore = highScoreNumber
         }
 
         
@@ -878,7 +1029,7 @@ class GameOverScene: SKScene, GADInterstitialDelegate {
             
             //ref?.child("user").child(userId).child("highscore"/*self.userName*/).setValue(highScoreNumber)
             //ref?.child("user").child(userId).child("nickname"/*self.userName*/).setValue(nickName)
-            print("saved highsocre")
+            //print("saved highsocre")
         }
         if preferredLanguage == .ru {
             overallHighScoreLabel.text = "Суммарный счет уровней: \(tempHighScore)"
@@ -888,16 +1039,39 @@ class GameOverScene: SKScene, GADInterstitialDelegate {
             overallHighScoreLabel.fontSize = 40
             survivalScoreLabel.fontSize = 40
         } else if preferredLanguage == .ch {
-            overallHighScoreLabel.text = "總結水平高分:: \(tempHighScore)"
+            overallHighScoreLabel.text = "總結水平高分: \(tempHighScore)"
+            overallHighScoreLabel.text = "總結水平高分: \(highScoreNumber)"
             lvlHighScoreLabel.text = "水平高的分數: \(currentLevelHighScore)"
             survivalScoreLabel.text = "最高纪录: \(highScoreNumberSurvival)"
             lvlHighScoreLabel.fontSize = 60
             overallHighScoreLabel.fontSize = 60
             survivalScoreLabel.fontSize = 60
         } else if preferredLanguage == .es  {
+            
             overallHighScoreLabel.text = "Resumen puntaje alto: \(tempHighScore)"
             lvlHighScoreLabel.text = "Nivel alto puntaje: \(currentLevelHighScore)"
             survivalScoreLabel.text = "Mejores resultados: \(highScoreNumberSurvival)"
+            lvlHighScoreLabel.fontSize = 40
+            overallHighScoreLabel.fontSize = 40
+            survivalScoreLabel.fontSize = 40
+        } else if preferredLanguage == .jp  {
+            overallHighScoreLabel.text = "要約レベルのスコア: \(tempHighScore)"
+            lvlHighScoreLabel.text = "レベルベストスコア: \(currentLevelHighScore)"
+            survivalScoreLabel.text = "最高の結果: \(highScoreNumberSurvival)"
+            lvlHighScoreLabel.fontSize = 60
+            overallHighScoreLabel.fontSize = 60
+            survivalScoreLabel.fontSize = 60
+        } else if preferredLanguage == .fr  {
+            overallHighScoreLabel.text = "Score des niveaux sommaires: \(tempHighScore)"
+            lvlHighScoreLabel.text = "Meilleur score de niveau: \(currentLevelHighScore)"
+            survivalScoreLabel.text = "Meilleurs résultats: \(highScoreNumberSurvival)"
+            lvlHighScoreLabel.fontSize = 40
+            overallHighScoreLabel.fontSize = 40
+            survivalScoreLabel.fontSize = 40
+        } else if preferredLanguage == .gr  {
+            overallHighScoreLabel.text = "Zusammenfassung: \(tempHighScore)"
+            lvlHighScoreLabel.text = "Level beste Punktzahl: \(currentLevelHighScore)"
+            survivalScoreLabel.text = "Beste Ergebnisse: \(highScoreNumberSurvival)"
             lvlHighScoreLabel.fontSize = 40
             overallHighScoreLabel.fontSize = 40
             survivalScoreLabel.fontSize = 40
@@ -912,117 +1086,122 @@ class GameOverScene: SKScene, GADInterstitialDelegate {
         
     }
     
+    private var doneTouch = false
+    
     override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
         for touch in touches {
-            let location = touch.location(in: self)
-            if atPoint(location).name == "Play Again" {
-                let scene = GameScene(size: CGSize(width: 1536, height: 2048))
-                // Set the scale mode to scale to fit the window
-                scene.scaleMode = .aspectFill
-                
-                let newGameTransition = SKTransition.doorsCloseHorizontal(withDuration: 0.5)
-                // Present the scene
-                view?.presentScene(scene, transition: newGameTransition)
-                if #available(iOS 10.0, *) {
-                    view?.preferredFramesPerSecond = 60
-                } else {
-                    // Fallback on earlier versions
-                }
-                currentGameStatus = .inGame
-            } else if atPoint(location).name == "High Score" {
-                self.view?.window?.rootViewController?.performSegue(withIdentifier: "highScoreSegue", sender: self)
-            } else if atPoint(location).name == "Go To Menu" {
-                let scene = MainMenuScene(size: CGSize(width: 1536, height: 2048))
-                scene.scaleMode = .aspectFill
-                let startGameTransition = SKTransition.doorsCloseHorizontal(withDuration: 0.5)
-                // Present the scene
-                view?.presentScene(scene, transition: startGameTransition)
-                if #available(iOS 10.0, *) {
-                    view?.preferredFramesPerSecond = 60
-                } else {
-                    // Fallback on earlier versions
-                }
-                
-            } else if atPoint(location).name == "Levels Button" {
-                let scene = LevelsScene(size: CGSize(width: 1536, height: 2048))
-                scene.scaleMode = .aspectFill
-                let startGameTransition = SKTransition.doorsCloseHorizontal(withDuration: 0.5)
-                // Present the scene
-                view?.presentScene(scene, transition: startGameTransition)
-                if #available(iOS 10.0, *) {
-                    view?.preferredFramesPerSecond = 60
-                } else {
-                    // Fallback on earlier versions
-                }
-                
-            } else if atPoint(location).name == "Next level" {
-                if planet == 1 && paidLevel[level + 1] == 1 {
-                    level += 1
-                    nextLevelFunc()
+            if !doneTouch {
+                let location = touch.location(in: self)
+                if atPoint(location).name == "Play Again" {
+                    doneTouch = true
+                    startNewAcitivityIndicator()
+                    
                     currentGameStatus = .inGame
                     
-                    let scene = GameScene(size: CGSize(width: 1536, height: 2048))
-                    // Set the scale mode to scale to fit the window
-                    scene.scaleMode = .aspectFill
+                    _ = Timer.scheduledTimer(timeInterval: TimeInterval(0.2), target: self, selector: #selector(GameOverScene.presentSceneFunc), userInfo: nil, repeats: false)
                     
-                    let newGameTransition = SKTransition.doorsCloseHorizontal(withDuration: 0.5)
+                } else if atPoint(location).name == "High Score" {
+                    self.view?.window?.rootViewController?.performSegue(withIdentifier: "highScoreSegue", sender: self)
+                } else if atPoint(location).name == "Go To Menu" {
+                    doneTouch = true
+                    let scene = MainMenuScene(size: CGSize(width: 1536, height: 2048))
+                    scene.scaleMode = .aspectFill
+                    let startGameTransition = SKTransition.doorsCloseHorizontal(withDuration: 0.5)
                     // Present the scene
-                    view?.presentScene(scene, transition: newGameTransition)
+                    view?.presentScene(scene, transition: startGameTransition)
                     if #available(iOS 10.0, *) {
                         view?.preferredFramesPerSecond = 60
                     } else {
                         // Fallback on earlier versions
                     }
-                } else if planet == 2 && paid2Level[level + 1] == 1 {
-                    level += 1
-                    nextLevelFunc()
-                    currentGameStatus = .inGame
                     
-                    let scene = GameScene(size: CGSize(width: 1536, height: 2048))
-                    // Set the scale mode to scale to fit the window
+                } else if atPoint(location).name == "Levels Button" {
+                    doneTouch = true
+                    let scene = LevelsScene(size: CGSize(width: 1536, height: 2048))
                     scene.scaleMode = .aspectFill
-                    
-                    let newGameTransition = SKTransition.doorsCloseHorizontal(withDuration: 0.5)
+                    let startGameTransition = SKTransition.doorsCloseHorizontal(withDuration: 0.5)
                     // Present the scene
-                    view?.presentScene(scene, transition: newGameTransition)
+                    view?.presentScene(scene, transition: startGameTransition)
                     if #available(iOS 10.0, *) {
                         view?.preferredFramesPerSecond = 60
                     } else {
                         // Fallback on earlier versions
                     }
-                } else if planet == 3 && paid3Level[level + 1] == 1 {
-                    level += 1
-                    nextLevelFunc()
-                    currentGameStatus = .inGame
                     
-                    let scene = GameScene(size: CGSize(width: 1536, height: 2048))
-                    // Set the scale mode to scale to fit the window
-                    scene.scaleMode = .aspectFill
-                    
-                    let newGameTransition = SKTransition.doorsCloseHorizontal(withDuration: 0.5)
-                    // Present the scene
-                    view?.presentScene(scene, transition: newGameTransition)
-                    if #available(iOS 10.0, *) {
-                        view?.preferredFramesPerSecond = 60
-                    } else {
-                        // Fallback on earlier versions
+                } else if atPoint(location).name == "Next level" {
+                    doneTouch = true
+                    if planet == 1 && paidLevel[level + 1] == 1 {
+                        startNewAcitivityIndicator()
+                        level += 1
+                        nextLevelFunc()
+                        currentGameStatus = .inGame
+                        
+                        _ = Timer.scheduledTimer(timeInterval: TimeInterval(0.2), target: self, selector: #selector(GameOverScene.presentSceneFunc), userInfo: nil, repeats: false)
+                        
+                        /*
+                         let scene = GameScene(size: CGSize(width: 1536, height: 2048))
+                         // Set the scale mode to scale to fit the window
+                         scene.scaleMode = .aspectFill
+                         
+                         //let newGameTransition = SKTransition.doorsCloseHorizontal(withDuration: 0.5)
+                         let newGameTransition = SKTransition.fade(withDuration: 1.5)
+                         // Present the scene
+                         view?.presentScene(scene, transition: newGameTransition)
+                         if #available(iOS 10.0, *) {
+                         view?.preferredFramesPerSecond = 60
+                         } else {
+                         // Fallback on earlier versions
+                         }
+                         */
+                    } else if planet == 2 && paid2Level[level + 1] == 1 {
+                        startNewAcitivityIndicator()
+                        level += 1
+                        nextLevelFunc()
+                        currentGameStatus = .inGame
+                        
+                        _ = Timer.scheduledTimer(timeInterval: TimeInterval(0.2), target: self, selector: #selector(GameOverScene.presentSceneFunc), userInfo: nil, repeats: false)
+                        
+                    } else if planet == 3 && paid3Level[level + 1] == 1 {
+                        startNewAcitivityIndicator()
+                        level += 1
+                        nextLevelFunc()
+                        currentGameStatus = .inGame
+                        
+                        _ = Timer.scheduledTimer(timeInterval: TimeInterval(0.2), target: self, selector: #selector(GameOverScene.presentSceneFunc), userInfo: nil, repeats: false)
                     }
+                    
+                } else if atPoint(location).name == "Share Button" {
+                    //self.view?.window?.rootViewController?.performSegue(withIdentifier: "highScoreSegue", sender: self)
+                    shareImageButton()
+                } else {
+                    
                 }
-                
-            } else if atPoint(location).name == "Share Button" {
-                //self.view?.window?.rootViewController?.performSegue(withIdentifier: "highScoreSegue", sender: self)
-                shareImageButton()
-            } else {
-                
             }
         }
     }
+    
+    @objc func presentSceneFunc() {
+        let scene = GameScene(size: CGSize(width: 1536, height: 2048))
+        // Set the scale mode to scale to fit the window
+        scene.scaleMode = .aspectFill
+        
+        //let newGameTransition = SKTransition.doorsCloseHorizontal(withDuration: 0.5)
+        //let newGameTransition = SKTransition.fade(withDuration: 1.5)
+        let newGameTransition = SKTransition.crossFade(withDuration: 1.5)
+        // Present the scene
+        view?.presentScene(scene, transition: newGameTransition)
+        if #available(iOS 10.0, *) {
+            view?.preferredFramesPerSecond = 60
+        } else {
+            // Fallback on earlier versions
+        }
+    }
 
-    func isKeyPresentInUserDefaults(key: String) -> Bool {
+    private func isKeyPresentInUserDefaults(key: String) -> Bool {
         return UserDefaults.standard.object(forKey: key) != nil
     }
     
-    func shareImageButton() {
+    private func shareImageButton() {
         let image = takeScreenShot(scene: scene!)
         let text = "Try this game!"
         
@@ -1034,7 +1213,7 @@ class GameOverScene: SKScene, GADInterstitialDelegate {
         self.view?.window?.rootViewController?.present(activityViewController, animated: true, completion: nil)
     }
     
-    func takeScreenShot(scene: SKScene) -> UIImage {
+    private func takeScreenShot(scene: SKScene) -> UIImage {
         let bounds = self.scene!.view?.bounds
         UIGraphicsBeginImageContextWithOptions(bounds!.size, true, UIScreen.main.scale)
         self.scene?.view?.drawHierarchy(in: bounds!, afterScreenUpdates: true)
@@ -1050,7 +1229,9 @@ class GameOverScene: SKScene, GADInterstitialDelegate {
     
     
     deinit {
-        print("gameover deinit")
+        stopNewAcitvityIndicator()
+        //print("gameover deinit")
+        
     }
     
     

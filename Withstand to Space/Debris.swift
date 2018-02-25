@@ -11,15 +11,15 @@ import SpriteKit
 
 class Debris: SKSpriteNode {
     
-    var debrisEffectArray: [SKTexture] = [SKTexture(imageNamed: "b1r"),SKTexture(imageNamed: "b2r"),SKTexture(imageNamed: "b3r"),SKTexture(imageNamed: "b4r"),SKTexture(imageNamed: "b5r"),SKTexture(imageNamed: "b6r") ,SKTexture(imageNamed: "b7r")]
+    private var debrisEffectArray: [SKTexture] = [SKTexture(imageNamed: "b1r"),SKTexture(imageNamed: "b2r"),SKTexture(imageNamed: "b3r"),SKTexture(imageNamed: "b4r"),SKTexture(imageNamed: "b5r"),SKTexture(imageNamed: "b6r") ,SKTexture(imageNamed: "b7r")]
     
-    var greenMineEffectArray: [SKTexture] = [SKTexture(imageNamed: "mine03_1"),SKTexture(imageNamed: "mine03_2"),SKTexture(imageNamed: "mine03_3"),SKTexture(imageNamed: "mine03_4"),SKTexture(imageNamed: "mine03_5"),SKTexture(imageNamed: "mine03_6") ,SKTexture(imageNamed: "mine03_7")]
+    private var greenMineEffectArray: [SKTexture] = [SKTexture(imageNamed: "mine03_1"),SKTexture(imageNamed: "mine03_2"),SKTexture(imageNamed: "mine03_3"),SKTexture(imageNamed: "mine03_4"),SKTexture(imageNamed: "mine03_5"),SKTexture(imageNamed: "mine03_6") ,SKTexture(imageNamed: "mine03_7")]
     
-    var greenMineChargedEffectArray: [SKTexture] = [SKTexture(imageNamed: "mine03Charged_1"),SKTexture(imageNamed: "mine03Charged_2"),SKTexture(imageNamed: "mine03Charged_3"),SKTexture(imageNamed: "mine03Charged_4"),SKTexture(imageNamed: "mine03Charged_5"),SKTexture(imageNamed: "mine03Charged_6") ,SKTexture(imageNamed: "mine03Charged_7")]
+    private var greenMineChargedEffectArray: [SKTexture] = [SKTexture(imageNamed: "mine03Charged_1"),SKTexture(imageNamed: "mine03Charged_2"),SKTexture(imageNamed: "mine03Charged_3"),SKTexture(imageNamed: "mine03Charged_4"),SKTexture(imageNamed: "mine03Charged_5"),SKTexture(imageNamed: "mine03Charged_6") ,SKTexture(imageNamed: "mine03Charged_7")]
     
-    var yellowMineEffectArray: [SKTexture] = [SKTexture(imageNamed: "mine08_1s"),SKTexture(imageNamed: "mine08_2s"),SKTexture(imageNamed: "mine08_3s"),SKTexture(imageNamed: "mine08_4s"),SKTexture(imageNamed: "mine08_5s"),SKTexture(imageNamed: "mine08_6s") ,SKTexture(imageNamed: "mine08_7s")]
+    private var yellowMineEffectArray: [SKTexture] = [SKTexture(imageNamed: "mine08_1s"),SKTexture(imageNamed: "mine08_2s"),SKTexture(imageNamed: "mine08_3s"),SKTexture(imageNamed: "mine08_4s"),SKTexture(imageNamed: "mine08_5s"),SKTexture(imageNamed: "mine08_6s") ,SKTexture(imageNamed: "mine08_7s")]
     
-    let barriers = ["alien1_85"]
+    private let barriers = ["alien1_85"]
     
     var isActive: Bool = true
     var isSlowing: Bool = false
@@ -125,6 +125,45 @@ class Debris: SKSpriteNode {
                 self.yScale += 0.8
             }
         }
+        /*
+         if XPosition == 1 {
+         if zPosition == 1 {
+         self.position = MiddleBarrierPosition.lowRight925 //DebrisPosition.lowRight925 //CGPoint(x: mainScene!.size.width * 0.70 - 170, y: mainScene!.size.height * 1.2)
+         self.xScale -= 0.1 //0.5
+         self.yScale -= 0.1
+         } else if zPosition == 3 {
+         self.position = MiddleBarrierPosition.middleRight1010 //DebrisPosition.middleRight1010//CGPoint(x: mainScene!.size.width * 0.70 - 60, y: mainScene!.size.height * 1.2)
+         self.xScale += 0.4
+         self.yScale += 0.4
+         } else if zPosition == 5 {
+         self.position = MiddleBarrierPosition.highRight1095 //DebrisPosition.highRight1095 //CGPoint(x: mainScene!.size.width * 0.70 + 25, y: mainScene!.size.height * 1.2)
+         self.xScale += 0.9//0.5
+         self.yScale += 0.9
+         }
+         self.texture = SKTexture(imageNamed: "mine01")
+         
+         } else if XPosition == 2 {
+         
+         //case 2:
+         
+         if zPosition == 1 {
+         self.position = MiddleBarrierPosition.lowLeft620 //DebrisPosition.lowCenter768 //CGPoint(x: mainScene!.size.width * 0.5, y: mainScene!.size.height * 1.2)
+         self.xScale -= 0.1 //0.5
+         self.yScale -= 0.1
+         } else if zPosition == 3 {
+         self.position = MiddleBarrierPosition.middleLeft535 //DebrisPosition.middleCenter768 //CGPoint(x: mainScene!.size.width * 0.5, y: mainScene!.size.height * 1.2)
+         self.xScale += 0.4
+         self.yScale += 0.4
+         } else if zPosition == 5 {
+         self.position = MiddleBarrierPosition.highLeft450 //DebrisPosition.highCenter768 //CGPoint(x: mainScene!.size.width * 0.5, y: mainScene!.size.height * 1.2)
+         self.xScale += 0.9//0.5
+         self.yScale += 0.9
+         }
+         self.texture = SKTexture(imageNamed: "mine01")
+         
+         }
+         */
+        
         /*default:
             //self.position = CGPoint(x: mainScene!.size.width * 0.60, y: mainScene!.size.height * 1.20)
             print("default")

@@ -11,12 +11,12 @@ import SpriteKit
 
 class Barrier: SKSpriteNode {
     
-    let barriers = ["alien1_85"/*"alien1", "alien2", "alien3", "coin1"*/]
-    var coinMovingArray: [SKTexture] = [SKTexture(imageNamed: "newCoin1"),SKTexture(imageNamed: "newCoin2"),SKTexture(imageNamed: "newCoin3"),SKTexture(imageNamed: "newCoin4"),SKTexture(imageNamed: "newCoin5"),SKTexture(imageNamed: "newCoin6"),SKTexture(imageNamed: "newCoin7"),SKTexture(imageNamed: "newCoin8"), SKTexture(imageNamed: "newCoin9"),SKTexture(imageNamed: "newCoin10"),SKTexture(imageNamed: "newCoin11"),SKTexture(imageNamed: "newCoin12"),SKTexture(imageNamed: "newCoin13"),SKTexture(imageNamed: "newCoin14"),SKTexture(imageNamed: "newCoin15"),SKTexture(imageNamed: "newCoin16")]
+    private let barriers = ["alien1_85"/*"alien1", "alien2", "alien3", "coin1"*/]
+    private var coinMovingArray: [SKTexture] = [SKTexture(imageNamed: "newCoin1"),SKTexture(imageNamed: "newCoin2"),SKTexture(imageNamed: "newCoin3"),SKTexture(imageNamed: "newCoin4"),SKTexture(imageNamed: "newCoin5"),SKTexture(imageNamed: "newCoin6"),SKTexture(imageNamed: "newCoin7"),SKTexture(imageNamed: "newCoin8"), SKTexture(imageNamed: "newCoin9"),SKTexture(imageNamed: "newCoin10"),SKTexture(imageNamed: "newCoin11"),SKTexture(imageNamed: "newCoin12"),SKTexture(imageNamed: "newCoin13"),SKTexture(imageNamed: "newCoin14"),SKTexture(imageNamed: "newCoin15"),SKTexture(imageNamed: "newCoin16")]
     
-    var coinMovingArray1: [SKTexture] = [SKTexture(imageNamed: "newCoin21"),SKTexture(imageNamed: "newCoin22"),SKTexture(imageNamed: "newCoin23"),SKTexture(imageNamed: "newCoin24"),SKTexture(imageNamed: "newCoin25"),SKTexture(imageNamed: "newCoin26"),SKTexture(imageNamed: "newCoin27"),SKTexture(imageNamed: "newCoin28")]
+    private var coinMovingArray1: [SKTexture] = [SKTexture(imageNamed: "newCoin21"),SKTexture(imageNamed: "newCoin22"),SKTexture(imageNamed: "newCoin23"),SKTexture(imageNamed: "newCoin24"),SKTexture(imageNamed: "newCoin25"),SKTexture(imageNamed: "newCoin26"),SKTexture(imageNamed: "newCoin27"),SKTexture(imageNamed: "newCoin28")]
     
-    var coinMovingArray2: [SKTexture] = [SKTexture(imageNamed: "newCoin3_1"),SKTexture(imageNamed: "newCoin3_2"),SKTexture(imageNamed: "newCoin3_3"),SKTexture(imageNamed: "newCoin3_4"),SKTexture(imageNamed: "newCoin3_5"),SKTexture(imageNamed: "newCoin3_6"),SKTexture(imageNamed: "newCoin3_7")]
+    private var coinMovingArray2: [SKTexture] = [SKTexture(imageNamed: "newCoin3_1"),SKTexture(imageNamed: "newCoin3_2"),SKTexture(imageNamed: "newCoin3_3"),SKTexture(imageNamed: "newCoin3_4"),SKTexture(imageNamed: "newCoin3_5"),SKTexture(imageNamed: "newCoin3_6"),SKTexture(imageNamed: "newCoin3_7")]
     
     
     var isActive: Bool = true
@@ -168,6 +168,34 @@ class Barrier: SKSpriteNode {
             } else if zPosition == 5  {
                 self.position = DebrisPosition.highLeft450 //CGPoint(x: mainScene!.size.width * 0.30 - 25, y: mainScene!.size.height * 1.2)
                 self.xScale += 1.0
+                self.yScale += 1.0
+            }
+        } else if XPosition == 1.5 {
+            if zPosition == 1 {
+                self.position = MiddleBarrierPosition.lowRight925 //CGPoint(x: mainScene!.size.width * 0.70 - 170, y: mainScene!.size.height * 1.2)
+                self.xScale -= 0.0 //0.4
+                self.yScale -= 0.0
+            } else if zPosition == 3 {
+                self.position = MiddleBarrierPosition.middleRight1010//CGPoint(x: mainScene!.size.width * 0.70 - 60, y: mainScene!.size.height * 1.2)
+                self.xScale += 0.5 //0.4
+                self.yScale += 0.5
+            } else if zPosition == 5 {
+                self.position = MiddleBarrierPosition.highRight1095 //CGPoint(x: mainScene!.size.width * 0.70 + 25, y: mainScene!.size.height * 1.2)
+                self.xScale += 1.0 //0.4
+                self.yScale += 1.0
+            }
+        } else if XPosition == 2.5 {
+            if zPosition == 1 {
+                self.position = MiddleBarrierPosition.lowLeft620 //CGPoint(x: mainScene!.size.width * 0.5, y: mainScene!.size.height * 1.2)
+                self.xScale -= 0.0 //0.4
+                self.yScale -= 0.0
+            } else if zPosition == 3 {
+                self.position = MiddleBarrierPosition.middleLeft535 //CGPoint(x: mainScene!.size.width * 0.5, y: mainScene!.size.height * 1.2)
+                self.xScale += 0.5 //0.4
+                self.yScale += 0.5
+            } else if zPosition == 5 {
+                self.position = MiddleBarrierPosition.highLeft450 //CGPoint(x: mainScene!.size.width * 0.5, y: mainScene!.size.height * 1.2)
+                self.xScale += 1.0 //0.4
                 self.yScale += 1.0
             }
         }

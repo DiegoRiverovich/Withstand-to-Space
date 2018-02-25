@@ -14,29 +14,37 @@ class PlayerShip: SKSpriteNode {
     
     weak var mainScene: GameScene? //SKScene?
     
-    var shipSize: CGSize?
+    private var shipSize: CGSize?
     
     var centerLeftOrRightPosition: Int = 3
     var playerName = "player"
     
-    var particleToNormalTimer: Timer?
+    private var particleToNormalTimer: Timer?
     
-    var shipTurningLeftArray: [SKTexture] = [SKTexture(imageNamed: "ship10"),SKTexture(imageNamed: "ship11"),SKTexture(imageNamed: "ship12"),SKTexture(imageNamed: "ship13"),SKTexture(imageNamed: "ship14"),SKTexture(imageNamed: "ship15"),SKTexture(imageNamed: "ship16"),SKTexture(imageNamed: "ship17"),SKTexture(imageNamed: "ship18"),SKTexture(imageNamed: "ship19")]
-    var shipTurningRightArray: [SKTexture] = [SKTexture(imageNamed: "ship0"),SKTexture(imageNamed: "ship1"),SKTexture(imageNamed: "ship2"),SKTexture(imageNamed: "ship3"),SKTexture(imageNamed: "ship4"),SKTexture(imageNamed: "ship5"),SKTexture(imageNamed: "ship6"),SKTexture(imageNamed: "ship7"),SKTexture(imageNamed: "ship8"),SKTexture(imageNamed: "ship9")]
+    private var shipTurningLeftArray: [SKTexture] = [SKTexture(imageNamed: "ship10"),SKTexture(imageNamed: "ship11"),SKTexture(imageNamed: "ship12"),SKTexture(imageNamed: "ship13"),SKTexture(imageNamed: "ship14"),SKTexture(imageNamed: "ship15"),SKTexture(imageNamed: "ship16"),SKTexture(imageNamed: "ship17"),SKTexture(imageNamed: "ship18"),SKTexture(imageNamed: "ship19")]
+    private var shipTurningRightArray: [SKTexture] = [SKTexture(imageNamed: "ship0"),SKTexture(imageNamed: "ship1"),SKTexture(imageNamed: "ship2"),SKTexture(imageNamed: "ship3"),SKTexture(imageNamed: "ship4"),SKTexture(imageNamed: "ship5"),SKTexture(imageNamed: "ship6"),SKTexture(imageNamed: "ship7"),SKTexture(imageNamed: "ship8"),SKTexture(imageNamed: "ship9")]
  
-    var shipTurningDownArray: [SKTexture] = [SKTexture(imageNamed: "ship20"),SKTexture(imageNamed: "ship21"),SKTexture(imageNamed: "ship22"),SKTexture(imageNamed: "ship23"),SKTexture(imageNamed: "ship24"),SKTexture(imageNamed: "ship25"),SKTexture(imageNamed: "ship26")]
-    var shipTurningUpArray: [SKTexture] = [SKTexture(imageNamed: "ship30"),SKTexture(imageNamed: "ship31"),SKTexture(imageNamed: "ship32"),SKTexture(imageNamed: "ship33"),SKTexture(imageNamed: "ship34"),SKTexture(imageNamed: "ship35"),SKTexture(imageNamed: "ship36")]
+    private var shipTurningDownArray: [SKTexture] = [SKTexture(imageNamed: "ship20"),SKTexture(imageNamed: "ship21"),SKTexture(imageNamed: "ship22"),SKTexture(imageNamed: "ship23"),SKTexture(imageNamed: "ship24"),SKTexture(imageNamed: "ship25"),SKTexture(imageNamed: "ship26")]
+    private var shipTurningUpArray: [SKTexture] = [SKTexture(imageNamed: "ship30"),SKTexture(imageNamed: "ship31"),SKTexture(imageNamed: "ship32"),SKTexture(imageNamed: "ship33"),SKTexture(imageNamed: "ship34"),SKTexture(imageNamed: "ship35"),SKTexture(imageNamed: "ship36")]
     
-    var shipRougeOneEffect: [SKTexture] = [SKTexture(imageNamed: "r1"),SKTexture(imageNamed: "r2"),SKTexture(imageNamed: "r3"),SKTexture(imageNamed: "r4"),SKTexture(imageNamed: "r5"),SKTexture(imageNamed: "r6")]
+    private var shipRougeOneEffect: [SKTexture] = [SKTexture(imageNamed: "r1"),SKTexture(imageNamed: "r2"),SKTexture(imageNamed: "r3"),SKTexture(imageNamed: "r4"),SKTexture(imageNamed: "r5"),SKTexture(imageNamed: "r6")]
     
-    var distortEffectOutArray: [SKTexture] = [SKTexture(imageNamed: "shipDist1"),SKTexture(imageNamed: "shipDist2"),SKTexture(imageNamed: "shipDist3"),SKTexture(imageNamed: "shipDist4")]
-    var distortEffectInArray: [SKTexture] = [SKTexture(imageNamed: "shipDist4"),SKTexture(imageNamed: "shipDist3"),SKTexture(imageNamed: "shipDist2"),SKTexture(imageNamed: "shipDist1")]
+    private var distortEffectOutArray: [SKTexture] = [SKTexture(imageNamed: "shipDist1"),SKTexture(imageNamed: "shipDist2"),SKTexture(imageNamed: "shipDist3"),SKTexture(imageNamed: "shipDist4")]
+    private var distortEffectInArray: [SKTexture] = [SKTexture(imageNamed: "shipDist4"),SKTexture(imageNamed: "shipDist3"),SKTexture(imageNamed: "shipDist2"),SKTexture(imageNamed: "shipDist1")]
     
     let jetFire = SKEmitterNode(fileNamed: "jetFire.sks")
     
     var rougeIsActive = true
     
-    var actionIsActive: Bool
+    var actionIsActive: Bool = false /* {
+        didSet {
+            if actionIsActive == false {
+                mainScene?.stopSwipeFuncRemove()
+            } else if actionIsActive == true {
+                mainScene?.stopSwipeFuncAdd()
+            }
+        }
+    } */
     
     
     
@@ -62,12 +70,14 @@ class PlayerShip: SKSpriteNode {
         
         addCollisionDetectors()
         
-        if soundsIsOn {
+        /* DISABLE ENGINE START SOUND. TOO LOUD
+        if soundsIsOn && !playerIsSetup  {
             //let waitActionBeforeStartEngine = SKAction.wait(forDuration: TimeInterval(0))
             let playSoundStartEngine = SKAction.playSoundFileNamed("engineStart1.m4a", waitForCompletion: false)
             let startEngineSequence = SKAction.sequence([/*waitActionBeforeStartEngine,*/ playSoundStartEngine])
             run(startEngineSequence)
         }
+        */
         
         jetFire?.targetNode = self
         jetFire?.zPosition = -10
@@ -196,12 +206,12 @@ class PlayerShip: SKSpriteNode {
                 }
             //print(self.position)
             case .trio:
-                print("trio up 1")
+                //print("trio up 1")
                 let allShips = mainScene?.gameLayer.children //mainScene?.children
                 for trioShip in allShips! {
-                    print("trio up 2")
+                    //print("trio up 2")
                     if trioShip is PlayerShip /*&& trioShip.name == "trioShip"*/ {
-                        print("trio up 3")
+                        //print("trio up 3")
                         let moveUp = true
                         var actionArray: [SKAction] = []
                         if trioShip.xScale.roundTo1Decimal() >= ShipScale.big /*1.5*/ && trioShip.zPosition == 5 {
@@ -305,7 +315,7 @@ class PlayerShip: SKSpriteNode {
                 //case .invisible: break
             }
         } else {
-            
+            mainScene?.stopSwipeFuncAdd()
         }
     }
     
@@ -476,7 +486,7 @@ class PlayerShip: SKSpriteNode {
                 //case .invisible: break
             }
         } else {
-            
+            mainScene?.stopSwipeFuncAdd()
         }
     }
     
@@ -484,7 +494,7 @@ class PlayerShip: SKSpriteNode {
 
     
     // Determine which side to move whene scaling player UP and DOWN and group in Action it.
-    func moveActionGroupSet(scaleDown: SKAction, moveUp: Bool) -> SKAction {
+    private func moveActionGroupSet(scaleDown: SKAction, moveUp: Bool) -> SKAction {
         
         let moveToAction2: SKAction
         let moveToAction3: SKAction
@@ -602,7 +612,7 @@ class PlayerShip: SKSpriteNode {
         return group
     }
     
-    func moveActionGroupSetTrioShip(trioShip: PlayerShip, scaleDown: SKAction, moveUp: Bool) -> SKAction {
+    private func moveActionGroupSetTrioShip(trioShip: PlayerShip, scaleDown: SKAction, moveUp: Bool) -> SKAction {
         
         let moveToAction2: SKAction
         let moveToAction3: SKAction
@@ -792,13 +802,14 @@ class PlayerShip: SKSpriteNode {
                     actionIsActive = false
                 }
             //print(self.position)
-            case .trio: break
+            case .trio:
+                actionIsActive = false
                 
                 //case .rogueOne: break
                 //case .invisible: break
             }
         } else {
-            
+            mainScene?.stopSwipeFuncAdd()
         }
         
         //calculateAnchorPoint()
@@ -883,12 +894,13 @@ class PlayerShip: SKSpriteNode {
                     actionIsActive = false
                 }
             //print(self.position)
-            case .trio: break
+            case .trio:
+                actionIsActive = false
                 //case .rogueOne: break
                 //case .invisible: break
             }
         } else {
-            
+            mainScene?.stopSwipeFuncAdd()
         }
         
         //calculateAnchorPoint()
@@ -908,7 +920,7 @@ class PlayerShip: SKSpriteNode {
         }
     }
     
-    func calculateAnchorPointForTrio(trioShip: PlayerShip) {
+    private func calculateAnchorPointForTrio(trioShip: PlayerShip) {
         let currentPosition = trioShip.position
         if ceil(currentPosition.x) == scene!.size.width / 2 {
             //self.anchorPoint = CGPoint(x: 0.5, y: 0.5)
@@ -926,7 +938,7 @@ class PlayerShip: SKSpriteNode {
         
     }
     
-    func addCollisionDetectors() {
+    private func addCollisionDetectors() {
         //let cD1 = CollisionDetector(color: UIColor.black, size: CGSize(width: 10, height: 10))
         cD1.position = CGPoint(x: 0 /*(self.size.width / 2)*/, y: (self.size.height / 2) - 2)
         //cD1.anchorPoint = CGPoint(x: 0, y: 0)
@@ -996,7 +1008,7 @@ class PlayerShip: SKSpriteNode {
     }
     
     
-    func addPhysicsBodyToDetectors(node: SKSpriteNode) {
+    private func addPhysicsBodyToDetectors(node: SKSpriteNode) {
         
         // Set PhysicsBody. First create PhysicsBody then set properties !!!!
         node.physicsBody = SKPhysicsBody(circleOfRadius: 1)
@@ -1014,7 +1026,7 @@ class PlayerShip: SKSpriteNode {
     
     deinit {
         /*print("playerShip deinit \(self.playerName) \(self.texture) \(self.name)")*/
-        print("playerShip deinit")
+        //print("playerShip deinit")
     }
     
     

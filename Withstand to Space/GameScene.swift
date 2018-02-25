@@ -10,16 +10,52 @@ import SpriteKit
 import GameplayKit
 import AVFoundation
 import GoogleMobileAds
+import NVActivityIndicatorView
 
 //let constructionTimeIntervalArray: Array = [2,4,1,1,1,1,1,2,5,7,1,1,1,1,1]   // 15
 
 class GameScene: SKScene, SKPhysicsContactDelegate, GADInterstitialDelegate {
     
-    var restatrButtonPressedForAds: Bool = false
-    var newLevelButtonPressedForAds: Bool = false
-    var mainMenuButtonPressedForAds: Bool = false
+    private var steerButtonRight: Bool = true
+    private var swipeActiveGesture: Bool = true
     
-    var trioTimeActiveLoc: Double = 0 {
+    private var showAdsLevel: Bool = false
+    
+    private var activeLevels: [Int] = [Int]()
+    private var nextActiveLevels: [Int] = [Int]()
+    private var newActivityIndicator: NVActivityIndicatorView?
+    
+    var canBuy: Bool = false
+    
+    //let myActivityIndicator = UIActivityIndicatorView(activityIndicatorStyle: UIActivityIndicatorViewStyle.whiteLarge)
+    
+    private var steerArrowUpG: SKSpriteNode?
+    private var steerArrowRightG: SKSpriteNode?
+    private var steerArrowDownG: SKSpriteNode?
+    private var steerArrowLeftG: SKSpriteNode?
+    
+    private let stopSwipeNode = SKSpriteNode(imageNamed: "stopSwipe")
+    
+    private let buyTrioStatusButton = SKSpriteNode(imageNamed: "buyButtonUNIVERSAL02" /*"statusInvisibleN140.png"*/)
+    private let buyRougeOneStatusButton = SKSpriteNode(imageNamed: "buyButtonUNIVERSAL02" /*"statusInvisibleN140.png"*/)
+    private let buyInvisibleStatusButton = SKSpriteNode(imageNamed: "buyButtonUNIVERSAL02" /*"statusInvisibleN140.png"*/)
+    private let buyRemoveAdButton = SKSpriteNode(imageNamed: "buyButtonUNIVERSAL02" /*"statusInvisibleN140.png"*/)
+    private let restorePurchaseButton = SKSpriteNode(imageNamed: "restorePurchasesButton1" /*"statusInvisibleN140.png"*/)
+    private let swipeClickButton = SKSpriteNode(imageNamed: "swipeButton" /*"statusInvisibleN140.png"*/)
+    //let clickButton = SKSpriteNode(imageNamed: "clickButton" /*"statusInvisibleN140.png"*/)
+    
+    let trioPurchaseLabel = SKLabelNode(fontNamed: SomeNames.fontNameVenusrising)
+    let rougePurchaseLabel = SKLabelNode(fontNamed: SomeNames.fontNameVenusrising)
+    let invisiblePurchaseLabel = SKLabelNode(fontNamed: SomeNames.fontNameVenusrising)
+    let removeAdPurchaseLabel = SKLabelNode(fontNamed: SomeNames.fontNameVenusrising)
+    private let restorePurchasesLabel = SKLabelNode(fontNamed: SomeNames.fontNameVenusrising)
+    
+    private var restatrButtonPressedForAds: Bool = false
+    private var newLevelButtonPressedForAds: Bool = false
+    private var mainMenuButtonPressedForAds: Bool = false
+    private var visualyImpairedPressedForAds: Bool = false
+    
+    private var trioTimeActiveLoc: Double = 0 {
         didSet {
            trioTimeActive += trioTimeActiveLoc.truncate(places: 1)
             popupSPPoints(with: 0)
@@ -28,14 +64,14 @@ class GameScene: SKScene, SKPhysicsContactDelegate, GADInterstitialDelegate {
             //let rougeOneTimerLabel
         }
     }
-    var rougeOneTimeActiveLoc: Double = 0 {
+    private var rougeOneTimeActiveLoc: Double = 0 {
         didSet {
             rougeOneTimeActive += rougeOneTimeActiveLoc.truncate(places: 1)
             popupSPPoints(with: 1)
             rougeOneTimerLabel.text = "\(rougeOneTimeActive.truncate(places: 1))"
         }
     }
-    var InvisibleTimeActiveLoc: Double = 0 {
+    private var InvisibleTimeActiveLoc: Double = 0 {
         didSet {
             InvisibleTimeActive += InvisibleTimeActiveLoc.truncate(places: 1)
             popupSPPoints(with: 2)
@@ -44,96 +80,109 @@ class GameScene: SKScene, SKPhysicsContactDelegate, GADInterstitialDelegate {
     }
     
     //var playerShipNotDeinit = PlayerShip()
-    var pushedPause = false
+    private var pushedPause = false
     
-    var gameOverIsRuning = false
+    private var gameOverIsRuning = false
     
-    var hackableDebris = Debris()
+    private var hackableDebris = Debris()
     
     let gameLayer = SKNode()
-    let pauseLayer = SKNode()
+    private let pauseLayer = SKNode()
     
-    var puzzleGameArray = [1, 2, 3, 4, 5]
-    var puzzleCurrentGameStatus = false
-    var showHintOneTime = false
-    var puzzleDotsOnTheScreen = false
-    var puzzleTimeOut = false
-    var puzzleColocHitVisible = false
+    private var puzzleGameArray = [1, 2, 3, 4, 5]
+    private var puzzleCurrentGameStatus = false
+    private var showHintOneTime = false
+    private var puzzleDotsOnTheScreen = false
+    private var puzzleTimeOut = false
+    private var puzzleColocHitVisible = false
     //var puzzleIsColors = true
     
-    var levelNumber = 1
+    private var levelNumber = 1
     //var livesNumber = 3
 
-    enum ButtonsStatus {
+    private enum ButtonsStatus {
         case settings
         case shipUpgrades
         case hintWindow
         case hintIcon
+        case buyWindow
         case none
     }
-    var buttonStatus: ButtonsStatus = .none
+    private var buttonStatus: ButtonsStatus = .none
     
-    enum SuperButtonsStatus {
+    private enum SuperButtonsStatus {
         case normal
         case trio
         case rouge
         case invisible
     }
-    var superButtonStatus: SuperButtonsStatus = .normal
+    private var superButtonStatus: SuperButtonsStatus = .normal
     
-    var canMove: Bool = false
-    var hintDone: Bool = false
+    private var canMove: Bool = false
+    private var hintDone: Bool = false
     
     var ship = PlayerShip()
-    var tempShipRouge = PlayerShip()
+    private var tempShipRouge = PlayerShip()
     var rougeOneShipGlobal: PlayerShip?
     
-    var partitions = [Partition]()
+    private var partitions = [Partition]()
     
     // Menu buttons
-    var restartButton = SKSpriteNode()
-    var goToMenuButton = SKSpriteNode()
-    var levelsButton = SKSpriteNode()
-    var settingsButton = SKSpriteNode()
+    private var restartButton = SKSpriteNode()
+    private var goToMenuButton = SKSpriteNode()
+    private var levelsButton = SKSpriteNode()
+    
+    private let settingsButton = SKSpriteNode(imageNamed: "settingsButton")
+    private let gameMenuBackground = SKSpriteNode(imageNamed: "menuBackground45")
     //var controlButton = SKSpriteNode()
-    var musicOnOffButton = SKSpriteNode()
-    var soundsOnOffButton = SKSpriteNode()
+    private var musicOnOffButton = SKSpriteNode()
+    private var soundsOnOffButton = SKSpriteNode()
     
     //let normalStatusButton = SKSpriteNode(imageNamed: "statusNormalN140.png")
-    let trioStatusButton = SKSpriteNode(imageNamed: "statusTrio1" /*"statusTrioN140.png"*/)
-    let rougeOneStatusButton = SKSpriteNode(imageNamed: "statusRougeOne1" /*"statusRougeOneN140.png"*/)
-    let invisibleStatusButton = SKSpriteNode(imageNamed: "statusInvisible1" /*"statusInvisibleN140.png"*/)
+    private let trioStatusButton = SKSpriteNode(imageNamed: "statusTrio1" /*"statusTrioN140.png"*/)
+    private let rougeOneStatusButton = SKSpriteNode(imageNamed: "statusRougeOne1" /*"statusRougeOneN140.png"*/)
+    private let invisibleStatusButton = SKSpriteNode(imageNamed: "statusInvisible1" /*"statusInvisibleN140.png"*/)
+    private let purchaseButton = SKSpriteNode(imageNamed: "purchase01" /*"statusInvisibleN140.png"*/)
     
-    let puzzleBackground = SKSpriteNode(imageNamed: "puzzleBack")
-    var redDot = SKSpriteNode(imageNamed: "puzzleRedDot1")
-    var yellowDot = SKSpriteNode(imageNamed: "puzzleYellowDot1")
-    var blueDot = SKSpriteNode(imageNamed: "puzzleBlueDot1")
-    var greenDot = SKSpriteNode(imageNamed: "puzzleGreenDot1")
-    var purpleDot = SKSpriteNode(imageNamed: "puzzlePurpleDot1")
+    private let puzzleBackground = SKSpriteNode(imageNamed: "puzzleBack")
+    private var redDot = SKSpriteNode(imageNamed: "puzzleRedDot1")
+    private var yellowDot = SKSpriteNode(imageNamed: "puzzleYellowDot1")
+    private var blueDot = SKSpriteNode(imageNamed: "puzzleBlueDot1")
+    private var greenDot = SKSpriteNode(imageNamed: "puzzleGreenDot1")
+    private var purpleDot = SKSpriteNode(imageNamed: "puzzlePurpleDot1")
     
-    var redDotHint = SKSpriteNode(imageNamed: "puzzleRedDot1")
-    var yellowDotHint = SKSpriteNode(imageNamed: "puzzleYellowDot1")
-    var blueDotHint = SKSpriteNode(imageNamed: "puzzleBlueDot1")
-    var greenDotHint = SKSpriteNode(imageNamed: "puzzleGreenDot1")
-    var purpleDotHint = SKSpriteNode(imageNamed: "puzzlePurpleDot1")
+    private var redDotHint = SKSpriteNode(imageNamed: "puzzleRedDot1")
+    private var yellowDotHint = SKSpriteNode(imageNamed: "puzzleYellowDot1")
+    private var blueDotHint = SKSpriteNode(imageNamed: "puzzleBlueDot1")
+    private var greenDotHint = SKSpriteNode(imageNamed: "puzzleGreenDot1")
+    private var purpleDotHint = SKSpriteNode(imageNamed: "puzzlePurpleDot1")
     
-    let timeLine = SKSpriteNode(imageNamed: "timeLine1")
-    var timeLinePeg = SKSpriteNode(imageNamed: "shipUpgradesIcon2" /*"timeLinePeg1"*/)
+    private let timeLine = SKSpriteNode(imageNamed: "timeLine1")
+    private var timeLinePeg = SKSpriteNode(imageNamed: "shipUpgradesIcon2" /*"timeLinePeg1"*/)
     
-    let spacestation = SpaceStation()
+    private let spacestation = SpaceStation()
     
     //let engineSoundsAction = SKAction.playSoundFileNamed("boom1.m4a", waitForCompletion: false)
     
     //var partitionHigherThenTheShip = false
     //var gameBackgroundMusic: AVAudioPlayer?
-    var player = AVAudioPlayer()
-    let path = Bundle.main.path(forResource: "gameMusicNew1" /*"SoulStar"*/, ofType: "m4a")
+    private var player = AVAudioPlayer()
+    private let path = Bundle.main.path(forResource: "gameMusicNew1" /*"SoulStar"*/, ofType: "m4a")
     
-    var playerEngine = AVAudioPlayer()
-    let pathEngine = Bundle.main.path(forResource: "engineNew" /*"SoulStar"*/, ofType: "m4a")
+    private var playerEngine = AVAudioPlayer()
+    private let pathEngine = Bundle.main.path(forResource: "engineNew" /*"SoulStar"*/, ofType: "m4a")
     
-    var coins: Int = 0 {
+    private var coins: Int = 0 {
         didSet {
+            score = coins
+            if score == scoreOneStar {
+                showStarsInGame()
+            } else if score == scoreTwoStar {
+                showStarsInGame()
+            } else if score == scoreThreeStars {
+                showStarsInGame()
+            }
+            
             if preferredLanguage == .ru {
                 coinsLabel.text = "⚡️: \(coins)" //String("Топливо: \(coins)")
             } else if preferredLanguage == .ch {
@@ -144,8 +193,6 @@ class GameScene: SKScene, SKPhysicsContactDelegate, GADInterstitialDelegate {
                 coinsLabel.text = "⚡️: \(coins)" // String("Energy: \(coins)")
             }
             
-            score = coins
-            
             popupCoinsCount()
             
             if gameMode == .survival {
@@ -154,77 +201,80 @@ class GameScene: SKScene, SKPhysicsContactDelegate, GADInterstitialDelegate {
         }
     }
     
-    var lostCoins: Int = 10 {
+    private var lostCoins: Int = 10 {
         didSet {
             lostCoinsLabel.text = String("Lives: \(lostCoins)")
             if lostCoins <= 0 {
+                clean()
                 runGameOver()
             }
         }
     }
     
-    var barrierTimer: Timer?
-    var partitionTimer: Timer?
-    var planetTimer: Timer?
-    var spacestationTimer: Timer?
-    var constructionTimer: Timer?
-    var showHintTimer: Timer?
-    var dotSequnceTimerShow: Timer?
-    var dotSequnceTimerHide: Timer?
-    var puzzleDotsHideTimer: Timer?
-    var survivalCoinSetupTimer: Timer?
+    private var barrierTimer: Timer?
+    private var partitionTimer: Timer?
+    private var planetTimer: Timer?
+    private var spacestationTimer: Timer?
+    private var constructionTimer: Timer?
+    private var showHintTimer: Timer?
+    private var dotSequnceTimerShow: Timer?
+    private var dotSequnceTimerHide: Timer?
+    private var puzzleDotsHideTimer: Timer?
+    private var survivalCoinSetupTimer: Timer?
+    private var puzzleCurrentGameStatusFalseTimer: Timer?
+    private var levelComplitedTimer: Timer?
     
-    var t1: Timer?
-    var t2: Timer?
-    var t3: Timer?
-    var t4: Timer?
-    var t5: Timer?
+    private var t1: Timer?
+    private var t2: Timer?
+    private var t3: Timer?
+    private var t4: Timer?
+    private var t5: Timer?
     
-    var constructionTimerfireDate: TimeInterval = 0
-    var showHintsTimerfireDate: TimeInterval = 0
-    var hideHintsTimerfireDate: TimeInterval = 0
-    var puzzleDotsHideTimerfireDate: TimeInterval = 0
-    var levelHintTimerfireDate: TimeInterval = 0
-    var coinForSurvivalFireDate: TimeInterval = 0
+    private var constructionTimerfireDate: TimeInterval = 0
+    private var showHintsTimerfireDate: TimeInterval = 0
+    private var hideHintsTimerfireDate: TimeInterval = 0
+    private var puzzleDotsHideTimerfireDate: TimeInterval = 0
+    private var levelHintTimerfireDate: TimeInterval = 0
+    private var coinForSurvivalFireDate: TimeInterval = 0
+    //var levelComplitedFireDate: TimeInterval = 0
     
-    var trioTimerfireDate: TimeInterval = 0
+    private var trioTimerfireDate: TimeInterval = 0
     
-    var constructionTimeInterval = 0
-    var constructionBarrierAnimationDuration: TimeInterval = 0
+    private var constructionTimeInterval = 0
+    private var constructionBarrierAnimationDuration: TimeInterval = 0
     
-    var survivorDebrisTimeInterval: TimeInterval = 1.9
-    var survivorCoinTimeInterval: TimeInterval = 1.6
+    private var survivorDebrisTimeInterval: TimeInterval = 1.9
+    private var survivorCoinTimeInterval: TimeInterval = 1.6
     
-    let coinsLabel = SKLabelNode(fontNamed: SomeNames.fontNameVenusrising)     // Helvetica
-    let lostCoinsLabel = SKLabelNode(fontNamed: SomeNames.fontNameVenusrising)
+    private let coinsLabel = SKLabelNode(fontNamed: SomeNames.fontNameVenusrising)     // Helvetica
+    private let lostCoinsLabel = SKLabelNode(fontNamed: SomeNames.fontNameVenusrising)
     
-    let levelNumberLabel = SKLabelNode(fontNamed: SomeNames.fontNameVenusrising)
-    let planetNumberLabel = SKLabelNode(fontNamed: SomeNames.fontNameVenusrising)
+    private let levelNumberLabel = SKLabelNode(fontNamed: SomeNames.fontNameVenusrising)
+    private let planetNumberLabel = SKLabelNode(fontNamed: SomeNames.fontNameVenusrising)
     
     // Swige gestures
-    let swipeRightRec = UISwipeGestureRecognizer()
-    let swipeLeftRec = UISwipeGestureRecognizer()
-    let swipeUpRec = UISwipeGestureRecognizer()
-    let swipeDownRec = UISwipeGestureRecognizer()
+    private let swipeRightRec = UISwipeGestureRecognizer()
+    private let swipeLeftRec = UISwipeGestureRecognizer()
+    private let swipeUpRec = UISwipeGestureRecognizer()
+    private let swipeDownRec = UISwipeGestureRecognizer()
     // Tap gesture
-    let tapGestureRec = UITapGestureRecognizer()
+    private let tapGestureRec = UITapGestureRecognizer()
     
-    let trioTimerLabel = SKLabelNode(fontNamed: "Helvetica")
-    let invisibleTimerLabel = SKLabelNode(fontNamed: "Helvetica")
-    let rougeOneTimerLabel = SKLabelNode(fontNamed: "Helvetica")
+    let trioTimerLabel = SKLabelNode(fontNamed: SomeNames.fontNameVenusrising)  // Helvetica
+    let invisibleTimerLabel = SKLabelNode(fontNamed: SomeNames.fontNameVenusrising)
+    let rougeOneTimerLabel = SKLabelNode(fontNamed: SomeNames.fontNameVenusrising)
     
+    private let musicPlayIcon = SKSpriteNode(imageNamed: "musicMute")
+    private let hintExclamationIcon = SKSpriteNode(imageNamed: "exclamationPointIcon")
+    private let shipUpgradesIcon = SKSpriteNode(imageNamed: "shipUpgradesIcon")
+    private let shipUpgradesWindow = SKSpriteNode(imageNamed: "shipUpgradesHint")
+    private let buyProductWindowNode = SKSpriteNode(imageNamed: "menuBackground50")
     
+    private var trioTimer = Timer()
+    private var invisibleTimer = Timer()
+    private var rougeOneTimer = Timer()
     
-    let musicPlayIcon = SKSpriteNode(imageNamed: "musicMute")
-    let hintExclamationIcon = SKSpriteNode(imageNamed: "exclamationPointIcon")
-    let shipUpgradesIcon = SKSpriteNode(imageNamed: "shipUpgradesIcon")
-    let shipUpgradesWindow = SKSpriteNode(imageNamed: "shipUpgradesHint")
-    
-    var trioTimer = Timer()
-    var invisibleTimer = Timer()
-    var rougeOneTimer = Timer()
-    
-    var interstitial: GADInterstitial!
+    private var interstitial: GADInterstitial!
     
     override func didMove(to view: SKView) {
         
@@ -237,9 +287,10 @@ class GameScene: SKScene, SKPhysicsContactDelegate, GADInterstitialDelegate {
         //removeSwipeGestures()
     }
     
-    func loadMainScene() {
+    private func loadMainScene() {
+        adsLevelsOrNot()
         
-        interstitial = GADInterstitial(adUnitID: "ca-app-pub-3940256099942544/4411468910")
+        interstitial = GADInterstitial(adUnitID: "ca-app-pub-3940256099942544/4411468910") //   GADInterstitial(adUnitID: "ca-app-pub-7536205441452745/5758733610")
         let request = GADRequest()
         interstitial.load(request)
         
@@ -280,7 +331,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate, GADInterstitialDelegate {
                 }
                 constructionTimer = Timer.scheduledTimer(timeInterval: TimeInterval(3), target: self, selector: #selector(GameScene.constructionSetup), userInfo: nil, repeats: false)
                 if hintLevel {
-                    showHintTimer = Timer.scheduledTimer(timeInterval: TimeInterval(4), target: self, selector: #selector(GameScene.showHint), userInfo: nil, repeats: false)
+                    showHintTimer = Timer.scheduledTimer(timeInterval: TimeInterval(5), target: self, selector: #selector(GameScene.showHint), userInfo: nil, repeats: false)
                     //print("timer hint")
                 }
             }
@@ -359,17 +410,271 @@ class GameScene: SKScene, SKPhysicsContactDelegate, GADInterstitialDelegate {
         
         //levelNumberLabelSetup()
         
-        addEngineBackground()
+        //addEngineBackground()     DISABLE ENGINE BACKGROUND.
         runPuzzleSequence()
         
         loadTimeActiveSeconds()
         
         
         checkSP()
+        IAPService.shared.getProducts()
+        IAPService.shared.mainScene = self
+        //IAPService.sharedInstance.getProducts()
+        //IAPService.sharedInstance.mainScene = self
+        buyProductWindow()
+        
+        inviteReviewFunc()
+        
+        if planet == 1 {
+            activeLevels = activeLevel
+            nextActiveLevels = active2Level
+        } else if planet == 2 {
+            activeLevels = active2Level
+            nextActiveLevels = active3Level
+        } else if planet == 3 {
+            activeLevels = active3Level
+        }
+            
+        //addSteeringArrows()
+        
+        //leftSteerButtonsSetup()
+        //rightSteerButtonsSetup()
+    }
+    
+    private func showStarsInGame() {
+        var stars = SKSpriteNode()
+        if score == scoreOneStar {
+            stars = SKSpriteNode(imageNamed: "gameOverOneStar"/*"gameOverButton"*/)
+        } else if score == scoreTwoStar {
+            stars = SKSpriteNode(imageNamed: "gameOverTwoStars" /*"gameOverButton"*/)
+        } else if score == scoreThreeStars {
+            stars = SKSpriteNode(imageNamed: "gameOverThreeStars" /*"gameOverButton"*/)
+        }
+        
+        stars.name = "CountStars"
+        //startButton.size = self.size
+        stars.position = CGPoint(x: self.size.width * 0.5, y: self.size.height * 1.2)
+        stars.zPosition = 99
+        //stars.scale(to: CGSize.zero)
+        stars.xScale = 1.0
+        stars.yScale = 1.0
+        stars.alpha = 1.0
+        self.addChild(stars)
+        
+        let moveDownAction = SKAction.move(to: CGPoint(x: self.size.width * 0.5, y: self.size.height * 0.90) , duration: 0.2)
+        let waitAction = SKAction.wait(forDuration: 1.5)
+        let moveUpAction = SKAction.move(to: CGPoint(x: self.size.width * 0.5, y: self.size.height * 1.2), duration: 0.2)
+        let sequenceActions = SKAction.sequence([moveDownAction, waitAction, moveUpAction])
+        
+        stars.run(sequenceActions)
         
     }
     
-    func encreaseSpeedDebrisAndCoins() {
+    private func changeSteerArrowsPosition() {
+        if !steerButtonRight {
+            //print("right")
+            steerArrowUpG?.position = CGPoint(x: self.size.width - 200, y: (self.size.height - self.size.height) + 550)
+            steerArrowRightG?.position = CGPoint(x: steerArrowUpG!.position.x + 100, y: steerArrowUpG!.position.y - 150)
+            steerArrowDownG?.position = CGPoint(x: steerArrowUpG!.position.x, y: steerArrowUpG!.position.y - 300)
+            steerArrowLeftG?.position = CGPoint(x: steerArrowUpG!.position.x - 100, y: steerArrowUpG!.position.y - 150)
+            leftSteerButtonsSetup()
+        } else if steerButtonRight {
+            //print("left")
+            steerArrowUpG?.position = CGPoint(x: 200, y: (self.size.height - self.size.height) + 550)
+            steerArrowRightG?.position = CGPoint(x: steerArrowUpG!.position.x + 100, y: steerArrowUpG!.position.y - 150)
+            steerArrowDownG?.position = CGPoint(x: steerArrowUpG!.position.x, y: steerArrowUpG!.position.y - 300)
+            steerArrowLeftG?.position = CGPoint(x: steerArrowUpG!.position.x - 100, y: steerArrowUpG!.position.y - 150)
+            rightSteerButtonsSetup()
+        }
+    }
+    
+    /*
+     else if atPoint(pointTouch).name == "leftSteerButton" {
+     if steerButtonRight {
+     changeSteerArrowsPosition()
+     steerButtonRight = false
+     } else if !steerButtonRight {
+     changeSteerArrowsPosition()
+     steerButtonRight = true
+     }
+     }
+         */
+    
+    private func addSteeringArrows() {
+        let steerArrowUp = SKSpriteNode(imageNamed: "arrow")
+        let steerArrowRight = SKSpriteNode(imageNamed: "arrow")
+        let steerArrowDown = SKSpriteNode(imageNamed: "arrow")
+        let steerArrowLeft = SKSpriteNode(imageNamed: "arrow")
+        
+        steerArrowUpG = steerArrowUp
+        steerArrowRightG = steerArrowRight
+        steerArrowDownG = steerArrowDown
+        steerArrowLeftG = steerArrowLeft
+        
+        steerArrowUp.name = "arrowUp"
+        steerArrowUp.position = CGPoint(x: self.size.width - 200, y: (self.size.height - self.size.height) + 550)
+        steerArrowUp.xScale = 0.6
+        steerArrowUp.yScale = 0.6
+        steerArrowUp.zPosition = 100
+        self.gameLayer.addChild(steerArrowUp)
+        
+        steerArrowRight.name = "arrowRight"
+        steerArrowRight.position = CGPoint(x: steerArrowUp.position.x + 100, y: steerArrowUp.position.y - 150)
+        steerArrowRight.xScale = 0.6
+        steerArrowRight.yScale = 0.6
+        steerArrowRight.zPosition = 100
+        steerArrowRight.zRotation = CGFloat((3 * Double.pi) / 2)
+        self.gameLayer.addChild(steerArrowRight)
+        
+        steerArrowDown.name = "arrowDown"
+        steerArrowDown.position = CGPoint(x: steerArrowUp.position.x, y: steerArrowUp.position.y - 300)
+        steerArrowDown.xScale = 0.6
+        steerArrowDown.yScale = 0.6
+        steerArrowDown.zPosition = 100
+        steerArrowDown.zRotation = CGFloat(2 * (Double.pi / 2))
+        self.gameLayer.addChild(steerArrowDown)
+        
+        steerArrowLeft.name = "arrowLeft"
+        steerArrowLeft.position = CGPoint(x: steerArrowUp.position.x - 100, y: steerArrowUp.position.y - 150)
+        steerArrowLeft.xScale = 0.6
+        steerArrowLeft.yScale = 0.6
+        steerArrowLeft.zPosition = 100
+        steerArrowLeft.zRotation = CGFloat(Double.pi / 2)
+        self.gameLayer.addChild(steerArrowLeft)
+        
+    }
+    
+    private func removeSteerArrows() {
+        if let up = self.gameLayer.childNode(withName: "arrowUp") as? SKSpriteNode {
+            up.removeFromParent()
+        }
+        if let right: SKSpriteNode = self.gameLayer.childNode(withName: "arrowRight") as? SKSpriteNode {
+            right.removeFromParent()
+        }
+        if let down: SKSpriteNode = self.gameLayer.childNode(withName: "arrowDown") as? SKSpriteNode {
+            down.removeFromParent()
+        }
+        if let left: SKSpriteNode = self.gameLayer.childNode(withName: "arrowLeft") as? SKSpriteNode {
+            left.removeFromParent()
+        }
+        if let r: SKSpriteNode = self.gameLayer.childNode(withName: "rightSteerButton") as? SKSpriteNode {
+            r.removeFromParent()
+        }
+        if let l: SKSpriteNode = self.gameLayer.childNode(withName: "leftSteerButton") as? SKSpriteNode {
+            l.removeFromParent()
+        }
+        
+    }
+    
+    private func rightSteerButtonsSetup() {
+        
+        if let right = self.gameLayer.childNode(withName: "leftSteerButton") as? SKSpriteNode {
+            right.removeFromParent()
+        }
+        
+        let rightSteerButton = SKSpriteNode(imageNamed: "arrowsRightHand")
+        
+        rightSteerButton.name = "rightSteerButton"
+        rightSteerButton.position = CGPoint(x: self.size.width - 150, y: (self.size.height - self.size.height) + 250)
+        rightSteerButton.xScale = 0.5
+        rightSteerButton.yScale = 0.5
+        rightSteerButton.zPosition = 20
+        self.gameLayer.addChild(rightSteerButton)
+    }
+    
+    private func leftSteerButtonsSetup() {
+        
+        if let left = self.gameLayer.childNode(withName: "rightSteerButton") as? SKSpriteNode {
+            left.removeFromParent()
+        }
+        
+        let leftSteerButton = SKSpriteNode(imageNamed: "arrowsLeftHand")
+        
+        leftSteerButton.name = "leftSteerButton"
+        leftSteerButton.position = CGPoint(x: 150, y: 250)
+        leftSteerButton.xScale = 0.5
+        leftSteerButton.yScale = 0.5
+        leftSteerButton.zPosition = 30
+        self.gameLayer.addChild(leftSteerButton)
+    }
+    
+    private var stopSwipeRun: Bool = false
+    func stopSwipeFuncAdd() {
+        if stopSwipeRun == false {
+            stopSwipeRun = true
+            //let stopSwipeNode = SKSpriteNode(imageNamed: "stopSwipe")
+            stopSwipeNode.position = CGPoint(x: timeLine.position.x + 30, y: timeLine.position.y - 370)
+            stopSwipeNode.xScale = 0.7
+            stopSwipeNode.yScale = 0.7
+            
+            stopSwipeNode.zPosition = 100
+            stopSwipeNode.name = "stopSwipe"
+            stopSwipeNode.alpha = 1.0
+            self.gameLayer.addChild(stopSwipeNode)
+            
+            _ = Timer.scheduledTimer(timeInterval: TimeInterval(0.1), target: self, selector: #selector(GameScene.stopSwipeFuncRemove), userInfo: nil, repeats: false)
+        } else {
+            // do nothing
+        }
+    }
+    @objc private func stopSwipeFuncRemove() {
+        stopSwipeNode.removeFromParent()
+        stopSwipeRun = false
+    }
+    
+    private func adsLevelsOrNot() {
+        if (adsAttemtps == 0) && (!programmIsPaid) {
+            showAdsLevel = true
+        }
+    }
+    
+    private func inviteReviewFunc() {
+        let defaults = UserDefaults()
+        inviteCount += 1
+        defaults.set(inviteCount, forKey: "reviewInvintationCount")
+        if inviteCount >= 150 {
+            inviteToReview = true
+            defaults.set(inviteToReview, forKey: "reviewInvintation")
+            inviteCount = 0
+        }
+    }
+    
+    private func startNewAcitivityIndicator() {
+        if let viewLoc = view {
+            newActivityIndicator = NVActivityIndicatorView(frame: CGRect(x: (viewLoc.center.x - 50), y: (viewLoc.center.y - 50), width: 100, height: 100),
+                                                           type: .ballTrianglePath,
+                                                           color: UIColor.white,
+                                                           padding: nil)
+        } else {
+            newActivityIndicator?.center = CGPoint(x: 700, y: 900)
+        }
+        //myActivityIndicator.hidesWhenStopped = true
+        scene!.view?.addSubview(newActivityIndicator!)
+        newActivityIndicator?.startAnimating()
+    }
+    
+    func stopNewAcitvityIndicator() {
+        newActivityIndicator?.stopAnimating()
+        newActivityIndicator?.removeFromSuperview()
+    }
+    
+    /*
+    func startAcitivityIndicator() {
+        if let viewLoc = view {
+            myActivityIndicator.center = CGPoint(x: viewLoc.bounds.midX, y: viewLoc.bounds.midY)
+        } else {
+            myActivityIndicator.center = CGPoint(x: 700, y: 900)
+        }
+        myActivityIndicator.hidesWhenStopped = true
+        scene!.view?.addSubview(myActivityIndicator)
+        myActivityIndicator.startAnimating()
+    }
+    func stopAcitvityIndicator() {
+        myActivityIndicator.stopAnimating()
+    }
+     */
+    
+    private func encreaseSpeedDebrisAndCoins() {
         switch coins {
         case 1:
             survivorDebrisTimeInterval = 1.8
@@ -393,34 +698,48 @@ class GameScene: SKScene, SKPhysicsContactDelegate, GADInterstitialDelegate {
     }
     
     func interstitialWillDismissScreen(_ ad: GADInterstitial) {
-        print("interstitialWillDismissScreen")
+        //print("interstitialWillDismissScreen")
         if restatrButtonPressedForAds == true {
-            newScene()
+            newScene = NewSceneEnum.GameScene
+            newScene(newSceneLoc: newScene)
         } else if mainMenuButtonPressedForAds == true {
             newMainMenuSceneForAds()
         } else if newLevelButtonPressedForAds == true {
             newLevelMenuSceneForAds()
+        } else if visualyImpairedPressedForAds == true {
+            newScene = NewSceneEnum.GameScene
+            newScene(newSceneLoc: newScene)
         }
         
     }
     
-    func runAds() {
+    private func runAds() {
         
         if interstitial.isReady {
+            /*
+            let defaults = UserDefaults()
+            InvisibleTimeActive += 3
+            rougeOneTimeActive += 3
+            trioTimeActive += 3
+            defaults.set(InvisibleTimeActive, forKey: "InvisibleSeconds")
+            defaults.set(rougeOneTimeActive, forKey: "RougeSeconds")
+            defaults.set(trioTimeActive, forKey: "TrioSeconds")
+            */
             interstitial.present(fromRootViewController: (self.view?.window?.rootViewController)!)
         } else {
             if restatrButtonPressedForAds == true {
-                newScene()
+                newScene = NewSceneEnum.GameScene
+                newScene(newSceneLoc: newScene)
             }  else if mainMenuButtonPressedForAds == true {
                 newMainMenuSceneForAds()
             } else if newLevelButtonPressedForAds == true {
                 newLevelMenuSceneForAds()
             }
-            print("Ad wasn't ready")
+            //print("Ad wasn't ready")
         }
     }
     
-    func newMainMenuSceneForAds() {
+    private func newMainMenuSceneForAds() {
         //self.view?.isPaused = false
         saveTimeActiveSeconds()
         gameLayer.isPaused = false
@@ -444,7 +763,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate, GADInterstitialDelegate {
         clean()
     }
     
-    func newLevelMenuSceneForAds() {
+    private func newLevelMenuSceneForAds() {
         //self.view?.isPaused = false
         saveTimeActiveSeconds()
         gameLayer.isPaused = false
@@ -468,8 +787,8 @@ class GameScene: SKScene, SKPhysicsContactDelegate, GADInterstitialDelegate {
         clean()
     }
     
-    func settingButtonFunc() {
-        print("canmove \(canMove), gameLayer.isPaused \(gameLayer.isPaused), scene?.isPaused \(String(describing: scene?.isPaused)) ")
+    private func settingButtonFunc() {
+        //print("canmove \(canMove), gameLayer.isPaused \(gameLayer.isPaused), scene?.isPaused \(String(describing: scene?.isPaused)) ")
         
         if pushedPause == false {
             if canMove {
@@ -503,7 +822,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate, GADInterstitialDelegate {
                 //buttonStatus = .settings
                 
                 //levelNumberLabel.isHidden = true
-                print("3")
+                //print("3")
             } else if !canMove {
                 //gameLayer.isPaused = true
                 scene?.isPaused = true
@@ -515,7 +834,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate, GADInterstitialDelegate {
                 //buttonStatus = .none
                 
                 //levelNumberLabel.isHidden = false
-                print("4")
+                //print("4")
             }
         }
     }
@@ -524,33 +843,48 @@ class GameScene: SKScene, SKPhysicsContactDelegate, GADInterstitialDelegate {
         //pushedPause = true
         settingButtonFunc()
         
-        print("willActive")
+        //print("willActive")
     }
     
     @objc func applicationDidEnterBackground(notification: NSNotification) {
         //pushedPause = false
         settingButtonFunc()
         
-        print("Didbackground")
+        //print("Didbackground")
     }
     
     //var stepCount = 0
-    func moveTimeLinePeg() {
+    private func moveTimeLinePeg() {
         let travelStep = timeLine.size.height / CGFloat(constructionLevelDurationTimerInterval)
         timeLinePeg.position.y += travelStep //(((timeLine.size.height - (timeLine.size.height / 2))) - timeLine.size.height) + travelStep
         //print("step \(stepCount)")
         //stepCount += 1
     }
     
-    func travelIndicator() {
-        timeLine.position = CGPoint(x: (self.size.width * 0.15), y: self.size.height * 0.5)
+    private func travelIndicator() {
+        switch runingDevice {
+        case .phone:
+            timeLine.position = CGPoint(x: (self.size.width * 0.15), y: self.size.height * 0.6)
+        case .pad:
+            timeLine.position = CGPoint(x: (self.size.width * 0.05), y: self.size.height * 0.6)
+        default:
+            timeLine.position = CGPoint(x: (self.size.width * 0.15), y: self.size.height * 0.6)
+        }
+        
         timeLine.zPosition = 10
         //timeLine.xScale = 0.5
         //timeLine.yScale = 0.5
         timeLine.name = "Time Line"
         //self.addChild(settingsButton)
         self.gameLayer.addChild(timeLine)
-        
+        switch runingDevice {
+        case .phone:
+            timeLinePeg.position = CGPoint(x: (timeLine.size.width - timeLine.size.width) + 40, y: (timeLine.size.height - timeLine.size.height) - (timeLine.size.height / 2))
+        case .pad:
+            timeLinePeg.position = CGPoint(x: (timeLine.size.width - timeLine.size.width) + 40, y: (timeLine.size.height - timeLine.size.height) - (timeLine.size.height / 2))
+        default:
+            timeLinePeg.position = CGPoint(x: (timeLine.size.width - timeLine.size.width) + 40, y: (timeLine.size.height - timeLine.size.height) - (timeLine.size.height / 2))
+        }
         timeLinePeg.position = CGPoint(x: (timeLine.size.width - timeLine.size.width) + 40, y: (timeLine.size.height - timeLine.size.height) - (timeLine.size.height / 2))
         timeLinePeg.zPosition = 10
         timeLinePeg.xScale = 0.1
@@ -559,7 +893,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate, GADInterstitialDelegate {
         timeLine.addChild(timeLinePeg)
     }
     
-    func populatedPlanet() {
+    private func populatedPlanet() {
         
         //let planetObject = Planet(texture: SKTexture(imageNamed: "venus"))
         var populatedPlanet = Planet()
@@ -630,25 +964,25 @@ class GameScene: SKScene, SKPhysicsContactDelegate, GADInterstitialDelegate {
         
     }
     
-    func runPuzzleSequence() {
+    private func runPuzzleSequence() {
         if puzzle {
             puzzleGameArray.shuffle()
-            printPuzzleColors()
-            print(puzzleGameArray)
+            //printPuzzleColors()
+            //print(puzzleGameArray)
             //showDotSequence()
             dotSequnceTimerShow = Timer.scheduledTimer(timeInterval: TimeInterval(8), target: self, selector: #selector(GameScene.showDotSequence), userInfo: nil, repeats: false)
         }
     }
     
     //MAKR: popup SP points
-    func popupSPPoints(with SP: Int) {
+    private func popupSPPoints(with SP: Int) {
         let popupSPPointsLabel = SKLabelNode(fontNamed: SomeNames.fontNameVenusrising)
         if SP == 0 {
-            popupSPPointsLabel.text = String("Trio +0.1")
+            popupSPPointsLabel.text = String("T +0.4")
         } else if SP == 1 {
-            popupSPPointsLabel.text = String("Double +0.1")
+            popupSPPointsLabel.text = String("D +0.4")
         } else if SP == 2 {
-            popupSPPointsLabel.text = String("Invisible +0.1")
+            popupSPPointsLabel.text = String("I +0.4")
         }
         //popupCoinsLabel.text = "0"
         popupSPPointsLabel.position = CGPoint(x: spacestation.position.x - 200, y: spacestation.position.y)
@@ -679,7 +1013,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate, GADInterstitialDelegate {
     }
     
     //MARK: popup coins count
-    func popupCoinsCount() {
+    private func popupCoinsCount() {
         let popupCoinsLabel = SKLabelNode(fontNamed: SomeNames.fontNameVenusrising)
         popupCoinsLabel.text = String("\(coins)")
         //popupCoinsLabel.text = "0"
@@ -711,8 +1045,8 @@ class GameScene: SKScene, SKPhysicsContactDelegate, GADInterstitialDelegate {
     }
     
     //MARK: show sequence dots
-    var printCountShowHint = 1
-    @objc func showDotSequence() {
+    private var printCountShowHint = 1
+    @objc private func showDotSequence() {
         //print("printCountShowHint \(printCountShowHint) -------")
         if !puzzleIsColors {
             redDotHint = SKSpriteNode(imageNamed: "puzzlePurpleDot1A")
@@ -847,7 +1181,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate, GADInterstitialDelegate {
         
     }
     
-    func printPuzzleColors() {
+    private func printPuzzleColors() {
         for i in 0...2 {
             if puzzleGameArray[i] == 1 {
                 //print("red")
@@ -867,10 +1201,10 @@ class GameScene: SKScene, SKPhysicsContactDelegate, GADInterstitialDelegate {
         }
     }
     
-    var waitToHideDots = SKAction()
-    var waitToHideDotsActionDuration = TimeInterval()
+    private var waitToHideDots = SKAction()
+    private var waitToHideDotsActionDuration = TimeInterval()
     // MARK: Add puzzle game figures
-    func addPuzzleGamePics() {
+    private func addPuzzleGamePics() {
         
         if !puzzleIsColors {
             redDot = SKSpriteNode(imageNamed: "puzzlePurpleDot1A")
@@ -960,20 +1294,20 @@ class GameScene: SKScene, SKPhysicsContactDelegate, GADInterstitialDelegate {
     
     
     
-    var redXPosition: CGFloat = 0
-    var redYPosition: CGFloat = 0
-    var blueXPosition: CGFloat = 0
-    var blueYPosition: CGFloat = 0
-    var yellowXPosition: CGFloat = 0
-    var yellowYPosition: CGFloat = 0
+    private var redXPosition: CGFloat = 0
+    private var redYPosition: CGFloat = 0
+    private var blueXPosition: CGFloat = 0
+    private var blueYPosition: CGFloat = 0
+    private var yellowXPosition: CGFloat = 0
+    private var yellowYPosition: CGFloat = 0
     
-    var greenXPosition: CGFloat = 0
-    var greenYPosition: CGFloat = 0
-    var purpleXPosition: CGFloat = 0
-    var purpleYPosition: CGFloat = 0
+    private var greenXPosition: CGFloat = 0
+    private var greenYPosition: CGFloat = 0
+    private var purpleXPosition: CGFloat = 0
+    private var purpleYPosition: CGFloat = 0
     
     // MARK: Random dots position
-    func randomPositionDots() {
+    private func randomPositionDots() {
         
         //let number: CGFloat
         
@@ -1029,7 +1363,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate, GADInterstitialDelegate {
     }
     
     //MARK: HIDe dot hints
-    @objc func hideDotsHitns() {
+    @objc private func hideDotsHitns() {
         redDotHint.run(SKAction.fadeOut(withDuration: 0.5))
         blueDotHint.run(SKAction.fadeOut(withDuration: 0.5))
         yellowDotHint.run(SKAction.fadeOut(withDuration: 0.5))
@@ -1040,23 +1374,28 @@ class GameScene: SKScene, SKPhysicsContactDelegate, GADInterstitialDelegate {
     }
     
     //MARK: PuzzleTimeOut func
-    @objc func puzzleTimeOutFunc() {
+    @objc private func puzzleTimeOutFunc() {
         puzzleTimeOut = true
         hideDots()
     }
     
     //MARK: Hide dots
-    @objc func hideDots() {
+    @objc private func hideDots() {
         puzzleDotsHideTimer?.invalidate()
         //puzzleCurrentGameStatus = false
+        /*
+        let changeStatusGame = SKAction.run { [weak self] in
+            self?.puzzleCurrentGameStatus = false
+        }
+        */
         
-        redDot.run(SKAction.sequence([SKAction.fadeOut(withDuration: 0.3), SKAction.removeFromParent(), SKAction.fadeIn(withDuration: 0.3) ]))
-        blueDot.run(SKAction.sequence([SKAction.fadeOut(withDuration: 0.3), SKAction.removeFromParent(), SKAction.fadeIn(withDuration: 0.3) ]))
-        yellowDot.run(SKAction.sequence([SKAction.fadeOut(withDuration: 0.3), SKAction.removeFromParent(), SKAction.fadeIn(withDuration: 0.3) ]))
-        greenDot.run(SKAction.sequence([SKAction.fadeOut(withDuration: 0.3), SKAction.removeFromParent(), SKAction.fadeIn(withDuration: 0.3) ]))
-        purpleDot.run(SKAction.sequence([SKAction.fadeOut(withDuration: 0.3), SKAction.removeFromParent(), SKAction.fadeIn(withDuration: 0.3) ]))
-        firstShape.run(SKAction.sequence([SKAction.fadeOut(withDuration: 0.3), SKAction.removeFromParent(), SKAction.fadeIn(withDuration: 0.3) ]))
-        secondShape.run(SKAction.sequence([SKAction.fadeOut(withDuration: 0.3), SKAction.removeFromParent(), SKAction.fadeIn(withDuration: 0.3) ]))
+        redDot.run(SKAction.sequence([SKAction.fadeOut(withDuration: 0.3), SKAction.removeFromParent(), SKAction.fadeIn(withDuration: 0.3)/*, changeStatusGame */]))
+        blueDot.run(SKAction.sequence([SKAction.fadeOut(withDuration: 0.3), SKAction.removeFromParent(), SKAction.fadeIn(withDuration: 0.3)/*, changeStatusGame */]))
+        yellowDot.run(SKAction.sequence([SKAction.fadeOut(withDuration: 0.3), SKAction.removeFromParent(), SKAction.fadeIn(withDuration: 0.3)/*, changeStatusGame */]))
+        greenDot.run(SKAction.sequence([SKAction.fadeOut(withDuration: 0.3), SKAction.removeFromParent(), SKAction.fadeIn(withDuration: 0.3)/*, changeStatusGame */]))
+        purpleDot.run(SKAction.sequence([SKAction.fadeOut(withDuration: 0.3), SKAction.removeFromParent(), SKAction.fadeIn(withDuration: 0.3)/*, changeStatusGame */]))
+        firstShape.run(SKAction.sequence([SKAction.fadeOut(withDuration: 0.3), SKAction.removeFromParent(), SKAction.fadeIn(withDuration: 0.3)/*, changeStatusGame */]))
+        secondShape.run(SKAction.sequence([SKAction.fadeOut(withDuration: 0.3), SKAction.removeFromParent(), SKAction.fadeIn(withDuration: 0.3)/*, changeStatusGame */]))
         
         
         if !puzzleTimeOut {
@@ -1070,20 +1409,24 @@ class GameScene: SKScene, SKPhysicsContactDelegate, GADInterstitialDelegate {
         }
         
         //var hackableDebrisLoc = gameLayer.children
-        puzzleDotsOnTheScreen = false
+        puzzleDotsOnTheScreen = false   // RECENT CHANGE. DOTS STILL PUSHIBLE AFTER HIDE
         puzzleTimeOut = false
+        //puzzleCurrentGameStatus = false
        // print("hide dots")
+        puzzleCurrentGameStatusFalseTimer = Timer.scheduledTimer(timeInterval: TimeInterval(2), target: self, selector: #selector(GameScene.puzzleCurrentGameStatusFalse), userInfo: nil, repeats: false)
     }
-
+    @objc private func puzzleCurrentGameStatusFalse() {
+        puzzleCurrentGameStatus = false
+    }
     
     // MARK: Draw line
     
-    var firstPoint = CGPoint()
-    var secondPoint = CGPoint()
-    var firstShape = SKShapeNode()
-    var secondShape = SKShapeNode()
+    private var firstPoint = CGPoint()
+    private var secondPoint = CGPoint()
+    private var firstShape = SKShapeNode()
+    private var secondShape = SKShapeNode()
     
-    func drawLineToDot(position: CGPoint) {
+    private func drawLineToDot(position: CGPoint) {
         let drawPath = CGMutablePath()
         if !firstDot {
             //drawPath.move(to: position)
@@ -1121,7 +1464,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate, GADInterstitialDelegate {
     
     
     // MARK: level numbe label
-    func levelNumberLabelSetup() {
+    private func levelNumberLabelSetup() {
         levelNumberLabel.position = CGPoint(x: self.size.width / 2, y: self.size.height * 0.48)
         planetNumberLabel.position = CGPoint(x: self.size.width / 2, y: self.size.height * 0.53)
         if preferredLanguage == .ru {
@@ -1133,22 +1476,42 @@ class GameScene: SKScene, SKPhysicsContactDelegate, GADInterstitialDelegate {
         } else if preferredLanguage == .es {
             levelNumberLabel.text = "Nivel \(level + 1)"
             planetNumberLabel.text = "Planeta \(planet)"
+        } else if preferredLanguage == .jp {
+            levelNumberLabel.text = "レベル \(level + 1)"
+            planetNumberLabel.text = "惑星 \(planet)"
+        } else if preferredLanguage == .fr {
+            levelNumberLabel.text = "Niveau \(level + 1)"
+            planetNumberLabel.text = "Planète \(planet)"
+        } else if preferredLanguage == .gr {
+            levelNumberLabel.text = "Niveau \(level + 1)"
+            planetNumberLabel.text = "Planet \(planet)"
         } else {
             levelNumberLabel.text = "Level \(level + 1)"
             planetNumberLabel.text = "Planet \(planet)"
         }
-        levelNumberLabel.fontSize = 100
+        levelNumberLabel.fontSize = 90
         levelNumberLabel.fontColor = UIColor(red: 194.0/255, green: 194.0/255, blue: 194.0/255, alpha: 1.0)
         levelNumberLabel.yScale = 0.0
         levelNumberLabel.xScale = 0.0
         
-        planetNumberLabel.fontSize = 60
+        planetNumberLabel.fontSize = 50
         planetNumberLabel.fontColor = UIColor(red: 194.0/255, green: 194.0/255, blue: 194.0/255, alpha: 1.0)
         planetNumberLabel.yScale = 0.0
         planetNumberLabel.xScale = 0.0
+        
+        let levelPlanetBackground = SKSpriteNode(imageNamed: "levelPlanetLabelBackground42")
+        levelPlanetBackground.position = levelNumberLabel.position
+        levelPlanetBackground.position.y = levelPlanetBackground.position.y + 30
+        levelPlanetBackground.position.x = levelPlanetBackground.position.x - 100
+        levelPlanetBackground.zPosition = levelNumberLabel.zPosition - 1
+        //levelPlanetBackground.zRotation = CGFloat(Double.pi / 6)
+        levelPlanetBackground.yScale = 0.0
+        levelPlanetBackground.xScale = 0.0
+        
         //self.addChild(levelNumberLabel)
         self.gameLayer.addChild(levelNumberLabel)
         self.gameLayer.addChild(planetNumberLabel)
+        self.gameLayer.addChild(levelPlanetBackground)
         
         let levelWaitAppearAction = SKAction.wait(forDuration: 0.5)
         let levelScaleAppearAction = SKAction.scale(to: 1.0, duration: 0.1)
@@ -1166,11 +1529,12 @@ class GameScene: SKScene, SKPhysicsContactDelegate, GADInterstitialDelegate {
         
         levelNumberLabel.run(levelSequence)
         planetNumberLabel.run(levelSequence)
+        levelPlanetBackground.run(levelSequence)
     }
     
     
     // MARK: shipEngineSound
-    func shipEngineSound() {
+    private func shipEngineSound() {
         let shipEngineSound = SKAction.playSoundFileNamed("engineNew.m4a", waitForCompletion: true)
         //let waitSPActivated = SKAction.wait(forDuration: TimeInterval(1))
         //let spSoundSequens = SKAction.sequence([spSound, waitSPActivated])
@@ -1181,50 +1545,32 @@ class GameScene: SKScene, SKPhysicsContactDelegate, GADInterstitialDelegate {
         }
     }
     
-    func addEngineBackground() {
+    private func addEngineBackground() {
         do {
             try playerEngine = AVAudioPlayer(contentsOf: URL(fileURLWithPath: pathEngine!))
         } catch {
-            print("error music")
+            //print("error music")
         }
         playerEngine.numberOfLoops = -1
     }
     
-    func addBackgroundMusic() {
+    private func addBackgroundMusic() {
         
         
         do {
             try player = AVAudioPlayer(contentsOf: URL(fileURLWithPath: path!))
         } catch {
-            print("error music")
+            //print("error music")
         }
         player.numberOfLoops = -1        //player.volume = 0.6
         //player.setVolume(0, fadeDuration: TimeInterval(1))
         
         //player.stop()
-        
-        //player.play()
-        
-        /*
-        let bgm = NSURL(fileURLWithPath: "SoulStar.m4a")
-        do {
-            gameBackgroundMusic = try AVAudioPlayer(contentsOf: bgm as URL)
-            gameBackgroundMusic?.prepareToPlay()
-            gameBackgroundMusic?.play()
-        } catch {
-            print("error")
+        if musicIsPlaying {
+            player.play()
+            musicPlayIcon.texture = SKTexture(imageNamed: "musicPlay")
         }
-        */
-        /*
-        let temp = SKAudioNode(fileNamed: "SoulStar.m4a")
-        temp.autoplayLooped = true
-        gameBackgroundMusic = temp
         
-        //gameBackgroundMusic = SKAudioNode(fileNamed: "SoulStar.m4a")
-        //self.addChild(gameBackgroundMusic)
-        
-        run(SKAction.playSoundFileNamed("SoulStar.m4a", waitForCompletion: false))
-         */
         
     }
     /*
@@ -1273,11 +1619,15 @@ class GameScene: SKScene, SKPhysicsContactDelegate, GADInterstitialDelegate {
     }
     */
     
-    var hintNowVisible = false
-    @objc func showHint() {
-        //let defaults = UserDefaults()
-        if false /*isKeyPresentInUserDefaults(key: "hint\(level+1)lvl")*/ {
+    private var hintNowVisible = false
+    @objc private func showHint() {
+        let defaults = UserDefaults()
+        if isKeyPresentInUserDefaults(key: "hint\(level+1)lvl") && planet == 1 {
+            
             return //
+        } else if isKeyPresentInUserDefaults(key: "hint2_\(level+1)lvl") && planet == 2 {
+            
+            return
         } else {
             
 //            if let constTimerLoc = constructionTimer {
@@ -1287,7 +1637,10 @@ class GameScene: SKScene, SKPhysicsContactDelegate, GADInterstitialDelegate {
             
             pauseFuncSettings()
             
+            
             var hint = SKSpriteNode()
+            
+            
             if preferredLanguage == .ru {
                 if planet == 1 {
                     hint = SKSpriteNode(imageNamed: "hint\(level+1)lvlRU11")
@@ -1296,14 +1649,6 @@ class GameScene: SKScene, SKPhysicsContactDelegate, GADInterstitialDelegate {
                 } else if planet == 3 {
                     hint = SKSpriteNode(imageNamed: "hint3_\(level+1)lvlRU11")
                 }
-                hint.position = CGPoint(x: self.size.width/2, y: self.size.height/2)
-                hint.zPosition = 20
-                hint.name = "hint"
-                hint.alpha = 0.0
-                hint.xScale -= 0.4
-                hint.yScale -= 0.4
-                //self.addChild(hint)
-                pauseLayer.addChild(hint)
             } else if preferredLanguage == .ch {
                 if planet == 1 {
                     hint = SKSpriteNode(imageNamed: "hint\(level+1)lvlCH11")
@@ -1312,14 +1657,6 @@ class GameScene: SKScene, SKPhysicsContactDelegate, GADInterstitialDelegate {
                 } else if planet == 3 {
                     hint = SKSpriteNode(imageNamed: "hint3_\(level+1)lvlCH11")
                 }
-                hint.position = CGPoint(x: self.size.width/2, y: self.size.height/2)
-                hint.zPosition = 20
-                hint.name = "hint"
-                hint.alpha = 0.0
-                hint.xScale -= 0.4
-                hint.yScale -= 0.4
-                //self.addChild(hint)
-                pauseLayer.addChild(hint)
             } else if preferredLanguage == .es {
                 if planet == 1 {
                     hint = SKSpriteNode(imageNamed: "hint\(level+1)lvlSP11")
@@ -1328,14 +1665,30 @@ class GameScene: SKScene, SKPhysicsContactDelegate, GADInterstitialDelegate {
                 } else if planet == 3 {
                     hint = SKSpriteNode(imageNamed: "hint3_\(level+1)lvlSP11")
                 }
-                hint.position = CGPoint(x: self.size.width/2, y: self.size.height/2)
-                hint.zPosition = 20
-                hint.name = "hint"
-                hint.alpha = 0.0
-                hint.xScale -= 0.4
-                hint.yScale -= 0.4
-                //self.addChild(hint)
-                pauseLayer.addChild(hint)
+            } else if preferredLanguage == .jp {
+                if planet == 1 {
+                    hint = SKSpriteNode(imageNamed: "hint\(level+1)lvlJP11")
+                } else if planet == 2 {
+                    hint = SKSpriteNode(imageNamed: "hint2_\(level+1)lvlJP11")
+                } else if planet == 3 {
+                    hint = SKSpriteNode(imageNamed: "hint3_\(level+1)lvlJP11")
+                }
+            } else if preferredLanguage == .fr {
+                if planet == 1 {
+                    hint = SKSpriteNode(imageNamed: "hint\(level+1)lvlFR11")
+                } else if planet == 2 {
+                    hint = SKSpriteNode(imageNamed: "hint2_\(level+1)lvlFR11")
+                } else if planet == 3 {
+                    hint = SKSpriteNode(imageNamed: "hint3_\(level+1)lvlFR11")
+                }
+            } else if preferredLanguage == .gr {
+                if planet == 1 {
+                    hint = SKSpriteNode(imageNamed: "hint\(level+1)lvlDE11")
+                } else if planet == 2 {
+                    hint = SKSpriteNode(imageNamed: "hint2_\(level+1)lvlDE11")
+                } else if planet == 3 {
+                    hint = SKSpriteNode(imageNamed: "hint3_\(level+1)lvlDE11")
+                }
             } else {
                 if planet == 1 {
                     hint = SKSpriteNode(imageNamed: "hint\(level+1)lvl11")
@@ -1344,15 +1697,16 @@ class GameScene: SKScene, SKPhysicsContactDelegate, GADInterstitialDelegate {
                 } else if planet == 3 {
                     hint = SKSpriteNode(imageNamed: "hint3_\(level+1)lvl11")
                 }
-                hint.position = CGPoint(x: self.size.width/2, y: self.size.height/2)
-                hint.zPosition = 20
-                hint.name = "hint"
-                hint.alpha = 0.0
-                hint.xScale -= 0.4
-                hint.yScale -= 0.4
-                //self.addChild(hint)
-                pauseLayer.addChild(hint)
             }
+            
+            hint.position = CGPoint(x: self.size.width/2, y: self.size.height/2)
+            hint.zPosition = 20
+            hint.name = "hint"
+            hint.alpha = 0.0
+            hint.xScale -= 0.4
+            hint.yScale -= 0.4
+            //self.addChild(hint)
+            pauseLayer.addChild(hint)
             
             let hintFadeAction = SKAction.fadeAlpha(by: 1.0, duration: 0.2)
             let hintScaleAction = SKAction.scale(to: 1.0, duration: 0.2)
@@ -1367,16 +1721,28 @@ class GameScene: SKScene, SKPhysicsContactDelegate, GADInterstitialDelegate {
             buttonStatus = .hintWindow
             canMove = false
             
+            // MARK: Show hint icon after automatic hint
+            hintExclamationIcon.position = CGPoint(x: (self.size.width * 0.5 + 300), y: self.size.height * 0.04)
+            hintExclamationIcon.zPosition = 10
+            hintExclamationIcon.xScale = 0.5
+            hintExclamationIcon.yScale = 0.5
+            hintExclamationIcon.name = "hintExclamationIcon"
+            self.gameLayer.addChild(hintExclamationIcon)
+            
             //print("func show hint")
-            //let setDefaults = true
-            //defaults.set(setDefaults, forKey: "hint\(level+1)lvl")
+            let setDefaults = true
+            if planet == 1 {
+                defaults.set(setDefaults, forKey: "hint\(level+1)lvl")
+            } else if planet == 2 {
+                defaults.set(setDefaults, forKey: "hint2_\(level+1)lvl")
+            }
             
             
         }
      
     }
     
-    func showHintByButton() {
+    private func showHintByButton() {
         var hint = SKSpriteNode()
         if preferredLanguage == .ru {
             if planet == 1 {
@@ -1386,30 +1752,46 @@ class GameScene: SKScene, SKPhysicsContactDelegate, GADInterstitialDelegate {
             } else if planet == 3 {
                 hint = SKSpriteNode(imageNamed: "hint3_\(level+1)lvlRU11")
             }
-            hint.position = CGPoint(x: self.size.width/2, y: self.size.height/2)
-            hint.zPosition = 20
-            hint.name = "hint"
-            hint.alpha = 0.0
-            hint.xScale -= 0.4
-            hint.yScale -= 0.4
-            //self.addChild(hint)
-            pauseLayer.addChild(hint)
         } else if preferredLanguage == .ch {
             if planet == 1 {
-                hint = SKSpriteNode(imageNamed: "hint\(level+1)lvlRU11")
+                hint = SKSpriteNode(imageNamed: "hint\(level+1)lvlCH11")
             } else if planet == 2 {
-                hint = SKSpriteNode(imageNamed: "hint2_\(level+1)lvlRU11")
+                hint = SKSpriteNode(imageNamed: "hint2_\(level+1)lvlCH11")
             } else if planet == 3 {
-                hint = SKSpriteNode(imageNamed: "hint3_\(level+1)lvlRU11")
+                hint = SKSpriteNode(imageNamed: "hint3_\(level+1)lvlCH11")
             }
-            hint.position = CGPoint(x: self.size.width/2, y: self.size.height/2)
-            hint.zPosition = 20
-            hint.name = "hint"
-            hint.alpha = 0.0
-            hint.xScale -= 0.4
-            hint.yScale -= 0.4
-            //self.addChild(hint)
-            pauseLayer.addChild(hint)
+        } else if preferredLanguage == .es {
+            if planet == 1 {
+                hint = SKSpriteNode(imageNamed: "hint\(level+1)lvlSP11")
+            } else if planet == 2 {
+                hint = SKSpriteNode(imageNamed: "hint2_\(level+1)lvlSP11")
+            } else if planet == 3 {
+                hint = SKSpriteNode(imageNamed: "hint3_\(level+1)lvlSP11")
+            }
+        } else if preferredLanguage == .jp {
+            if planet == 1 {
+                hint = SKSpriteNode(imageNamed: "hint\(level+1)lvlJP11")
+            } else if planet == 2 {
+                hint = SKSpriteNode(imageNamed: "hint2_\(level+1)lvlJP11")
+            } else if planet == 3 {
+                hint = SKSpriteNode(imageNamed: "hint3_\(level+1)lvlJP11")
+            }
+        } else if preferredLanguage == .fr {
+            if planet == 1 {
+                hint = SKSpriteNode(imageNamed: "hint\(level+1)lvlFR11")
+            } else if planet == 2 {
+                hint = SKSpriteNode(imageNamed: "hint2_\(level+1)lvlFR11")
+            } else if planet == 3 {
+                hint = SKSpriteNode(imageNamed: "hint3_\(level+1)lvlFR11")
+            }
+        } else if preferredLanguage == .gr {
+            if planet == 1 {
+                hint = SKSpriteNode(imageNamed: "hint\(level+1)lvlDE11")
+            } else if planet == 2 {
+                hint = SKSpriteNode(imageNamed: "hint2_\(level+1)lvlDE11")
+            } else if planet == 3 {
+                hint = SKSpriteNode(imageNamed: "hint3_\(level+1)lvlDE11")
+            }
         } else {
             if planet == 1 {
                 hint = SKSpriteNode(imageNamed: "hint\(level+1)lvl11")
@@ -1418,15 +1800,16 @@ class GameScene: SKScene, SKPhysicsContactDelegate, GADInterstitialDelegate {
             } else if planet == 3 {
                 hint = SKSpriteNode(imageNamed: "hint3_\(level+1)lvl11")
             }
-            hint.position = CGPoint(x: self.size.width/2, y: self.size.height/2)
-            hint.zPosition = 20
-            hint.name = "hint"
-            hint.alpha = 0.0
-            hint.xScale -= 0.4
-            hint.yScale -= 0.4
-            //self.addChild(hint)
-            pauseLayer.addChild(hint)
         }
+        
+        hint.position = CGPoint(x: self.size.width/2, y: self.size.height/2)
+        hint.zPosition = 20
+        hint.name = "hint"
+        hint.alpha = 0.0
+        hint.xScale -= 0.4
+        hint.yScale -= 0.4
+        //self.addChild(hint)
+        pauseLayer.addChild(hint)
         
         let hintFadeAction = SKAction.fadeAlpha(by: 1.0, duration: 0.2)
         let hintScaleAction = SKAction.scale(to: 1.0, duration: 0.2)
@@ -1446,8 +1829,148 @@ class GameScene: SKScene, SKPhysicsContactDelegate, GADInterstitialDelegate {
         
     }
     
+    // MARK: buy product window
+    private func buyProductWindow() {
+        
+        buyProductWindowNode.position = CGPoint(x: self.size.width * 2, y: self.size.height * 0.0)
+        buyProductWindowNode.zPosition = 20
+        buyProductWindowNode.anchorPoint = CGPoint(x: 0.0, y: 0.0)
+        //shipUpgradesWindow.size =
+        buyProductWindowNode.name = "buyProductWindow"
+        self.pauseLayer.addChild(buyProductWindowNode)
+        
+        
+        buyTrioStatusButton.position = CGPoint(x: self.size.width * 0.82, y: self.size.height * 0.90)
+        buyTrioStatusButton.zPosition = 10
+        buyTrioStatusButton.anchorPoint = CGPoint(x: 1.5, y: 2)
+        buyTrioStatusButton.name = "buyStatusTrioButton"
+        buyProductWindowNode.addChild(buyTrioStatusButton)
+        
+        buyRougeOneStatusButton.position = CGPoint(x: self.size.width * 0.82, y: self.size.height * 0.76)
+        buyRougeOneStatusButton.zPosition = 10
+        buyRougeOneStatusButton.anchorPoint = CGPoint(x: 1.5, y: 2)
+        buyRougeOneStatusButton.name = "buyStatusRougeOneButton"
+        buyProductWindowNode.addChild(buyRougeOneStatusButton)
+        
+        buyInvisibleStatusButton.position = CGPoint(x: self.size.width * 0.82, y: self.size.height * 0.62)
+        buyInvisibleStatusButton.zPosition = 10
+        buyInvisibleStatusButton.anchorPoint = CGPoint(x: 1.5, y: 2)
+        buyInvisibleStatusButton.name = "buyStatusInvisibleButton"
+        buyProductWindowNode.addChild(buyInvisibleStatusButton)
+        
+        buyRemoveAdButton.position = CGPoint(x: self.size.width * 0.82, y: self.size.height * 0.48)
+        buyRemoveAdButton.zPosition = 10
+        buyRemoveAdButton.anchorPoint = CGPoint(x: 1.5, y: 2)
+        buyRemoveAdButton.name = "buyRemoveAd"
+        buyProductWindowNode.addChild(buyRemoveAdButton)
+        
+        restorePurchaseButton.position = CGPoint(x: self.size.width * 0.82, y: self.size.height * 0.34)
+        restorePurchaseButton.zPosition = 10
+        restorePurchaseButton.anchorPoint = CGPoint(x: 1.5, y: 2)
+        restorePurchaseButton.name = "restorePurchase"
+        buyProductWindowNode.addChild(restorePurchaseButton)
+        
+//        let trioPurchaseLabel = SKLabelNode(fontNamed: SomeNames.fontNameFutura)
+//        let rougePurchaseLabel = SKLabelNode(fontNamed: SomeNames.fontNameFutura)
+//        let invisiblePurchaseLabel = SKLabelNode(fontNamed: SomeNames.fontNameFutura)
+//        let removeAdPurchaseLabel = SKLabelNode(fontNamed: SomeNames.fontNameFutura)
+//        let restorePurchasesLabel = SKLabelNode(fontNamed: SomeNames.fontNameFutura)
+        
+        trioPurchaseLabel.position = CGPoint(x: self.size.width * 0.1, y: (self.size.height * 0.80) - 20)
+        trioPurchaseLabel.horizontalAlignmentMode = .left
+        trioPurchaseLabel.zPosition = 10
+        trioPurchaseLabel.fontSize = 35
+        trioPurchaseLabel.fontColor = UIColor(red: 194.0/255, green: 194.0/255, blue: 194.0/255, alpha: 1.0)
+        trioPurchaseLabel.text = "T + 1000  -  \(trioPrice)"
+        trioPurchaseLabel.name = "statusTrioButtonLabel"
+        buyProductWindowNode.addChild(trioPurchaseLabel)
+        
+        rougePurchaseLabel.position = CGPoint(x: self.size.width * 0.1, y: (self.size.height * 0.66) - 20)
+        rougePurchaseLabel.horizontalAlignmentMode = .left
+        rougePurchaseLabel.zPosition = 10
+        rougePurchaseLabel.fontColor = UIColor(red: 194.0/255, green: 194.0/255, blue: 194.0/255, alpha: 1.0)
+        if preferredLanguage == .ch || preferredLanguage == .jp {
+            rougePurchaseLabel.fontSize = 35
+        } else {
+            rougePurchaseLabel.fontSize = 35
+        }
+        rougePurchaseLabel.text = "D + 1000  -  \(doublePrice)"
+        rougePurchaseLabel.name = "statusRougeOneButtonLabel"
+        buyProductWindowNode.addChild(rougePurchaseLabel)
+        
+        invisiblePurchaseLabel.position = CGPoint(x: self.size.width * 0.1, y: (self.size.height * 0.52) - 20)
+        invisiblePurchaseLabel.horizontalAlignmentMode = .left
+        invisiblePurchaseLabel.zPosition = 10
+        invisiblePurchaseLabel.fontSize = 35
+        invisiblePurchaseLabel.fontColor = UIColor(red: 194.0/255, green: 194.0/255, blue: 194.0/255, alpha: 1.0)
+        invisiblePurchaseLabel.text = "I + 1000  -  \(invisiblePrice)"
+        invisiblePurchaseLabel.name = "statusInvisibleButtonLabel"
+        buyProductWindowNode.addChild(invisiblePurchaseLabel)
+        
+        removeAdPurchaseLabel.position = CGPoint(x: self.size.width * 0.05, y: (self.size.height * 0.38) - 20)
+        removeAdPurchaseLabel.horizontalAlignmentMode = .left
+        removeAdPurchaseLabel.zPosition = 10
+        removeAdPurchaseLabel.fontColor = UIColor(red: 194.0/255, green: 194.0/255, blue: 194.0/255, alpha: 1.0)
+        if preferredLanguage == .ch || preferredLanguage == .jp {
+            removeAdPurchaseLabel.fontSize = 55
+        } else {
+            removeAdPurchaseLabel.fontSize = 35
+        }
+            
+        //removeAdPurchaseLabel.text = "Remove Ad.  -  1.49"
+        if preferredLanguage == .ru {
+            removeAdPurchaseLabel.text = "Убрать рекламу  -  \(removeAdsPrice)"
+        } else if preferredLanguage == .ch {
+            removeAdPurchaseLabel.text = "移除广告  -  \(removeAdsPrice)"
+        } else if preferredLanguage == .es {
+            removeAdPurchaseLabel.text = "Sin publicidad  -  \(removeAdsPrice)"
+        } else if preferredLanguage == .jp {
+            removeAdPurchaseLabel.text = "広告削除  -  \(removeAdsPrice)"
+        } else if preferredLanguage == .fr {
+            removeAdPurchaseLabel.text = "Enlever les publicités  -  \(removeAdsPrice)"
+        } else if preferredLanguage == .gr {
+            removeAdPurchaseLabel.text = "Werbungen entfernen  -  \(removeAdsPrice)"
+        } else {
+            removeAdPurchaseLabel.text = "Remove ads  -  \(removeAdsPrice)"
+        }
+        removeAdPurchaseLabel.name = "removeAd"
+        buyProductWindowNode.addChild(removeAdPurchaseLabel)
+        
+        
+        restorePurchasesLabel.position = CGPoint(x: self.size.width * 0.05, y: self.size.height * 0.24)
+        restorePurchasesLabel.horizontalAlignmentMode = .left
+        restorePurchasesLabel.zPosition = 10
+        restorePurchasesLabel.fontColor = UIColor(red: 194.0/255, green: 194.0/255, blue: 194.0/255, alpha: 1.0)
+        if preferredLanguage == .ch || preferredLanguage == .jp {
+            restorePurchasesLabel.fontSize = 55
+        } else {
+            restorePurchasesLabel.fontSize = 35
+        }
+        //removeAdPurchaseLabel.text = "Remove Ad.  -  1.49"
+        if preferredLanguage == .ru {
+            restorePurchasesLabel.text = "Восстановить покупки"
+        } else if preferredLanguage == .ch {
+            restorePurchasesLabel.text = "恢復購買"
+        } else if preferredLanguage == .es {
+            restorePurchasesLabel.text = "Restaurar las compras"
+        } else if preferredLanguage == .jp {
+            restorePurchasesLabel.text = "購入を復元"
+        } else if preferredLanguage == .fr {
+            restorePurchasesLabel.text = "Restaurer les achats"
+        } else if preferredLanguage == .gr {
+            restorePurchasesLabel.text = "Käufe wiederherstellen"
+        } else {
+            restorePurchasesLabel.text = "Restore purchases"
+        }
+        restorePurchasesLabel.name = "restorePurchasesLabel"
+        buyProductWindowNode.addChild(restorePurchasesLabel)
+        
+        
+        
+    }
+    
     // MARK: Shows ship upgrades
-    @objc func setupShipUpgradesWindow() {
+    @objc private func setupShipUpgradesWindow() {
       
         shipUpgradesWindow.position = CGPoint(x: self.size.width * 2, y: self.size.height * 0.3)
         shipUpgradesWindow.zPosition = 20
@@ -1455,6 +1978,11 @@ class GameScene: SKScene, SKPhysicsContactDelegate, GADInterstitialDelegate {
         //shipUpgradesWindow.size =
         shipUpgradesWindow.name = "shipUpgradesHint"
         
+        if preferredLanguage == .ru {
+            shipUpgradesWindow.texture = SKTexture(imageNamed: "shipUpgradesWindowRU2")
+        } else {
+            shipUpgradesWindow.texture = SKTexture(imageNamed: "shipUpgradesWindow2")
+        }
 
         //self.addChild(shipUpgradesWindow)
         self.pauseLayer.addChild(shipUpgradesWindow)
@@ -1462,127 +1990,101 @@ class GameScene: SKScene, SKPhysicsContactDelegate, GADInterstitialDelegate {
         if engineUpgrade /*onlyTopLevel || canMoveUpAndDown*/ {
             let check = SKSpriteNode(imageNamed: "checkIcon")
             check.position = CGPoint(x: shipUpgradesWindow.size.width/2, y: shipUpgradesWindow.size.height * 0.4)
-            check.zPosition = 20
             check.name = "engineCheck"
-            //check.anchorPoint = CGPoint(x: -0.5, y: -0.5)
-            //check.alpha = 0.0
-            check.xScale -= 0.6
-            check.yScale -= 0.6
-            shipUpgradesWindow.addChild(check)
+            addCheckSighsToShipUpgradeWindow(check: check)
         } else {
             let check = SKSpriteNode(imageNamed: "uncheckIcon")
             check.position = CGPoint(x: shipUpgradesWindow.size.width/2, y: shipUpgradesWindow.size.height * 0.4)
-            check.zPosition = 20
             check.name = "engineCheck"
-            //check.anchorPoint = CGPoint(x: 1, y: 1)
-            //check.anchorPoint = CGPoint.zero
-            //check.alpha = 0.0
-            check.xScale -= 0.6
-            check.yScale -= 0.6
-            shipUpgradesWindow.addChild(check)
+            addCheckSighsToShipUpgradeWindow(check: check)
         }
         
         if /*flapsUpgrade*/ onlyTopLevel || canMoveUpAndDown  {
             let check = SKSpriteNode(imageNamed: "checkIcon")
             check.position = CGPoint(x: shipUpgradesWindow.size.width * 0.3, y: shipUpgradesWindow.size.height/2)
-            check.zPosition = 20
             check.name = "flapsChack"
-            //check.alpha = 0.0
-            check.xScale -= 0.6
-            check.yScale -= 0.6
-            shipUpgradesWindow.addChild(check)
+            addCheckSighsToShipUpgradeWindow(check: check)
         } else {
             let check = SKSpriteNode(imageNamed: "uncheckIcon")
             check.position = CGPoint(x: shipUpgradesWindow.size.width * 0.3, y: shipUpgradesWindow.size.height/2)
-            check.zPosition = 20
             check.name = "flapsChack"
-            //check.alpha = 0.0
-            check.xScale -= 0.6
-            check.yScale -= 0.6
-            shipUpgradesWindow.addChild(check)
+            addCheckSighsToShipUpgradeWindow(check: check)
         }
         
         if /*trioUpgrade*/ showTrioSP {
             let check = SKSpriteNode(imageNamed: "checkIcon")
             check.position = CGPoint(x: shipUpgradesWindow.size.width/2, y: shipUpgradesWindow.size.height * 0.55)
-            check.zPosition = 20
             check.name = "trioChack"
-            //check.alpha = 0.0
-            check.xScale -= 0.6
-            check.yScale -= 0.6
-            shipUpgradesWindow.addChild(check)
+            addCheckSighsToShipUpgradeWindow(check: check)
         } else {
             let check = SKSpriteNode(imageNamed: "uncheckIcon")
             check.position = CGPoint(x: shipUpgradesWindow.size.width/2, y: shipUpgradesWindow.size.height * 0.55)
-            check.zPosition = 20
             check.name = "trioChack"
-            //check.alpha = 0.0
-            check.xScale -= 0.6
-            check.yScale -= 0.6
-            shipUpgradesWindow.addChild(check)
+            addCheckSighsToShipUpgradeWindow(check: check)
         }
         
         if /*doubleUpgrade*/ showRougeSP {
             let check = SKSpriteNode(imageNamed: "checkIcon")
             check.position = CGPoint(x: shipUpgradesWindow.size.width * 0.7, y: shipUpgradesWindow.size.height/2)
-            check.zPosition = 20
             check.name = "doubleCheck"
-            //check.alpha = 0.0
-            check.xScale -= 0.6
-            check.yScale -= 0.6
-            shipUpgradesWindow.addChild(check)
+            addCheckSighsToShipUpgradeWindow(check: check)
         } else {
             let check = SKSpriteNode(imageNamed: "uncheckIcon")
             check.position = CGPoint(x: shipUpgradesWindow.size.width * 0.7, y: shipUpgradesWindow.size.height/2)
-            check.zPosition = 20
             check.name = "doubleCheck"
-            //check.alpha = 0.0
-            check.xScale -= 0.6
-            check.yScale -= 0.6
-            shipUpgradesWindow.addChild(check)
+            addCheckSighsToShipUpgradeWindow(check: check)
         }
         
         if /*invisibleUpgrade*/ showInvisibleSP {
             let check = SKSpriteNode(imageNamed: "checkIcon")
             check.position = CGPoint(x: shipUpgradesWindow.size.width/2, y: shipUpgradesWindow.size.height * 0.65)
-            check.zPosition = 20
             check.name = "invisibleCheck"
-            //check.alpha = 0.0
-            check.xScale -= 0.6
-            check.yScale -= 0.6
-            shipUpgradesWindow.addChild(check)
+            addCheckSighsToShipUpgradeWindow(check: check)
         } else {
             let check = SKSpriteNode(imageNamed: "uncheckIcon")
             check.position = CGPoint(x: shipUpgradesWindow.size.width/2, y: shipUpgradesWindow.size.height * 0.65)
-            check.zPosition = 20
             check.name = "invisibleCheck"
-            //check.alpha = 0.0
-            check.xScale -= 0.6
-            check.yScale -= 0.6
-            shipUpgradesWindow.addChild(check)
+            addCheckSighsToShipUpgradeWindow(check: check)
         }
         
     }
     
-    @objc func showHintDelay() {
+    private func addCheckSighsToShipUpgradeWindow(check: SKSpriteNode) {
+        check.zPosition = 20
+        check.name = "invisibleCheck"
+        //check.alpha = 0.0
+        check.xScale -= 0.6
+        check.yScale -= 0.6
+        shipUpgradesWindow.addChild(check)
+    }
+    
+    @objc private func showHintDelay() {
         //self.view?.isPaused = true
         gameLayer.isPaused = true
     }
     
     
-    @objc func runGameOver() {
+    @objc private func runGameOver() {
+        newActivityIndicator = nil
+        //IAPService.sharedInstance.dispose()
         //self.removeAllActions()
         barrierTimer?.invalidate()
         partitionTimer?.invalidate()
         planetTimer?.invalidate()
         spacestationTimer?.invalidate()
         constructionTimer?.invalidate()
+        showHintTimer?.invalidate()
+        survivalCoinSetupTimer?.invalidate()
+        puzzleCurrentGameStatusFalseTimer?.invalidate()
+        levelComplitedTimer?.invalidate()
         barrierTimer = nil
         partitionTimer = nil
         planetTimer = nil
         spacestationTimer = nil
         constructionTimer = nil
         
+        //gameLayer.removeAllActions()
+        //self.removeAllActions()
         //if soundsIsOn {
         //run(SKAction.playSoundFileNamed("boom1.m4a", waitForCompletion: false))
         //engineSoundsAction.speed = 0.0
@@ -1671,6 +2173,13 @@ class GameScene: SKScene, SKPhysicsContactDelegate, GADInterstitialDelegate {
                 node.run(SKAction.speed(to: 0.0, duration: 1.5))
             }
         }
+        
+        gameLayer.enumerateChildNodes(withName: "coinDebris") { (node, _) in
+            if node.name == "coinDebris" {
+                //node.speed -= 0.5
+                node.run(SKAction.speed(to: 0.0, duration: 1.5))
+            }
+        }
         //constructionDebris
         
         //coinDebris
@@ -1690,16 +2199,18 @@ class GameScene: SKScene, SKPhysicsContactDelegate, GADInterstitialDelegate {
             player.stop()
         }
         
-        t1 = Timer.scheduledTimer(timeInterval: TimeInterval(2), target: self, selector: #selector(GameScene.moveToGameOverScreen), userInfo: nil, repeats: false)
+        t1 = Timer.scheduledTimer(timeInterval: TimeInterval(2 /*+ (showAdsLevel ? 2 : 0)*/), target: self, selector: #selector(GameScene.moveToGameOverScreen), userInfo: nil, repeats: false)
         
         partitions.removeAll()
         
         changeShipStatus()
         gameOverIsRuning = true
+        
+        adsPrepareMessage()
 
     }
     
-    func clean() {
+    private func clean() {
         //self.view?.isPaused = false
         gameLayer.isPaused = false
         if soundsIsOn {
@@ -1718,6 +2229,10 @@ class GameScene: SKScene, SKPhysicsContactDelegate, GADInterstitialDelegate {
         planetTimer?.invalidate()
         spacestationTimer?.invalidate()
         constructionTimer?.invalidate()
+        survivalCoinSetupTimer?.invalidate()
+        puzzleCurrentGameStatusFalseTimer?.invalidate()
+        levelComplitedTimer?.invalidate()
+        t4?.invalidate()
         barrierTimer = nil
         partitionTimer = nil
         planetTimer = nil
@@ -1729,7 +2244,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate, GADInterstitialDelegate {
         partitions.removeAll()
     }
     
-    @objc func moveToGameOverScreen() {
+    @objc private func moveToGameOverScreen() {
         
         let scene = GameOverScene(size: CGSize(width: 1536, height: 2048))
         // Set the scale mode to scale to fit the window
@@ -1853,7 +2368,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate, GADInterstitialDelegate {
             partition = contact.bodyB.node as? Partition
             contactBodycD = contact.bodyA.node as? CollisionDetector
             //print("touch dot")
-            if partition != nil && player != nil /*&& partition?.isActive == true*/ {
+            if partition != nil && player != nil /*&& player?.name == "playerShip"*/ /*&& partition?.isActive == true*/ {
                 //detectCollisionOnDifferentZPositionWithPartition(player: player!, partition: partition!)
                 //beginContactWithPartitionFunction(player: player!,partition: partition!)
                 //endContactWithPartitionFunction(partition: partition!)
@@ -1870,7 +2385,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate, GADInterstitialDelegate {
             partition = contact.bodyA.node as? Partition
             contactBodycD = contact.bodyB.node as? CollisionDetector
             //print("touch dot 2")
-            if partition != nil && player != nil /*&& barrier?.isActive == true*/ {
+            if partition != nil && player != nil /*&& player?.name == "playerShip"*/ /*&& barrier?.isActive == true*/ {
                 //detectCollisionOnDifferentZPositionWithPartition(player: player!, partition: partition!)
                 //beginContactWithPartitionFunction(player: player!, partition: partition!)
                 //endContactWithPartitionFunction(partition: partition!)
@@ -1966,7 +2481,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate, GADInterstitialDelegate {
             partition = contact.bodyB.node as? Partition
             contactBodycD = contact.bodyA.node as? CollisionDetector
             //print("touch dot")
-            if partition != nil && player != nil && player?.rougeIsActive == true /*&& partition?.isActive == true*/ {
+            if partition != nil && player != nil && player?.rougeIsActive == true /*&& player?.name == "playerShip"*/ /*&& partition?.isActive == true*/ {
                 //beginContactWithPartitionFunction(player: player!,partition: partition!)
                 //print("didend1")
                 
@@ -1981,7 +2496,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate, GADInterstitialDelegate {
             contactBodycD = contact.bodyB.node as? CollisionDetector
             partition = contact.bodyA.node as? Partition
             //print("touch dot 2")
-            if partition != nil && player != nil && player?.rougeIsActive == true /*&& barrier?.isActive == true*/ {
+            if partition != nil && player != nil && player?.rougeIsActive == true /*&& player?.name == "playerShip"*/ /*&& barrier?.isActive == true*/ {
                 //beginContactWithPartitionFunction(player: player!,partition: partition!)
                 //print("didend2")
                 
@@ -1998,7 +2513,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate, GADInterstitialDelegate {
     }
  
     // MARK: Contact ended or not function
-    func contactEndedOrNot(player: PlayerShip, partition: Partition) {
+    private func contactEndedOrNot(player: PlayerShip, partition: Partition) {
         let allChildren = player.children
         var inContact = false
         for child in allChildren {
@@ -2027,13 +2542,13 @@ class GameScene: SKScene, SKPhysicsContactDelegate, GADInterstitialDelegate {
     }
     
     //   ++++++++++++++++++++++Detecting change zPosition while contacting player detectors and partition
-    var beginContactIndex = 0
-    var graiter = false
+    private var beginContactIndex = 0
+    private var graiter = false
     
     
     //   ------------------------Detecting change zPosition while contacting player detectors and partition
     
-    func detectCollisionOnDifferentZPosition(player: PlayerShip, barrier: Barrier) {
+    private func detectCollisionOnDifferentZPosition(player: PlayerShip, barrier: Barrier) {
         
         if player.zPosition == barrier.zPosition {
             zPositionMatch(player: player, barrier: barrier)
@@ -2048,7 +2563,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate, GADInterstitialDelegate {
         
     }
     
-    func detectCollisionOnDifferentZPositionWithPartition(player: PlayerShip, partition: Partition) {
+    private func detectCollisionOnDifferentZPositionWithPartition(player: PlayerShip, partition: Partition) {
         
         if player.zPosition == partition.zPosition {
             //zPositionMatchWithPartition(player: player, partition: partition)
@@ -2065,7 +2580,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate, GADInterstitialDelegate {
         
     }
     
-    func detectCollisionOnDifferentZPositionWithDebris (player: PlayerShip, debris: Debris) {
+    private func detectCollisionOnDifferentZPositionWithDebris (player: PlayerShip, debris: Debris) {
         if player.zPosition == debris.zPosition {
             zPositionMatchForDebris(player: player, debris: debris)
         } else if player.zPosition > debris.zPosition {
@@ -2078,7 +2593,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate, GADInterstitialDelegate {
         }
     }
     
-    func detectCollisionOnDifferentZPositionWithMiddleBarrier (player: PlayerShip, mBarrier: MiddleBarrier) {
+    private func detectCollisionOnDifferentZPositionWithMiddleBarrier (player: PlayerShip, mBarrier: MiddleBarrier) {
         if player.zPosition == mBarrier.zPosition {
             zPositionMatchForMiddleBarrier(player: player, mBarrier: mBarrier)
         } else if player.zPosition > mBarrier.zPosition {
@@ -2091,7 +2606,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate, GADInterstitialDelegate {
         }
     }
     
-    func zPositionMatchWithPartition(partition: Partition) {
+    private func zPositionMatchWithPartition(partition: Partition) {
         //print("Bam bitch partition")
         //partition.isActive = false
         //coins += 1
@@ -2100,7 +2615,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate, GADInterstitialDelegate {
         //checkGameScoreForLevels(coins: coins)
     }
     
-    func zPositionMatch(player: PlayerShip, barrier: Barrier) {
+    private func zPositionMatch(player: PlayerShip, barrier: Barrier) {
         //print("Bam bitch")
         barrier.isActive = false
         coins += 1
@@ -2113,7 +2628,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate, GADInterstitialDelegate {
         //checkGameScoreForLevels(coins: coins)
     }
     
-    func zPositionMatchForDebris(player: PlayerShip, debris: Debris) {
+    private func zPositionMatchForDebris(player: PlayerShip, debris: Debris) {
         //print("Bam Debris bitch")
         debris.isActive = false
         explosion(pos: ship.position, zPos: ship.zPosition)
@@ -2130,7 +2645,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate, GADInterstitialDelegate {
             gameLayer.enumerateChildNodes(withName: "trioShip") { [weak self] (node, _) in
                 self!.explosion(pos: node.position , zPos: node.zPosition)
                 node.removeFromParent()
-                print("trio epxlosiobb")
+                //print("trio epxlosiobb")
             }
         }
         //coins += 1
@@ -2142,7 +2657,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate, GADInterstitialDelegate {
         
     }
     
-    func zPositionMatchForMiddleBarrier(player: PlayerShip, mBarrier: MiddleBarrier) {
+    private func zPositionMatchForMiddleBarrier(player: PlayerShip, mBarrier: MiddleBarrier) {
         //print("Bam Debris bitch")
         mBarrier.isActive = false
         explosion(pos: ship.position, zPos: ship.zPosition)
@@ -2159,7 +2674,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate, GADInterstitialDelegate {
             gameLayer.enumerateChildNodes(withName: "trioShip") { [weak self] (node, _) in
                 self!.explosion(pos: node.position , zPos: node.zPosition)
                 node.removeFromParent()
-                print("trio epxlosiobb")
+                //print("trio epxlosiobb")
             }
         }
         //coins += 1
@@ -2179,7 +2694,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate, GADInterstitialDelegate {
         }
     }
     */
-    func setupRecognizers() {
+    private func setupRecognizers() {
         
         if canMove {
             //RIGHT
@@ -2214,8 +2729,8 @@ class GameScene: SKScene, SKPhysicsContactDelegate, GADInterstitialDelegate {
     
     // MARK: Swipes
     
-    @objc func swipeRight() {
-        if canMove && !shipExplode {
+    @objc private func swipeRight() {
+        if canMove && !shipExplode /*&& swipeActiveGesture*/ {
             if ship.rougeIsActive {
                 ship.moveRight()
                 //print("ship")
@@ -2228,8 +2743,8 @@ class GameScene: SKScene, SKPhysicsContactDelegate, GADInterstitialDelegate {
         //print("rouge right")
     }
     
-    @objc func swipeLeft() {
-        if canMove && !shipExplode{
+    @objc private func swipeLeft() {
+        if canMove && !shipExplode /*&& swipeActiveGesture*/ {
             if ship.rougeIsActive {
                 ship.moveLeft()
             } else if tempShipRouge.rougeIsActive {
@@ -2241,8 +2756,8 @@ class GameScene: SKScene, SKPhysicsContactDelegate, GADInterstitialDelegate {
         }
     }
     
-    @objc func swipeUp() {
-        if canMove {
+    @objc private func swipeUp() {
+        if canMove /*&& swipeActiveGesture*/ {
             if ship.rougeIsActive {
                 ship.moveUp()
             } else if tempShipRouge.rougeIsActive {
@@ -2255,8 +2770,8 @@ class GameScene: SKScene, SKPhysicsContactDelegate, GADInterstitialDelegate {
         }
     }
     
-    @objc func swipeDown() {
-        if canMove {
+    @objc private func swipeDown() {
+        if canMove /*&& swipeActiveGesture*/ {
             if ship.rougeIsActive {
                 ship.moveDown()
             } else if tempShipRouge.rougeIsActive {
@@ -2270,7 +2785,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate, GADInterstitialDelegate {
     }
     
     // MARK: Tap Gesture
-    @objc func tapDown() {
+    @objc private func tapDown() {
         if shipStatus == .noraml {
             shipStatus = .trio
             triggerTrioStatus()
@@ -2286,11 +2801,11 @@ class GameScene: SKScene, SKPhysicsContactDelegate, GADInterstitialDelegate {
         }
     }
     
-    func invalidateSPTimer() {
+    private func invalidateSPTimer() {
         
         switch shipStatus {
-        case .noraml:
-            print("normal status")
+        case .noraml: break
+            //print("normal status")
         case .trio:
             trioTimer.invalidate()
             shipStatus = .noraml
@@ -2308,8 +2823,8 @@ class GameScene: SKScene, SKPhysicsContactDelegate, GADInterstitialDelegate {
         let allShips = /*self.children*/ gameLayer.children
         //let fadeOutAction = SKAction.fadeOut(withDuration: 0.2)
         switch shipStatus {
-        case .noraml:
-            print("normal status")
+        case .noraml: break
+            //print("normal status")
         case .trio:
             
             
@@ -2330,6 +2845,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate, GADInterstitialDelegate {
             
             self.ship.isHidden = false
             trioTimer.invalidate()
+            diactPartitionOnTrioOrRouge()
             shipStatus = .noraml
             
         case .rogueOne:
@@ -2384,6 +2900,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate, GADInterstitialDelegate {
             
             
             rougeOneTimer.invalidate()
+            diactPartitionOnTrioOrRouge()
             shipStatus = .noraml
             
             rougeOneShipGlobal?.stopRougeOneEffect()
@@ -2425,9 +2942,28 @@ class GameScene: SKScene, SKPhysicsContactDelegate, GADInterstitialDelegate {
         
     }
     
+    private func diactPartitionOnTrioOrRouge() {
+        ship.enumerateChildNodes(withName: "cD") { [weak self] (node, _) in
+            if let cD = node as? CollisionDetector {
+                if !(cD.isInContactWithSomething) {
+                    if let selfLoc = self {
+                        _ = Timer.scheduledTimer(timeInterval: TimeInterval(0.5), target: selfLoc, selector: #selector(GameScene.diactPartitionOnTimer), userInfo: nil, repeats: false)
+                    }
+                }
+            }
+        }
+    }
+    @objc private func diactPartitionOnTimer() {
+        for partition in partitions {
+            partition.contactWithShip = false
+            //print("\(partition.contactWithShip) sahfdsfhsdjfkhaskldjfjksadlfhasklhfdkjasdfhkjsahdflk")
+        }
+    }
+    private var playerIsSetup: Bool = false
     // MARK: Ship setup
-    func playerSetup() {
+    private func playerSetup() {
         ship.position = CGPoint(x: self.size.width/2, y: self.size.height/4)
+        //ship.mainScene = self
         ship.zPosition = 3
         ship.xScale = ShipScale.middle
         ship.yScale = ShipScale.middle
@@ -2443,10 +2979,11 @@ class GameScene: SKScene, SKPhysicsContactDelegate, GADInterstitialDelegate {
 //        //jetFire?.emissionAngle = 180
 //        //jetFire?.position = CGPoint(x: ship.position.x, y: (ship.position.y - (ship.size.height / 2)) - 20)
 //        self.addChild(jetFire!)
+        //playerIsSetup = true
     }
     
     //MARK: Partition setup
-    /*@objc*/ func partitionSetup(zPosition: CGFloat, random: Bool, position: CGPoint?, angle: CGFloat?, newTexture: SKTexture?) {
+    /*@objc*/ private func partitionSetup(zPosition: CGFloat, random: Bool, position: CGPoint?, angle: CGFloat?, newTexture: SKTexture?) {
         let partition = Partition(zPosition: zPosition, random: random, angle: angle, newTexture: nil)
         partition.mainScene = self
         partition.playerShipNotDeinit = ship
@@ -2508,7 +3045,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate, GADInterstitialDelegate {
     }
     
     // MARK: alpha partitions
-    func partitionAlpha() {
+    private func partitionAlpha() {
         for partition in partitions {
             if partition.zPosition > ship.zPosition {
                 partition.alpha = 0.6
@@ -2603,12 +3140,12 @@ class GameScene: SKScene, SKPhysicsContactDelegate, GADInterstitialDelegate {
     }
     */
     
-    @objc func invokeConstructionBarrierSetupForSurvival() {
-        _ = constructionBarrierSetup(zPosition: 1, XPosition: 1, name: nil, texture: nil, hiddenCoin: nil, hiddenMine: nil)
+    @objc private func invokeConstructionBarrierSetupForSurvival() {
+        _ = constructionBarrierSetup(zPosition: 1, XPosition: 1, name: nil, texture: nil, hiddenCoin: nil, hiddenMine: nil, flicker: nil)
     }
     
     // MARK: Construction barrier setup
-    func constructionBarrierSetup(zPosition: CGFloat, XPosition: CGFloat, name: String?, texture: Int?, hiddenCoin: Barrier?, hiddenMine: Debris?) -> Debris {
+    private func constructionBarrierSetup(zPosition: CGFloat, XPosition: CGFloat, name: String?, texture: Int?, hiddenCoin: Barrier?, hiddenMine: Debris?, flicker: Int?) -> Debris {
         var debris = Debris(zPosition: zPosition, XPosition: XPosition)
         if gameMode == .normal {
             
@@ -2781,9 +3318,34 @@ class GameScene: SKScene, SKPhysicsContactDelegate, GADInterstitialDelegate {
             //print("animationDuration \(animationDuration)")
             
             let moveAction = SKAction.moveTo(y: (debris.size.height * 0) - debris.size.height, duration: animationDuration)
+            
+            let fadeoutAction = SKAction.fadeOut(withDuration: 0.5)
+            let waitAction = SKAction.wait(forDuration: 1)
+            let fadeinAction = SKAction.fadeIn(withDuration: 0.5)
+            let fadeSequenceAction = SKAction.sequence([fadeoutAction, waitAction, fadeinAction])
+            let repeatAction = SKAction.repeatForever(fadeSequenceAction)
+            
+            let moveGroupAction = SKAction.group([moveAction,repeatAction])
+            
+            let fadeoutAction1 = SKAction.fadeOut(withDuration: 0.2)
+            let waitAction1 = SKAction.wait(forDuration: 0.2)
+            let fadeinAction1 = SKAction.fadeIn(withDuration: 0.2)
+            let fadeSequenceAction1 = SKAction.sequence([fadeoutAction1, waitAction1, fadeinAction1])
+            let repeatAction1 = SKAction.repeatForever(fadeSequenceAction1)
+            
+            let moveGroupAction1 = SKAction.group([moveAction,repeatAction1])
+            
             let removeFromParent = SKAction.removeFromParent()
             //let lostCoinsAction = SKAction.run(loseCoinsOrAnemy)
-            let moveSequence = SKAction.sequence([moveAction, removeFromParent/*, lostCoinsAction*/])
+            var moveSequence = SKAction()
+            if flicker != nil && flicker == 1 {
+                moveSequence = SKAction.sequence([moveGroupAction, removeFromParent/*, lostCoinsAction*/])
+            } else if flicker != nil && flicker == 2 {
+                moveSequence = SKAction.sequence([moveGroupAction1, removeFromParent/*, lostCoinsAction*/])
+            } else {
+                moveSequence = SKAction.sequence([moveAction, removeFromParent/*, lostCoinsAction*/])
+            }
+            
             debris.run(moveSequence, withKey: "setUpConstruction")
             
             
@@ -2816,8 +3378,10 @@ class GameScene: SKScene, SKPhysicsContactDelegate, GADInterstitialDelegate {
             let textureNumber = Int(arc4random()%2)
             if textureNumber == 0 {
                 debris.texture = SKTexture(imageNamed: "mine07")
+                debris.name = "constructionDebris"
             } else if textureNumber == 1 {
                 debris.texture = SKTexture(imageNamed: "mine01")
+                debris.name = "constructionDebris"
             } else if textureNumber == 2 {
                 debris.texture = SKTexture(imageNamed: "mine08_4s")
                 debris.xScale += 0.1
@@ -2882,12 +3446,12 @@ class GameScene: SKScene, SKPhysicsContactDelegate, GADInterstitialDelegate {
         return debris
     }
     // MARK: Invore coin seup for survival mode
-    @objc func invokeCoinSetupForSurvival() {
+    @objc private func invokeCoinSetupForSurvival() {
         _ = coinSetup(zPosition: 1, XPosition: 1)
     }
     
     // MARK: Coin setup
-    func coinSetup(zPosition: CGFloat, XPosition: CGFloat) -> Barrier {
+    private func coinSetup(zPosition: CGFloat, XPosition: CGFloat) -> Barrier {
         var barrier = Barrier(zPosition: zPosition, XPosition: XPosition)
         var animationDuration: TimeInterval = 15
         
@@ -2896,6 +3460,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate, GADInterstitialDelegate {
             barrier.name = "coinDebris"
             
         } else if gameMode == .survival {
+            
             let randomXPostionNumber = Int(arc4random()%3)
             let randomZPostionNumber = Int(arc4random()%3)
             var randomXPosition: CGFloat = 0
@@ -2917,6 +3482,8 @@ class GameScene: SKScene, SKPhysicsContactDelegate, GADInterstitialDelegate {
             }
             
             barrier = Barrier(zPosition: randomZPosition, XPosition: randomXPosition)
+            barrier.name = "coinDebris"
+            barrier.mainScene = self
         }
         
         
@@ -2956,7 +3523,10 @@ class GameScene: SKScene, SKPhysicsContactDelegate, GADInterstitialDelegate {
         if gameMode == .normal {
             moveSequence = SKAction.sequence([moveAction, removeFromParent/*, lostCoinsAction*/])
         } else if gameMode == .survival {
-            let lostCoinsAction = SKAction.run(loseCoinsOrAnemy)
+            //let lostCoinsAction = SKAction.run(loseCoinsOrAnemy)
+            let lostCoinsAction = SKAction.run { [weak self] in
+                self?.loseCoinsOrAnemy()
+            }
             moveSequence = SKAction.sequence([moveAction, removeFromParent, lostCoinsAction])
         }
         
@@ -2967,7 +3537,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate, GADInterstitialDelegate {
     }
     
     // MARK: Middle barrier setup
-    func middleBarrierSetup(zPosition: CGFloat, XPosition: CGFloat) {
+    private func middleBarrierSetup(zPosition: CGFloat, XPosition: CGFloat) {
         let mBarrier = MiddleBarrier(zPosition: zPosition, XPosition: XPosition)
         mBarrier.mainScene = self
         mBarrier.name = "mBarrier"
@@ -3023,7 +3593,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate, GADInterstitialDelegate {
     }
     
     // ADD physical body to construction
-    @objc func addPhysicsBodyToConstruction() {
+    @objc private func addPhysicsBodyToConstruction() {
         let allObjects = /*self.children*/ gameLayer.children
         for constructionDebris in allObjects {
             if constructionDebris.name == "constructionDebris" && constructionDebris.physicsBody == nil {
@@ -3049,7 +3619,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate, GADInterstitialDelegate {
     }
     
     // MARK: Background setup
-    func backgroundSetup() {
+    private func backgroundSetup() {
         /*
         let background = SKSpriteNode(imageNamed: "background")
         background.size = self.size
@@ -3093,7 +3663,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate, GADInterstitialDelegate {
     }
     
     // MARK: Setup Buttons
-    func buttonsSetup() {
+    private func buttonsSetup() {
         
         /*
         normalStatusButton.position = CGPoint(x: self.size.width * 0.80, y: self.size.height * 0.70)
@@ -3102,33 +3672,69 @@ class GameScene: SKScene, SKPhysicsContactDelegate, GADInterstitialDelegate {
         self.addChild(normalStatusButton)
         */
         
+        
+        //trioStatusButton.position = CGPoint(x: self.size.width * 0.82, y: self.size.height * 0.70)
+        trioStatusButton.zPosition = 10
+        trioStatusButton.name = "statusTrioButton"
+        trioStatusButton.alpha = 0.3
+        //self.addChild(trioStatusButton)
+        self.gameLayer.addChild(trioStatusButton)
         if showTrioSP == true {
-            trioStatusButton.position = CGPoint(x: self.size.width * 0.82, y: self.size.height * 0.70)
-            trioStatusButton.zPosition = 10
-            trioStatusButton.name = "statusTrioButton"
-            //self.addChild(trioStatusButton)
-            self.gameLayer.addChild(trioStatusButton)
+            trioStatusButton.alpha = 1.0
         }
         
+        
+            //rougeOneStatusButton.position = CGPoint(x: self.size.width * 0.82, y: self.size.height * 0.56)
+        rougeOneStatusButton.zPosition = 10
+        rougeOneStatusButton.name = "statusRougeOneButton"
+        rougeOneStatusButton.alpha = 0.3
+        //self.addChild(rougeOneStatusButton)
+        self.gameLayer.addChild(rougeOneStatusButton)
         if showRougeSP == true {
-            rougeOneStatusButton.position = CGPoint(x: self.size.width * 0.82, y: self.size.height * 0.56)
-            rougeOneStatusButton.zPosition = 10
-            rougeOneStatusButton.name = "statusRougeOneButton"
-            //self.addChild(rougeOneStatusButton)
-            self.gameLayer.addChild(rougeOneStatusButton)
+            rougeOneStatusButton.alpha = 1.0
         }
         
+        
+        //invisibleStatusButton.position = CGPoint(x: self.size.width * 0.82, y: self.size.height * 0.42)
+        invisibleStatusButton.zPosition = 10
+        invisibleStatusButton.name = "statusInvisibleButton"
+        invisibleStatusButton.alpha = 0.3
+        //self.addChild(invisibleStatusButton)
+        self.gameLayer.addChild(invisibleStatusButton)
         if showInvisibleSP == true {
-            invisibleStatusButton.position = CGPoint(x: self.size.width * 0.82, y: self.size.height * 0.42)
-            invisibleStatusButton.zPosition = 10
-            invisibleStatusButton.name = "statusInvisibleButton"
-            //self.addChild(invisibleStatusButton)
-            self.gameLayer.addChild(invisibleStatusButton)
+            invisibleStatusButton.alpha = 1.0
         }
         
-        let settingsButton = SKSpriteNode(imageNamed: "settingsButton")
+        switch runingDevice {
+        case .phone:
+            trioStatusButton.position = CGPoint(x: self.size.width * 0.82, y: self.size.height * 0.70)
+            rougeOneStatusButton.position = CGPoint(x: self.size.width * 0.82, y: self.size.height * 0.56)
+            invisibleStatusButton.position = CGPoint(x: self.size.width * 0.82, y: self.size.height * 0.42)
+            
+            trioTimerLabel.position = CGPoint(x: self.size.width * 0.82, y: self.size.height * 0.64)
+            rougeOneTimerLabel.position = CGPoint(x: self.size.width * 0.82, y: self.size.height * 0.50)
+            invisibleTimerLabel.position = CGPoint(x: self.size.width * 0.82, y: self.size.height * 0.36)
+        case .pad:
+            trioStatusButton.position = CGPoint(x: self.size.width * 0.92, y: self.size.height * 0.70)
+            rougeOneStatusButton.position = CGPoint(x: self.size.width * 0.92, y: self.size.height * 0.56)
+            invisibleStatusButton.position = CGPoint(x: self.size.width * 0.92, y: self.size.height * 0.42)
+            
+            trioTimerLabel.position = CGPoint(x: self.size.width * 0.92, y: self.size.height * 0.64)
+            rougeOneTimerLabel.position = CGPoint(x: self.size.width * 0.92, y: self.size.height * 0.50)
+            invisibleTimerLabel.position = CGPoint(x: self.size.width * 0.92, y: self.size.height * 0.36)
+        default:
+            trioStatusButton.position = CGPoint(x: self.size.width * 0.82, y: self.size.height * 0.70)
+            rougeOneStatusButton.position = CGPoint(x: self.size.width * 0.82, y: self.size.height * 0.56)
+            invisibleStatusButton.position = CGPoint(x: self.size.width * 0.82, y: self.size.height * 0.42)
+            
+            trioTimerLabel.position = CGPoint(x: self.size.width * 0.82, y: self.size.height * 0.64)
+            rougeOneTimerLabel.position = CGPoint(x: self.size.width * 0.82, y: self.size.height * 0.50)
+            invisibleTimerLabel.position = CGPoint(x: self.size.width * 0.82, y: self.size.height * 0.36)
+        }
+        
+        
         settingsButton.position = CGPoint(x: (self.size.width * 0.5 - 300), y: self.size.height * 0.04)
-        settingsButton.zPosition = 10
+        settingsButton.zPosition = 12
         settingsButton.xScale = 0.5
         settingsButton.yScale = 0.5
         settingsButton.name = "settingsButton"
@@ -3138,44 +3744,125 @@ class GameScene: SKScene, SKPhysicsContactDelegate, GADInterstitialDelegate {
         
         
         // Setup shipstatus time TRIO
+        
+        trioTimerLabel.text = "0"
+        //trioTimerLabel.position = CGPoint(x: self.size.width * 0.82, y: self.size.height * 0.64)
+        trioTimerLabel.fontColor = UIColor.white
+        trioTimerLabel.fontSize = 30
+        trioTimerLabel.zPosition = 10
+        trioTimerLabel.text = String(describing: trioTimeActive.truncate(places: 1))
+        trioTimerLabel.alpha = 0.3
+        //self.addChild(trioTimerLabel)
+        self.gameLayer.addChild(trioTimerLabel)
         if showTrioSP == true {
-            trioTimerLabel.text = "0"
-            trioTimerLabel.position = CGPoint(x: self.size.width * 0.82, y: self.size.height * 0.64)
-            trioTimerLabel.fontColor = UIColor.white
-            trioTimerLabel.fontSize = 50
-            trioTimerLabel.zPosition = 10
-            trioTimerLabel.text = String(describing: trioTimeActive.truncate(places: 1))
-            //self.addChild(trioTimerLabel)
-            self.gameLayer.addChild(trioTimerLabel)
+            trioTimerLabel.alpha = 1.0
         }
         
         // Setup shipstatus time ROUGEONE
+        
+        rougeOneTimerLabel.text = "0"
+        //rougeOneTimerLabel.position = CGPoint(x: self.size.width * 0.82, y: self.size.height * 0.50)
+        rougeOneTimerLabel.fontColor = UIColor.white
+        rougeOneTimerLabel.fontSize = 30
+        rougeOneTimerLabel.zPosition = 10
+        rougeOneTimerLabel.text = String(describing: rougeOneTimeActive.truncate(places: 1))
+        rougeOneTimerLabel.alpha = 0.3
+        //self.addChild(rougeOneTimerLabel)
+        self.gameLayer.addChild(rougeOneTimerLabel)
         if showRougeSP == true {
-            rougeOneTimerLabel.text = "0"
-            rougeOneTimerLabel.position = CGPoint(x: self.size.width * 0.82, y: self.size.height * 0.50)
-            rougeOneTimerLabel.fontColor = UIColor.white
-            rougeOneTimerLabel.fontSize = 50
-            rougeOneTimerLabel.zPosition = 10
-            rougeOneTimerLabel.text = String(describing: rougeOneTimeActive.truncate(places: 1))
-            //self.addChild(rougeOneTimerLabel)
-            self.gameLayer.addChild(rougeOneTimerLabel)
+            rougeOneTimerLabel.alpha = 1.0
         }
         
         // Setup shipstatus time INVISIBLE
+        
+        invisibleTimerLabel.text = "0"
+        //invisibleTimerLabel.position = CGPoint(x: self.size.width * 0.82, y: self.size.height * 0.36)
+        invisibleTimerLabel.fontColor = UIColor.white
+        invisibleTimerLabel.fontSize = 30
+        invisibleTimerLabel.zPosition = 10
+        invisibleTimerLabel.text = String(describing: InvisibleTimeActive.truncate(places: 1))
+        invisibleTimerLabel.alpha = 0.3
+        //self.addChild(invisibleTimerLabel)
+        self.gameLayer.addChild(invisibleTimerLabel)
         if showInvisibleSP == true {
-            invisibleTimerLabel.text = "0"
-            invisibleTimerLabel.position = CGPoint(x: self.size.width * 0.82, y: self.size.height * 0.36)
-            invisibleTimerLabel.fontColor = UIColor.white
-            invisibleTimerLabel.fontSize = 50
-            invisibleTimerLabel.zPosition = 10
-            invisibleTimerLabel.text = String(describing: InvisibleTimeActive.truncate(places: 1))
-            //self.addChild(invisibleTimerLabel)
-            self.gameLayer.addChild(invisibleTimerLabel)
+            invisibleTimerLabel.alpha = 1.0
         }
         
         
+        
+        if musicIsPlaying {
+            if preferredLanguage == .ru {
+                musicOnOffButton.texture = SKTexture(imageNamed: "musicOffButtonRU1")
+            } else if preferredLanguage == .ch {
+                musicOnOffButton.texture = SKTexture(imageNamed: "musicOffButtonCH1")
+            } else if preferredLanguage == .es {
+                musicOnOffButton.texture = SKTexture(imageNamed: "musicOffButtonSP1")
+            } else if preferredLanguage == .jp {
+                musicOnOffButton.texture = SKTexture(imageNamed: "musicOffButtonJP1")
+            } else if preferredLanguage == .fr {
+                musicOnOffButton.texture = SKTexture(imageNamed: "musicOffButtonFR1")
+            } else if preferredLanguage == .gr {
+                musicOnOffButton.texture = SKTexture(imageNamed: "musicOffButtonDE1")
+            } else {
+                musicOnOffButton.texture = SKTexture(imageNamed: "musicOffButton1")
+            }
+        } else {
+            
+            if preferredLanguage == .ru {
+                musicOnOffButton.texture = SKTexture(imageNamed: "musicOnButtonRU1")
+            } else if preferredLanguage == .ch {
+                musicOnOffButton.texture = SKTexture(imageNamed: "musicOnButtonCH1")
+            } else if preferredLanguage == .es {
+                musicOnOffButton.texture = SKTexture(imageNamed: "musicOnButtonSP1")
+            } else if preferredLanguage == .jp {
+                musicOnOffButton.texture = SKTexture(imageNamed: "musicOnButtonJP1")
+            } else if preferredLanguage == .fr {
+                musicOnOffButton.texture = SKTexture(imageNamed: "musicOnButtonFR1")
+            } else if preferredLanguage == .gr {
+                musicOnOffButton.texture = SKTexture(imageNamed: "musicOnButtonDE1")
+            } else {
+                musicOnOffButton.texture = SKTexture(imageNamed: "musicOnButton1")
+            }
+        }
+        
+        if soundsIsOn {
+            if preferredLanguage == .ru {
+                soundsOnOffButton.texture = SKTexture(imageNamed: "soundsOffButtonRU1")
+            } else if preferredLanguage == .ch {
+                soundsOnOffButton.texture = SKTexture(imageNamed: "soundsOffButtonCH1")
+            } else if preferredLanguage == .es {
+                soundsOnOffButton.texture = SKTexture(imageNamed: "soundsOffButtonSP1")
+            } else if preferredLanguage == .jp {
+                soundsOnOffButton.texture = SKTexture(imageNamed: "soundsOffButtonJP1")
+            } else if preferredLanguage == .fr {
+                soundsOnOffButton.texture = SKTexture(imageNamed: "soundsOffButtonFR1")
+            } else if preferredLanguage == .gr {
+                soundsOnOffButton.texture = SKTexture(imageNamed: "soundsOffButtonDE1")
+            } else {
+                soundsOnOffButton.texture = SKTexture(imageNamed: "soundsOffButton1")
+            }
+        } else {
+            if preferredLanguage == .ru {
+                soundsOnOffButton.texture = SKTexture(imageNamed: "soundsOnButtonRU1")
+            } else if preferredLanguage == .ch {
+                soundsOnOffButton.texture = SKTexture(imageNamed: "soundsOnButtonCH1")
+            } else if preferredLanguage == .es {
+                soundsOnOffButton.texture = SKTexture(imageNamed: "soundsOnButtonSP1")
+            } else if preferredLanguage == .jp {
+                soundsOnOffButton.texture = SKTexture(imageNamed: "soundsOnButtonJP1")
+            } else if preferredLanguage == .fr {
+                soundsOnOffButton.texture = SKTexture(imageNamed: "soundsOnButtonFR1")
+            } else if preferredLanguage == .gr {
+                soundsOnOffButton.texture = SKTexture(imageNamed: "soundsOnButtonDE1")
+            } else {
+                soundsOnOffButton.texture = SKTexture(imageNamed: "soundsOnButton1")
+            }
+        }
+        
+        
+        
         shipUpgradesIcon.position = CGPoint(x: (self.size.width * 0.5 - 100), y: self.size.height * 0.04)
-        shipUpgradesIcon.zPosition = 10
+        shipUpgradesIcon.zPosition = 12
         shipUpgradesIcon.xScale = 0.5
         shipUpgradesIcon.yScale = 0.5
         shipUpgradesIcon.name = "shipUpgradesIcon"
@@ -3184,7 +3871,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate, GADInterstitialDelegate {
         //self.pauseLayer.addChild(shipUpgradesIcon)
         
         musicPlayIcon.position = CGPoint(x: (self.size.width * 0.5 + 100), y: self.size.height * 0.04)
-        musicPlayIcon.zPosition = 10
+        musicPlayIcon.zPosition = 12
         musicPlayIcon.xScale = 0.5
         musicPlayIcon.yScale = 0.5
         musicPlayIcon.name = "musicPlayIcon"
@@ -3192,9 +3879,18 @@ class GameScene: SKScene, SKPhysicsContactDelegate, GADInterstitialDelegate {
         self.gameLayer.addChild(musicPlayIcon)
         //self.pauseLayer.addChild(musicPlayIcon)
         
-        if hintLevel {
+        purchaseButton.position = CGPoint(x: (self.size.width * 0.5 + 500), y: self.size.height * 0.04)
+        purchaseButton.zPosition = 100
+        purchaseButton.xScale = 0.5
+        purchaseButton.yScale = 0.5
+        purchaseButton.name = "purchaseButton"
+        //self.addChild(musicPlayIcon)
+        self.gameLayer.addChild(purchaseButton)
+        //self.pauseLayer.addChild(musicPlayIcon)
+        
+        if (hintLevel && isKeyPresentInUserDefaults(key: "hint\(level+1)lvl") && planet == 1) || (hintLevel && isKeyPresentInUserDefaults(key: "hint2_\(level+1)lvl") && planet == 2) {
             hintExclamationIcon.position = CGPoint(x: (self.size.width * 0.5 + 300), y: self.size.height * 0.04)
-            hintExclamationIcon.zPosition = 10
+            hintExclamationIcon.zPosition = 12
             hintExclamationIcon.xScale = 0.5
             hintExclamationIcon.yScale = 0.5
             hintExclamationIcon.name = "hintExclamationIcon"
@@ -3203,14 +3899,47 @@ class GameScene: SKScene, SKPhysicsContactDelegate, GADInterstitialDelegate {
             //self.pauseLayer.addChild(musicPlayIcon)
         }
         
+        if (adsAttemtps == 0) && (!programmIsPaid) {
+            let fadeOutAction = SKAction.fadeOut(withDuration: 0.5)
+            let fadeInAction = SKAction.fadeIn(withDuration: 0.5)
+            let actionSequence = SKAction.sequence([fadeOutAction, fadeInAction])
+            let repeatForever = SKAction.repeatForever(actionSequence)
+            
+            let adsWillShow = SKSpriteNode(imageNamed: "adsBottom" /*"gameOverButton"*/)
+            
+            adsWillShow.position = CGPoint(x: (self.size.width * 0.5 - 500), y: self.size.height * 0.04)
+            adsWillShow.zPosition = 12
+            adsWillShow.xScale = 0.5
+            adsWillShow.yScale = 0.5
+            adsWillShow.name = "adsBottom"
+            self.gameLayer.addChild(adsWillShow)
+            adsWillShow.run(repeatForever)
+        }
+        if runingDevice == .pad {
+            swipeClickButton.position = CGPoint(x: (self.size.width * 0.5 + 700), y: self.size.height * 0.04)
+            swipeClickButton.zPosition = 12
+            swipeClickButton.xScale = 0.3
+            swipeClickButton.yScale = 0.3
+            swipeClickButton.name = "swipeClickButton"
+            if !swipeActiveGesture {
+                swipeClickButton.texture = SKTexture(imageNamed: "clickButton1")
+                swipeActiveGesture = false
+            } else if swipeActiveGesture {
+                swipeClickButton.texture = SKTexture(imageNamed: "swipeButton1")
+                swipeActiveGesture = true
+            }
+            self.gameLayer.addChild(swipeClickButton)
+        }
+ 
+        
     }
     
-    func menuButtonsSetup() {
+    private func menuButtonsSetup() {
         
         if preferredLanguage == .ru {
             restartButton = SKSpriteNode(imageNamed: "restartButtonRU1" /*"gameOverButton"*/)
             goToMenuButton = SKSpriteNode(imageNamed: "goToMenuButtonRU1" /*"gameOverButton"*/)
-            settingsButton = SKSpriteNode(imageNamed: "settingsButtonsRU1" /*"gameOverButton"*/)
+            //settingsButton = SKSpriteNode(imageNamed: "settingsButtonsRU1" /*"gameOverButton"*/)
             levelsButton = SKSpriteNode(imageNamed: "levelsMenuButtonRU1" /*"gameOverButton"*/)
             //controlButton = SKSpriteNode(imageNamed: "controlButton" /*"gameOverButton"*/)
             
@@ -3227,7 +3956,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate, GADInterstitialDelegate {
         } else if preferredLanguage == .ch {
             restartButton = SKSpriteNode(imageNamed: "restartButtonCH1" /*"gameOverButton"*/)
             goToMenuButton = SKSpriteNode(imageNamed: "goToMenuButtonCH1" /*"gameOverButton"*/)
-            settingsButton = SKSpriteNode(imageNamed: "settingsButtonsCH1" /*"gameOverButton"*/)
+            //settingsButton = SKSpriteNode(imageNamed: "settingsButtonsCH1" /*"gameOverButton"*/)
             levelsButton = SKSpriteNode(imageNamed: "levelsMenuButtonCH1" /*"gameOverButton"*/)
             //controlButton = SKSpriteNode(imageNamed: "controlButton" /*"gameOverButton"*/)
             
@@ -3244,7 +3973,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate, GADInterstitialDelegate {
         } else if preferredLanguage == .es {
             restartButton = SKSpriteNode(imageNamed: "restartButtonSP1" /*"gameOverButton"*/)
             goToMenuButton = SKSpriteNode(imageNamed: "goToMenuButtonSP1" /*"gameOverButton"*/)
-            settingsButton = SKSpriteNode(imageNamed: "settingsButtonsSP1" /*"gameOverButton"*/)
+            //settingsButton = SKSpriteNode(imageNamed: "settingsButtonsSP1" /*"gameOverButton"*/)
             levelsButton = SKSpriteNode(imageNamed: "levelsMenuButtonSP1" /*"gameOverButton"*/)
             //controlButton = SKSpriteNode(imageNamed: "controlButton" /*"gameOverButton"*/)
             
@@ -3258,10 +3987,61 @@ class GameScene: SKScene, SKPhysicsContactDelegate, GADInterstitialDelegate {
             } else {
                 musicOnOffButton = SKSpriteNode(imageNamed: "musicOffButtonSP1" /*"gameOverButton"*/)
             }
+        } else if preferredLanguage == .jp {
+            restartButton = SKSpriteNode(imageNamed: "restartButtonJP1" /*"gameOverButton"*/)
+            goToMenuButton = SKSpriteNode(imageNamed: "goToMenuButtonJP1" /*"gameOverButton"*/)
+            //settingsButton = SKSpriteNode(imageNamed: "settingsButtonsJP1" /*"gameOverButton"*/)
+            levelsButton = SKSpriteNode(imageNamed: "levelsMenuButtonJP1" /*"gameOverButton"*/)
+            //controlButton = SKSpriteNode(imageNamed: "controlButton" /*"gameOverButton"*/)
+            
+            if soundsIsOn {
+                soundsOnOffButton = SKSpriteNode(imageNamed: "soundsOnButtonJP1" /*"gameOverButton"*/)
+            } else {
+                soundsOnOffButton = SKSpriteNode(imageNamed: "soundsOffButtonJP1" /*"gameOverButton"*/)
+            }
+            if musicIsPlaying {
+                musicOnOffButton = SKSpriteNode(imageNamed: "musicOnButtonJP1" /*"gameOverButton"*/)
+            } else {
+                musicOnOffButton = SKSpriteNode(imageNamed: "musicOffButtonJP1" /*"gameOverButton"*/)
+            }
+        } else if preferredLanguage == .fr {
+            restartButton = SKSpriteNode(imageNamed: "restartButtonFR1" /*"gameOverButton"*/)
+            goToMenuButton = SKSpriteNode(imageNamed: "goToMenuButtonFR1" /*"gameOverButton"*/)
+            //settingsButton = SKSpriteNode(imageNamed: "settingsButtonsFR1" /*"gameOverButton"*/)
+            levelsButton = SKSpriteNode(imageNamed: "levelsMenuButtonFR1" /*"gameOverButton"*/)
+            //controlButton = SKSpriteNode(imageNamed: "controlButton" /*"gameOverButton"*/)
+            
+            if soundsIsOn {
+                soundsOnOffButton = SKSpriteNode(imageNamed: "soundsOnButtonFR1" /*"gameOverButton"*/)
+            } else {
+                soundsOnOffButton = SKSpriteNode(imageNamed: "soundsOffButtonFR1" /*"gameOverButton"*/)
+            }
+            if musicIsPlaying {
+                musicOnOffButton = SKSpriteNode(imageNamed: "musicOnButtonFR1" /*"gameOverButton"*/)
+            } else {
+                musicOnOffButton = SKSpriteNode(imageNamed: "musicOffButtonFR1" /*"gameOverButton"*/)
+            }
+        } else if preferredLanguage == .gr {
+            restartButton = SKSpriteNode(imageNamed: "restartButtonDE1" /*"gameOverButton"*/)
+            goToMenuButton = SKSpriteNode(imageNamed: "goToMenuButtonDE1" /*"gameOverButton"*/)
+            //settingsButton = SKSpriteNode(imageNamed: "settingsButtonsDE1" /*"gameOverButton"*/)
+            levelsButton = SKSpriteNode(imageNamed: "levelsMenuButtonDE1" /*"gameOverButton"*/)
+            //controlButton = SKSpriteNode(imageNamed: "controlButton" /*"gameOverButton"*/)
+            
+            if soundsIsOn {
+                soundsOnOffButton = SKSpriteNode(imageNamed: "soundsOnButtonDE1" /*"gameOverButton"*/)
+            } else {
+                soundsOnOffButton = SKSpriteNode(imageNamed: "soundsOffButtonDE1" /*"gameOverButton"*/)
+            }
+            if musicIsPlaying {
+                musicOnOffButton = SKSpriteNode(imageNamed: "musicOnButtonDE1" /*"gameOverButton"*/)
+            } else {
+                musicOnOffButton = SKSpriteNode(imageNamed: "musicOffButtonDE1" /*"gameOverButton"*/)
+            }
         } else {
             restartButton = SKSpriteNode(imageNamed: "restartButton1" /*"gameOverButton"*/)
             goToMenuButton = SKSpriteNode(imageNamed: "goToMenuButton1" /*"gameOverButton"*/)
-            settingsButton = SKSpriteNode(imageNamed: "settingsButtons1" /*"gameOverButton"*/)
+            //settingsButton = SKSpriteNode(imageNamed: "settingsButtons1" /*"gameOverButton"*/)
             levelsButton = SKSpriteNode(imageNamed: "levelsMenuButton1" /*"gameOverButton"*/)
             //controlButton = SKSpriteNode(imageNamed: "controlButton" /*"gameOverButton"*/)
             
@@ -3282,8 +4062,8 @@ class GameScene: SKScene, SKPhysicsContactDelegate, GADInterstitialDelegate {
         //let restartButton = SKSpriteNode(imageNamed: "restartButton" /*"gameOverButton"*/)
         restartButton.name = "Play Again"
         //startButton.size = self.size
-        restartButton.position = CGPoint(x: self.size.width * (-1), y: self.size.height * 0.85)
-        restartButton.zPosition = 10
+        restartButton.position = CGPoint(x: self.size.width * (-1), y: self.size.height * 0.75)
+        restartButton.zPosition = 12
         //self.addChild(restartButton)
         //self.gameLayer.addChild(restartButton)
         self.pauseLayer.addChild(restartButton)
@@ -3293,8 +4073,8 @@ class GameScene: SKScene, SKPhysicsContactDelegate, GADInterstitialDelegate {
         //let goToMenuButton = SKSpriteNode(imageNamed: "goToMenuButton" /*"gameOverButton"*/)
         goToMenuButton.name = "Go To Menu"
         //startButton.size = self.size
-        goToMenuButton.position = CGPoint(x: self.size.width * (-1), y: self.size.height * 0.70)
-        goToMenuButton.zPosition = 10
+        goToMenuButton.position = CGPoint(x: self.size.width * (-1), y: self.size.height * 0.60)
+        goToMenuButton.zPosition = 12
         //self.addChild(goToMenuButton)
         //self.gameLayer.addChild(goToMenuButton)
         self.pauseLayer.addChild(goToMenuButton)
@@ -3304,11 +4084,50 @@ class GameScene: SKScene, SKPhysicsContactDelegate, GADInterstitialDelegate {
         //let controlButton = SKSpriteNode(imageNamed: "controlButton" /*"gameOverButton"*/)
         levelsButton.name = "Settings"
         //startButton.size = self.size
-        levelsButton.position = CGPoint(x: self.size.width * (-1), y: self.size.height * 0.55)
-        levelsButton.zPosition = 10
+        levelsButton.position = CGPoint(x: self.size.width * (-1), y: self.size.height * 0.45)
+        levelsButton.zPosition = 12
         //self.addChild(levelsButton)
         //self.gameLayer.addChild(levelsButton)
         self.pauseLayer.addChild(levelsButton)
+        
+        
+//        gameMenuBackground.position = restartButton.position
+//        gameMenuBackground.position.y = gameMenuBackground.position.y - 950
+//        gameMenuBackground.position.x = gameMenuBackground.position.x + 50
+        gameMenuBackground.position = CGPoint(x: self.size.width / (-2), y: self.size.height / 2)
+        gameMenuBackground.zPosition = restartButton.zPosition - 1
+        //gameMenuBackground.anchorPoint = CGPoint(x: 0, y: 0)
+        //gameMenuBackground.zRotation = CGFloat(Double.pi / 2)
+        //gameMenuBackground.yScale = 1.5
+        //gameMenuBackground.xScale = 1.5
+        self.pauseLayer.addChild(gameMenuBackground)
+        
+        let settingsLevelLabel = SKLabelNode(fontNamed: SomeNames.fontNameVenusrising)
+        settingsLevelLabel.position = CGPoint(x: 0, y: 750)
+        settingsLevelLabel.fontColor = UIColor(red: 194.0/255, green: 194.0/255, blue: 194.0/255, alpha: 1.0)
+        settingsLevelLabel.fontSize = 50
+        if preferredLanguage == .ru {
+            settingsLevelLabel.text = "Планета \(planet)    Уровень \(level+1)"
+        } else if preferredLanguage == .ch {
+            settingsLevelLabel.fontSize = 80
+            settingsLevelLabel.text = "行星 \(planet)    水平 \(level+1)"
+        } else if preferredLanguage == .es {
+            settingsLevelLabel.text = "Planeta \(planet)    Nivel \(level+1)"
+        } else if preferredLanguage == .jp {
+            settingsLevelLabel.fontSize = 80
+            settingsLevelLabel.text = "惑星 \(planet)    レベル \(level+1)"
+        } else if preferredLanguage == .fr {
+            settingsLevelLabel.text = "Planète \(planet)    Niveau \(level+1)"
+        } else if preferredLanguage == .gr {
+            settingsLevelLabel.text = "Planet \(planet)    Niveau \(level+1)"
+        } else {
+            settingsLevelLabel.text = "Planet \(planet)    Level \(level+1)"
+        }
+        
+        //settingsLevelLabel.text = "Planet \(planet)    Level \(level+1)"
+        settingsLevelLabel.name = "Settings Level Planet label"
+        settingsLevelLabel.zPosition = 12
+        gameMenuBackground.addChild(settingsLevelLabel)
         
         /*
         //MARK: Settings button
@@ -3333,8 +4152,8 @@ class GameScene: SKScene, SKPhysicsContactDelegate, GADInterstitialDelegate {
         //MARK: SoundsONOFF button
         
         soundsOnOffButton.name = "SoundsOnOff"
-        soundsOnOffButton.position = CGPoint(x: self.size.width * (-1), y: self.size.height * 0.40)
-        soundsOnOffButton.zPosition = 10
+        soundsOnOffButton.position = CGPoint(x: self.size.width * (-1), y: self.size.height * 0.30)
+        soundsOnOffButton.zPosition = 12
         //self.addChild(soundsOnOffButton)
         //self.gameLayer.addChild(soundsOnOffButton)
         self.pauseLayer.addChild(soundsOnOffButton)
@@ -3342,81 +4161,125 @@ class GameScene: SKScene, SKPhysicsContactDelegate, GADInterstitialDelegate {
         //MARK: MusicONOFF button
         
         musicOnOffButton.name = "MusicOnOff"
-        musicOnOffButton.position = CGPoint(x: self.size.width * (-1), y: self.size.height * 0.40)
-        musicOnOffButton.zPosition = 10
+        musicOnOffButton.position = CGPoint(x: self.size.width * (-1), y: self.size.height * 0.30)
+        musicOnOffButton.zPosition = 12
         //self.addChild(musicOnOffButton)
         //self.gameLayer.addChild(musicOnOffButton)
         self.pauseLayer.addChild(musicOnOffButton)
+        
+        let visualyImpairedIcon = SKSpriteNode(imageNamed: "visualyImpaired2" /*"gameOverButton"*/)
+        visualyImpairedIcon.name = "visualyImpaired"
+        //startButton.size = self.size
+        visualyImpairedIcon.position = CGPoint(x: 230, y: -700)
+        visualyImpairedIcon.zPosition = 12
+        if visualyImpairedStatus {
+            //visualyImpairedIcon.alpha = 1.0
+            visualyImpairedIcon.texture = SKTexture(imageNamed: "visualyImpaired2")
+        } else {
+            //visualyImpairedIcon.alpha = 0.5
+            visualyImpairedIcon.texture = SKTexture(imageNamed: "visualyImpaired2Off")
+        }
+        //visualyImpairedIcon.alpha = 0.5
+        self.gameMenuBackground.addChild(visualyImpairedIcon)
+        
+        if (adsAttemtps == 0) && (!programmIsPaid) {
+            
+            let adsOnButtons = SKSpriteNode(imageNamed: "adsBottom" /*"gameOverButton"*/)
+            
+            adsOnButtons.position = CGPoint(x: -230, y: -700)
+            adsOnButtons.zPosition = 12
+            adsOnButtons.xScale = 1.2
+            adsOnButtons.yScale = 1.2
+            adsOnButtons.name = "adsOnButtons"
+            //self.gameLayer.addChild(adsWillShow)
+            
+            self.gameMenuBackground.addChild(adsOnButtons)
+            //self.gameMenuBackground.addChild(adsOnButtons)
+            //self.levelsButton.addChild(adsOnButtons)
+        }
     }
     
-    func animateMenuButtons() {
+    private func animateMenuButtons() {
         let animationDuration: TimeInterval = 0.1
         
         let moveActionRestartButton = SKAction.moveTo(x: self.size.width/2, duration: animationDuration)  //(y: self.size.width * 0.5, duration: animationDuration)
         let moveActionGoToMenuButton = SKAction.moveTo(x: self.size.width/2, duration: animationDuration)    //(y: (goToMenuButton.size.height * 0) - goToMenuButton.size.height, duration: animationDuration)
         let moveActionLevelsButton = SKAction.moveTo(x: self.size.width/2, duration: animationDuration)
-        let moveActionSettingsButton = SKAction.moveTo(x: self.size.width/2, duration: animationDuration)
+        //let moveActionSettingsButton = SKAction.moveTo(x: self.size.width/2, duration: animationDuration)
         
         let moveActionSoundButton = SKAction.moveTo(x: self.size.width * 0.35, duration: animationDuration)
         let moveActionMusicButton = SKAction.moveTo(x: self.size.width * 0.65, duration: animationDuration)
+        
+        let moveActionBackground = SKAction.moveTo(x: self.size.width/2, duration: animationDuration)
         
         
         restartButton.run(moveActionRestartButton, withKey: "restartButtonActionAnimation")
         goToMenuButton.run(moveActionGoToMenuButton, withKey: "goToMenuButtonActionAnimation")
         levelsButton.run(moveActionLevelsButton, withKey: "controlButtonActionAnimation")
-        settingsButton.run(moveActionSettingsButton, withKey: "controlButtonActionAnimation")
+        //settingsButton.run(moveActionSettingsButton, withKey: "controlButtonActionAnimation")
         musicOnOffButton.run(moveActionMusicButton, withKey: "musicButtonAction")
         soundsOnOffButton.run(moveActionSoundButton, withKey: "soundButtonAction")
+        gameMenuBackground.run(moveActionBackground, withKey: "showMenuBackground")
     }
     
-    func menuButtonsHide() {
+    private func menuButtonsHide() {
         let animationDuration: TimeInterval = 0.1
         
         let moveActionRestartButton = SKAction.moveTo(x: self.size.width * (-1), duration: animationDuration)  //(y: self.size.width * 0.5, duration: animationDuration)
         let moveActionGoToMenuButton = SKAction.moveTo(x: self.size.width * (-1), duration: animationDuration)    //(y: (goToMenuButton.size.height * 0) - goToMenuButton.size.height, duration: animationDuration)
         let moveActionLevelsButton = SKAction.moveTo(x: self.size.width * (-1), duration: animationDuration)
-        let moveActionSettingsButton = SKAction.moveTo(x: self.size.width * (-1), duration: animationDuration)
+        //let moveActionSettingsButton = SKAction.moveTo(x: self.size.width * (-1), duration: animationDuration)
         
         let moveActionSoundButton = SKAction.moveTo(x: self.size.width * (-1), duration: animationDuration)
         let moveActionMusicButton = SKAction.moveTo(x: self.size.width * (-1), duration: animationDuration)
+        
+        let moveActionBackground = SKAction.moveTo(x: self.size.width * (-1), duration: animationDuration)
         
         
         let restartButtonSequence = SKAction.sequence([moveActionRestartButton/*, removeRestartButton*/ /*, lostCoinsAction*/])
         let GoToMenuButtonSequence = SKAction.sequence([moveActionGoToMenuButton/*, removeGoToMenuButton*/ /*, lostCoinsAction*/])
         let levelsButtonSequence = SKAction.sequence([moveActionLevelsButton/*, removeControlButton*/ /*, lostCoinsAction*/])
-        let settingsButtonSequence = SKAction.sequence([moveActionSettingsButton/*, removeControlButton*/ /*, lostCoinsAction*/])
+        //let settingsButtonSequence = SKAction.sequence([moveActionSettingsButton/*, removeControlButton*/ /*, lostCoinsAction*/])
         let soundButtonSequence = SKAction.sequence([moveActionSoundButton/*, removeControlButton*/ /*, lostCoinsAction*/])
         let musicButtonSequence = SKAction.sequence([moveActionMusicButton/*, removeControlButton*/ /*, lostCoinsAction*/])
         
         restartButton.run(restartButtonSequence, withKey: "hideRestartButtonAction")
         goToMenuButton.run(GoToMenuButtonSequence, withKey: "hideGoToMenuButtonAction")
         levelsButton.run(levelsButtonSequence, withKey: "hideSettingsButtonAction")
-        settingsButton.run(settingsButtonSequence, withKey: "hideSettingsButtonAction")
+        //settingsButton.run(settingsButtonSequence, withKey: "hideSettingsButtonAction")
         soundsOnOffButton.run(soundButtonSequence, withKey: "hidesoundButtonAction")
         musicOnOffButton.run(musicButtonSequence, withKey: "hideMusicButtonAction")
+        gameMenuBackground.run(moveActionBackground, withKey: "hideMenuBackground")
         //controlButton.run(ControlButtonSequence, withKey: "hideControlButtonAction")
         
     }
     // MARK: animate POPUP ship upgrades window
-    func animateShipUpgradesWindow() {
+    private func animateShipUpgradesWindow(animate: String) {
         let animationDuration: TimeInterval = 0.1
-        let moveActionUpgradesWindow = SKAction.moveTo(x: self.size.width/6, duration: animationDuration)  //(y: self.size.width * 0.5, duration: animationDuration)
         
-        shipUpgradesWindow.run(moveActionUpgradesWindow, withKey: "upgradesWindowActionAnimation")
+        if animate == "upgrade" {
+            let moveActionUpgradesWindow = SKAction.moveTo(x: self.size.width/6, duration: animationDuration)  //(y: self.size.width * 0.5, duration: animationDuration)
+            shipUpgradesWindow.run(moveActionUpgradesWindow, withKey: "upgradesWindowActionAnimation")
+        } else if animate == "buy" {
+            let moveActionUpgradesWindow = SKAction.moveTo(x: self.size.width/8, duration: animationDuration)  //(y: self.size.width * 0.5, duration: animationDuration)
+            buyProductWindowNode.run(moveActionUpgradesWindow, withKey: "buyProductWindowAnimation")
+        }
 
     }
     
     // MARK: animate HIDE ship upgrades window
-    func animateHideShipUpgradesWindow() {
+    private func animateHideShipUpgradesWindow(animate: String) {
         let animationDuration: TimeInterval = 0.1
         let moveActionUpgradesWindow = SKAction.moveTo(x: self.size.width * 2, duration: animationDuration)  //(y: self.size.width * 0.5, duration: animationDuration)
-        
-        shipUpgradesWindow.run(moveActionUpgradesWindow, withKey: "upgradesWindowActionAnimation")
-        
+        if animate == "upgrade" {
+            shipUpgradesWindow.run(moveActionUpgradesWindow, withKey: "upgradesWindowActionAnimation")
+        } else if animate == "buy" {
+            buyProductWindowNode.run(moveActionUpgradesWindow, withKey: "buyProductWindowAnimation")
+        }
     }
     
     // MARK: Planetes setup
-    @objc func planetsSetup() {
+    @objc private func planetsSetup() {
         //let planetObject = Planet(texture: SKTexture(imageNamed: "venus"))
         let planetObject = Planet()
         //planetObject.position = CGPoint(x: self.size.width * 0.20, y: self.size.height * 1.30)
@@ -3436,7 +4299,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate, GADInterstitialDelegate {
     }
     
     // MARK: StationSet up
-    @objc func spacestationSetup() {
+    @objc private func spacestationSetup() {
         //let planetObject = Planet(texture: SKTexture(imageNamed: "venus"))
         
         //planetObject.position = CGPoint(x: self.size.width * 0.20, y: self.size.height * 1.30)
@@ -3460,8 +4323,8 @@ class GameScene: SKScene, SKPhysicsContactDelegate, GADInterstitialDelegate {
     }
     
     // MAKR: Construction setup
-    var nextRow = 0
-    @objc func constructionSetup() {
+    private var nextRow = 0
+    @objc private func constructionSetup() {
         var construction = [[Int]]()
         if planet == 1 {
             construction = levels[level]
@@ -3480,39 +4343,44 @@ class GameScene: SKScene, SKPhysicsContactDelegate, GADInterstitialDelegate {
                     if element == 0 {
                         
                     } else if element == 1 {
-                        _ = constructionBarrierSetup(zPosition: 1, XPosition: 3, name: nil, texture: nil, hiddenCoin: nil, hiddenMine: nil)
+                        _ = constructionBarrierSetup(zPosition: 1, XPosition: 3, name: nil, texture: nil, hiddenCoin: nil, hiddenMine: nil, flicker: nil)
                     } else if element == 2 {
                         _ = coinSetup(zPosition: 1, XPosition: 3)
+                    } else if element == 3 {
+                        _ = constructionBarrierSetup(zPosition: 1, XPosition: 3, name: nil, texture: nil, hiddenCoin: nil, hiddenMine: nil, flicker: 1)
+                    } else if element == 31 {
+                        _ = constructionBarrierSetup(zPosition: 1, XPosition: 3, name: nil, texture: nil, hiddenCoin: nil, hiddenMine: nil, flicker: 2)
                     } else if element == 4 {
                         //middleBarrierSetup(zPosition: <#T##CGFloat#>, XPosition: <#T##CGFloat#>)
                     } else if element == 9 {
-                        _ = constructionBarrierSetup(zPosition: 1, XPosition: 3, name: "hackDebris", texture: 2, hiddenCoin: nil, hiddenMine: nil)
+                        _ = coinSetup(zPosition: 1, XPosition: 3)
+                        _ = constructionBarrierSetup(zPosition: 1, XPosition: 3, name: "hackDebris", texture: 2, hiddenCoin: nil, hiddenMine: nil, flicker: nil)
                         //addPuzzleGamePics()
                     } else if element == 6 {
                         let hiddenCoin = coinSetup(zPosition: 1, XPosition: 3)
                         hiddenCoin.isHidden = true
-                        _ = constructionBarrierSetup(zPosition: 1, XPosition: 3, name: "glowingMine", texture: 3, hiddenCoin: hiddenCoin, hiddenMine: nil)
+                        _ = constructionBarrierSetup(zPosition: 1, XPosition: 3, name: "glowingMine", texture: 3, hiddenCoin: hiddenCoin, hiddenMine: nil, flicker: nil)
                         //addPuzzleGamePics()
                     } else if element == 7 {
-                        _ = constructionBarrierSetup(zPosition: 1, XPosition: 3, name: "yellowGlowingMineRotating", texture: 4, hiddenCoin: nil, hiddenMine: nil)
+                        _ = constructionBarrierSetup(zPosition: 1, XPosition: 3, name: "yellowGlowingMineRotating", texture: 4, hiddenCoin: nil, hiddenMine: nil, flicker: nil)
                         //addPuzzleGamePics()
                     } else if element == 8 {
                         
-                        _ = constructionBarrierSetup(zPosition: 1, XPosition: 3, name: "yellowGlowingMine", texture: 5, hiddenCoin: nil, hiddenMine: nil)
+                        _ = constructionBarrierSetup(zPosition: 1, XPosition: 3, name: "yellowGlowingMine", texture: 5, hiddenCoin: nil, hiddenMine: nil, flicker: nil)
                         //addPuzzleGamePics()
                     } else if element == 61 {
-                        let hiddenMine = constructionBarrierSetup(zPosition: 1, XPosition: 3, name: nil, texture: nil, hiddenCoin: nil, hiddenMine: nil)
+                        let hiddenMine = constructionBarrierSetup(zPosition: 1, XPosition: 3, name: nil, texture: nil, hiddenCoin: nil, hiddenMine: nil, flicker: nil)
                         hiddenMine.isHidden = true
-                        _ = constructionBarrierSetup(zPosition: 1, XPosition: 3, name: "glowingMine", texture: 3, hiddenCoin: nil, hiddenMine: hiddenMine)
+                        _ = constructionBarrierSetup(zPosition: 1, XPosition: 3, name: "glowingMine", texture: 3, hiddenCoin: nil, hiddenMine: hiddenMine, flicker: nil)
                         //addPuzzleGamePics()
                     }
                 case 1:
                     if element == 0 {
                         
                     } else if element == 1 {
-                        _ = constructionBarrierSetup(zPosition: 1, XPosition: 2, name: nil, texture: nil, hiddenCoin: nil, hiddenMine: nil)
+                        _ = constructionBarrierSetup(zPosition: 1, XPosition: 2, name: nil, texture: nil, hiddenCoin: nil, hiddenMine: nil, flicker: nil)
                     } else if element == 2 {
-                        _ = coinSetup(zPosition: 1, XPosition: 2)
+                        _ = coinSetup(zPosition: 1, XPosition: 1.5)
                     } else if element == 4 {
                         middleBarrierSetup(zPosition: 1, XPosition: 1)
                     }
@@ -3520,39 +4388,44 @@ class GameScene: SKScene, SKPhysicsContactDelegate, GADInterstitialDelegate {
                     if element == 0 {
                         
                     } else if element == 1 {
-                        _ = constructionBarrierSetup(zPosition: 1, XPosition: 2, name: nil, texture: nil, hiddenCoin: nil, hiddenMine: nil)
+                        _ = constructionBarrierSetup(zPosition: 1, XPosition: 2, name: nil, texture: nil, hiddenCoin: nil, hiddenMine: nil, flicker: nil)
                     } else if element == 2 {
                         _ = coinSetup(zPosition: 1, XPosition: 2)
+                    } else if element == 3 {
+                        _ = constructionBarrierSetup(zPosition: 1, XPosition: 2, name: nil, texture: nil, hiddenCoin: nil, hiddenMine: nil, flicker: 1)
+                    } else if element == 31 {
+                        _ = constructionBarrierSetup(zPosition: 1, XPosition: 2, name: nil, texture: nil, hiddenCoin: nil, hiddenMine: nil, flicker: 2)
                     } else if element == 4 {
                         
                     } else if element == 9 {
-                        _ = constructionBarrierSetup(zPosition: 1, XPosition: 2, name: "hackDebris", texture: 2, hiddenCoin: nil, hiddenMine: nil)
+                        _ = coinSetup(zPosition: 1, XPosition: 2)
+                        _ = constructionBarrierSetup(zPosition: 1, XPosition: 2, name: "hackDebris", texture: 2, hiddenCoin: nil, hiddenMine: nil, flicker: nil)
                         //addPuzzleGamePics()
                     } else if element == 6 {
                         let hiddenCoin = coinSetup(zPosition: 1, XPosition: 2)
                         hiddenCoin.isHidden = true
-                        _ = constructionBarrierSetup(zPosition: 1, XPosition: 2, name: "glowingMine", texture: 3, hiddenCoin: hiddenCoin, hiddenMine: nil)
+                        _ = constructionBarrierSetup(zPosition: 1, XPosition: 2, name: "glowingMine", texture: 3, hiddenCoin: hiddenCoin, hiddenMine: nil, flicker: nil)
                         //addPuzzleGamePics()
                     } else if element == 7 {
-                        _ = constructionBarrierSetup(zPosition: 1, XPosition: 2, name: "yellowGlowingMineRotating", texture: 4, hiddenCoin: nil, hiddenMine: nil)
+                        _ = constructionBarrierSetup(zPosition: 1, XPosition: 2, name: "yellowGlowingMineRotating", texture: 4, hiddenCoin: nil, hiddenMine: nil, flicker: nil)
                         //addPuzzleGamePics()
                     } else if element == 8 {
                         
-                        _ = constructionBarrierSetup(zPosition: 1, XPosition: 2, name: "yellowGlowingMine", texture: 5, hiddenCoin: nil, hiddenMine: nil)
+                        _ = constructionBarrierSetup(zPosition: 1, XPosition: 2, name: "yellowGlowingMine", texture: 5, hiddenCoin: nil, hiddenMine: nil, flicker: nil)
                         //addPuzzleGamePics()
                     } else if element == 61 {
-                        let hiddenMine = constructionBarrierSetup(zPosition: 1, XPosition: 2, name: nil, texture: nil, hiddenCoin: nil, hiddenMine: nil)
+                        let hiddenMine = constructionBarrierSetup(zPosition: 1, XPosition: 2, name: nil, texture: nil, hiddenCoin: nil, hiddenMine: nil, flicker: nil)
                         hiddenMine.isHidden = true
-                        _ = constructionBarrierSetup(zPosition: 1, XPosition: 2, name: "glowingMine", texture: 3, hiddenCoin: nil, hiddenMine: hiddenMine)
+                        _ = constructionBarrierSetup(zPosition: 1, XPosition: 2, name: "glowingMine", texture: 3, hiddenCoin: nil, hiddenMine: hiddenMine, flicker: nil)
                         //addPuzzleGamePics()
                     }
                 case 3:
                     if element == 0 {
                         
                     } else if element == 1 {
-                        _ = constructionBarrierSetup(zPosition: 3, XPosition: 3, name: nil, texture: nil, hiddenCoin: nil, hiddenMine: nil)
+                        _ = constructionBarrierSetup(zPosition: 3, XPosition: 3, name: nil, texture: nil, hiddenCoin: nil, hiddenMine: nil, flicker: nil)
                     } else if element == 2 {
-                        _ = coinSetup(zPosition: 3, XPosition: 3)
+                        _ = coinSetup(zPosition: 1, XPosition: 2.5)
                     } else if element == 4 {
                         middleBarrierSetup(zPosition: 1, XPosition: 2)
                     }
@@ -3560,69 +4433,80 @@ class GameScene: SKScene, SKPhysicsContactDelegate, GADInterstitialDelegate {
                     if element == 0 {
                         
                     } else if element == 1 {
-                        _ = constructionBarrierSetup(zPosition: 1, XPosition: 1, name: nil, texture: nil, hiddenCoin: nil, hiddenMine: nil)
+                        _ = constructionBarrierSetup(zPosition: 1, XPosition: 1, name: nil, texture: nil, hiddenCoin: nil, hiddenMine: nil, flicker: nil)
                     } else if element == 2 {
                         _ = coinSetup(zPosition: 1, XPosition: 1)
+                    } else if element == 3 {
+                        _ = constructionBarrierSetup(zPosition: 1, XPosition: 1, name: nil, texture: nil, hiddenCoin: nil, hiddenMine: nil, flicker: 1)
+                    } else if element == 31 {
+                        _ = constructionBarrierSetup(zPosition: 1, XPosition: 1, name: nil, texture: nil, hiddenCoin: nil, hiddenMine: nil, flicker: 2)
                     } else if element == 4 {
                         
                     } else if element == 9 {
-                        _ = constructionBarrierSetup(zPosition: 1, XPosition: 1, name: "hackDebris", texture: 2, hiddenCoin: nil, hiddenMine: nil)
+                        _ = coinSetup(zPosition: 1, XPosition: 1)
+                        _ = constructionBarrierSetup(zPosition: 1, XPosition: 1, name: "hackDebris", texture: 2, hiddenCoin: nil, hiddenMine: nil, flicker: nil)
                         //addPuzzleGamePics()
                     } else if element == 6 {
                         let hiddenCoin = coinSetup(zPosition: 1, XPosition: 1)
                         hiddenCoin.isHidden = true
-                        _ = constructionBarrierSetup(zPosition: 1, XPosition: 1, name: "glowingMine", texture: 3, hiddenCoin: hiddenCoin, hiddenMine: nil)
+                        _ = constructionBarrierSetup(zPosition: 1, XPosition: 1, name: "glowingMine", texture: 3, hiddenCoin: hiddenCoin, hiddenMine: nil, flicker: nil)
                         //addPuzzleGamePics()
                     } else if element == 7 {
-                        _ = constructionBarrierSetup(zPosition: 1, XPosition: 1, name: "yellowGlowingMineRotating", texture: 4, hiddenCoin: nil, hiddenMine: nil)
+                        _ = constructionBarrierSetup(zPosition: 1, XPosition: 1, name: "yellowGlowingMineRotating", texture: 4, hiddenCoin: nil, hiddenMine: nil, flicker: nil)
                         //addPuzzleGamePics()
                     } else if element == 8 {
                         
-                        _ = constructionBarrierSetup(zPosition: 1, XPosition: 1, name: "yellowGlowingMine", texture: 5, hiddenCoin: nil, hiddenMine: nil)
+                        _ = constructionBarrierSetup(zPosition: 1, XPosition: 1, name: "yellowGlowingMine", texture: 5, hiddenCoin: nil, hiddenMine: nil, flicker: nil)
                         //addPuzzleGamePics()
                     } else if element == 61 {
-                        let hiddenMine = constructionBarrierSetup(zPosition: 1, XPosition: 1, name: nil, texture: nil, hiddenCoin: nil, hiddenMine: nil)
+                        let hiddenMine = constructionBarrierSetup(zPosition: 1, XPosition: 1, name: nil, texture: nil, hiddenCoin: nil, hiddenMine: nil, flicker: nil)
                         hiddenMine.isHidden = true
-                        _ = constructionBarrierSetup(zPosition: 1, XPosition: 1, name: "glowingMine", texture: 3, hiddenCoin: nil, hiddenMine: hiddenMine)
+                        _ = constructionBarrierSetup(zPosition: 1, XPosition: 1, name: "glowingMine", texture: 3, hiddenCoin: nil, hiddenMine: hiddenMine, flicker: nil)
                         //addPuzzleGamePics()
                     }
                 case 5:
                     if element == 0 {
                         
                     } else if element == 1 {
-                        _ = constructionBarrierSetup(zPosition: 3, XPosition: 3, name: nil, texture: nil, hiddenCoin: nil, hiddenMine: nil)
+                        _ = constructionBarrierSetup(zPosition: 3, XPosition: 3, name: nil, texture: nil, hiddenCoin: nil, hiddenMine: nil, flicker: nil)
                     } else if element == 2 {
                         _ = coinSetup(zPosition: 3, XPosition: 3)
+                    } else if element == 3 {
+                        _ = constructionBarrierSetup(zPosition: 3, XPosition: 3, name: nil, texture: nil, hiddenCoin: nil, hiddenMine: nil, flicker: 1)
+                    } else if element == 31 {
+                        _ = constructionBarrierSetup(zPosition: 3, XPosition: 3, name: nil, texture: nil, hiddenCoin: nil, hiddenMine: nil, flicker: 2)
                     } else if element == 4 {
                         
                     } else if element == 9 {
-                        _ = constructionBarrierSetup(zPosition: 3, XPosition: 3, name: "hackDebris", texture: 2, hiddenCoin: nil, hiddenMine: nil)
+                        _ = coinSetup(zPosition: 3, XPosition: 3)
+                        _ = constructionBarrierSetup(zPosition: 3, XPosition: 3, name: "hackDebris", texture: 2, hiddenCoin: nil, hiddenMine: nil, flicker: nil)
                         //addPuzzleGamePics()
                     } else if element == 6 {
                         let hiddenCoin = coinSetup(zPosition: 3, XPosition: 3)
                         hiddenCoin.isHidden = true
-                        _ = constructionBarrierSetup(zPosition: 3, XPosition: 3, name: "glowingMine", texture: 3, hiddenCoin: hiddenCoin, hiddenMine: nil)
+                        _ = constructionBarrierSetup(zPosition: 3, XPosition: 3, name: "glowingMine", texture: 3, hiddenCoin: hiddenCoin, hiddenMine: nil, flicker: nil)
                         //addPuzzleGamePics()
                     } else if element == 7 {
-                        _ = constructionBarrierSetup(zPosition: 3, XPosition: 3, name: "yellowGlowingMineRotating", texture: 4, hiddenCoin: nil, hiddenMine: nil)
+                        _ = constructionBarrierSetup(zPosition: 3, XPosition: 3, name: "yellowGlowingMineRotating", texture: 4, hiddenCoin: nil, hiddenMine: nil, flicker: nil)
                         //addPuzzleGamePics()
                     } else if element == 8 {
                         
-                        _ = constructionBarrierSetup(zPosition: 3, XPosition: 3, name: "yellowGlowingMine", texture: 5, hiddenCoin: nil, hiddenMine: nil)
+                        _ = constructionBarrierSetup(zPosition: 3, XPosition: 3, name: "yellowGlowingMine", texture: 5, hiddenCoin: nil, hiddenMine: nil, flicker: nil)
                         //addPuzzleGamePics()
                     } else if element == 61 {
-                        let hiddenMine = constructionBarrierSetup(zPosition: 3, XPosition: 3, name: nil, texture: nil, hiddenCoin: nil, hiddenMine: nil)
+                        let hiddenMine = constructionBarrierSetup(zPosition: 3, XPosition: 3, name: nil, texture: nil, hiddenCoin: nil, hiddenMine: nil, flicker: nil)
                         hiddenMine.isHidden = true
-                        _ = constructionBarrierSetup(zPosition: 3, XPosition: 3, name: "glowingMine", texture: 3, hiddenCoin: nil, hiddenMine: hiddenMine)
+                        _ = constructionBarrierSetup(zPosition: 3, XPosition: 3, name: "glowingMine", texture: 3, hiddenCoin: nil, hiddenMine: hiddenMine, flicker: nil)
                         //addPuzzleGamePics()
                     }
                 case 6:
                     if element == 0 {
                         
                     } else if element == 1 {
-                        _ = constructionBarrierSetup(zPosition: 5, XPosition: 3, name: nil, texture: nil, hiddenCoin: nil, hiddenMine: nil)
+                        _ = constructionBarrierSetup(zPosition: 5, XPosition: 3, name: nil, texture: nil, hiddenCoin: nil, hiddenMine: nil, flicker: nil)
                     } else if element == 2 {
-                        _ = coinSetup(zPosition: 5, XPosition: 3)
+                        _ = coinSetup(zPosition: 3, XPosition: 2.5)
+                        //print("coin setup z3 x1.5")
                     } else if element == 4 {
                         middleBarrierSetup(zPosition: 3, XPosition: 1)
                     }
@@ -3630,39 +4514,45 @@ class GameScene: SKScene, SKPhysicsContactDelegate, GADInterstitialDelegate {
                     if element == 0 {
                         
                     } else if element == 1 {
-                        _ = constructionBarrierSetup(zPosition: 3, XPosition: 2, name: nil, texture: nil, hiddenCoin: nil, hiddenMine: nil)
+                        _ = constructionBarrierSetup(zPosition: 3, XPosition: 2, name: nil, texture: nil, hiddenCoin: nil, hiddenMine: nil, flicker: nil)
                     } else if element == 2 {
                         _ = coinSetup(zPosition: 3, XPosition: 2)
+                    } else if element == 3 {
+                        _ = constructionBarrierSetup(zPosition: 3, XPosition: 2, name: nil, texture: nil, hiddenCoin: nil, hiddenMine: nil, flicker: 1)
+                    } else if element == 31 {
+                        _ = constructionBarrierSetup(zPosition: 3, XPosition: 2, name: nil, texture: nil, hiddenCoin: nil, hiddenMine: nil, flicker: 2)
                     } else if element == 4 {
                         
                     } else if element == 9 {
-                        _ = constructionBarrierSetup(zPosition: 3, XPosition: 2, name: "hackDebris", texture: 2, hiddenCoin: nil, hiddenMine: nil)
+                        _ = coinSetup(zPosition: 3, XPosition: 2)
+                        _ = constructionBarrierSetup(zPosition: 3, XPosition: 2, name: "hackDebris", texture: 2, hiddenCoin: nil, hiddenMine: nil, flicker: nil)
                         //addPuzzleGamePics()
                     } else if element == 6 {
                         let hiddenCoin = coinSetup(zPosition: 3, XPosition: 2)
                         hiddenCoin.isHidden = true
-                        _ = constructionBarrierSetup(zPosition: 3, XPosition: 2, name: "glowingMine", texture: 3, hiddenCoin: hiddenCoin, hiddenMine: nil)
+                        _ = constructionBarrierSetup(zPosition: 3, XPosition: 2, name: "glowingMine", texture: 3, hiddenCoin: hiddenCoin, hiddenMine: nil, flicker: nil)
                         //addPuzzleGamePics()
                     } else if element == 7 {
-                        _ = constructionBarrierSetup(zPosition: 3, XPosition: 2, name: "yellowGlowingMineRotating", texture: 4, hiddenCoin: nil, hiddenMine: nil)
+                        _ = constructionBarrierSetup(zPosition: 3, XPosition: 2, name: "yellowGlowingMineRotating", texture: 4, hiddenCoin: nil, hiddenMine: nil, flicker: nil)
                         //addPuzzleGamePics()
                     } else if element == 8 {
                         
-                        _ = constructionBarrierSetup(zPosition: 3, XPosition: 2, name: "yellowGlowingMine", texture: 5, hiddenCoin: nil, hiddenMine: nil)
+                        _ = constructionBarrierSetup(zPosition: 3, XPosition: 2, name: "yellowGlowingMine", texture: 5, hiddenCoin: nil, hiddenMine: nil, flicker: nil)
                         //addPuzzleGamePics()
                     } else if element == 61 {
-                        let hiddenMine = constructionBarrierSetup(zPosition: 3, XPosition: 2, name: nil, texture: nil, hiddenCoin: nil, hiddenMine: nil)
+                        let hiddenMine = constructionBarrierSetup(zPosition: 3, XPosition: 2, name: nil, texture: nil, hiddenCoin: nil, hiddenMine: nil, flicker: nil)
                         hiddenMine.isHidden = true
-                        _ = constructionBarrierSetup(zPosition: 3, XPosition: 2, name: "glowingMine", texture: 3, hiddenCoin: nil, hiddenMine: hiddenMine)
+                        _ = constructionBarrierSetup(zPosition: 3, XPosition: 2, name: "glowingMine", texture: 3, hiddenCoin: nil, hiddenMine: hiddenMine, flicker: nil)
                         //addPuzzleGamePics()
                     }
                 case 8:
                     if element == 0 {
                         
                     } else if element == 1 {
-                        _ = constructionBarrierSetup(zPosition: 5, XPosition: 1, name: nil, texture: nil, hiddenCoin: nil, hiddenMine: nil)
+                        _ = constructionBarrierSetup(zPosition: 5, XPosition: 1, name: nil, texture: nil, hiddenCoin: nil, hiddenMine: nil, flicker: nil)
                     } else if element == 2 {
-                        _ = coinSetup(zPosition: 5, XPosition: 1)
+                        _ = coinSetup(zPosition: 3, XPosition: 1.5)
+                        //print("coin setup z3 x2.5")
                     } else if element == 4 {
                         middleBarrierSetup(zPosition: 3, XPosition: 2)
                     }
@@ -3670,30 +4560,35 @@ class GameScene: SKScene, SKPhysicsContactDelegate, GADInterstitialDelegate {
                     if element == 0 {
                         
                     } else if element == 1 {
-                        _ = constructionBarrierSetup(zPosition: 3, XPosition: 1, name: nil, texture: nil, hiddenCoin: nil, hiddenMine: nil)
+                        _ = constructionBarrierSetup(zPosition: 3, XPosition: 1, name: nil, texture: nil, hiddenCoin: nil, hiddenMine: nil, flicker: nil)
                     } else if element == 2 {
                         _ = coinSetup(zPosition: 3, XPosition: 1)
+                    } else if element == 3 {
+                        _ = constructionBarrierSetup(zPosition: 3, XPosition: 1, name: nil, texture: nil, hiddenCoin: nil, hiddenMine: nil, flicker: 1)
+                    } else if element == 31 {
+                        _ = constructionBarrierSetup(zPosition: 3, XPosition: 1, name: nil, texture: nil, hiddenCoin: nil, hiddenMine: nil, flicker: 2)
                     } else if element == 4 {
                         
                     } else if element == 9 {
-                        _ = constructionBarrierSetup(zPosition: 3, XPosition: 1, name: "hackDebris", texture: 2, hiddenCoin: nil, hiddenMine: nil)
+                        _ = coinSetup(zPosition: 3, XPosition: 1)
+                        _ = constructionBarrierSetup(zPosition: 3, XPosition: 1, name: "hackDebris", texture: 2, hiddenCoin: nil, hiddenMine: nil, flicker: nil)
                         //addPuzzleGamePics()
                     } else if element == 6 {
                         let hiddenCoin = coinSetup(zPosition: 3, XPosition: 1)
                         hiddenCoin.isHidden = true
-                        _ = constructionBarrierSetup(zPosition: 3, XPosition: 1, name: "glowingMine", texture: 3, hiddenCoin: hiddenCoin, hiddenMine: nil)
+                        _ = constructionBarrierSetup(zPosition: 3, XPosition: 1, name: "glowingMine", texture: 3, hiddenCoin: hiddenCoin, hiddenMine: nil, flicker: nil)
                         //addPuzzleGamePics()
                     } else if element == 7 {
-                        _ = constructionBarrierSetup(zPosition: 3, XPosition: 1, name: "yellowGlowingMineRotating", texture: 4, hiddenCoin: nil, hiddenMine: nil)
+                        _ = constructionBarrierSetup(zPosition: 3, XPosition: 1, name: "yellowGlowingMineRotating", texture: 4, hiddenCoin: nil, hiddenMine: nil, flicker: nil)
                         //addPuzzleGamePics()
                     } else if element == 8 {
                         
-                        _ = constructionBarrierSetup(zPosition: 3, XPosition: 1, name: "yellowGlowingMine", texture: 5, hiddenCoin: nil, hiddenMine: nil)
+                        _ = constructionBarrierSetup(zPosition: 3, XPosition: 1, name: "yellowGlowingMine", texture: 5, hiddenCoin: nil, hiddenMine: nil, flicker: nil)
                         //addPuzzleGamePics()
                     } else if element == 61 {
-                        let hiddenMine = constructionBarrierSetup(zPosition: 3, XPosition: 1, name: nil, texture: nil, hiddenCoin: nil, hiddenMine: nil)
+                        let hiddenMine = constructionBarrierSetup(zPosition: 3, XPosition: 1, name: nil, texture: nil, hiddenCoin: nil, hiddenMine: nil, flicker: nil)
                         hiddenMine.isHidden = true
-                        _ = constructionBarrierSetup(zPosition: 3, XPosition: 1, name: "glowingMine", texture: 3, hiddenCoin: nil, hiddenMine: hiddenMine)
+                        _ = constructionBarrierSetup(zPosition: 3, XPosition: 1, name: "glowingMine", texture: 3, hiddenCoin: nil, hiddenMine: hiddenMine, flicker: nil)
                         //addPuzzleGamePics()
                     }
                     
@@ -3701,30 +4596,35 @@ class GameScene: SKScene, SKPhysicsContactDelegate, GADInterstitialDelegate {
                     if element == 0 {
                         
                     } else if element == 1 {
-                        _ = constructionBarrierSetup(zPosition: 5, XPosition: 3, name: nil, texture: nil, hiddenCoin: nil, hiddenMine: nil)
+                        _ = constructionBarrierSetup(zPosition: 5, XPosition: 3, name: nil, texture: nil, hiddenCoin: nil, hiddenMine: nil, flicker: nil)
                     } else if element == 2 {
                         _ = coinSetup(zPosition: 5, XPosition: 3)
+                    } else if element == 3 {
+                        _ = constructionBarrierSetup(zPosition: 5, XPosition: 3, name: nil, texture: nil, hiddenCoin: nil, hiddenMine: nil, flicker: 1)
+                    } else if element == 31 {
+                        _ = constructionBarrierSetup(zPosition: 5, XPosition: 3, name: nil, texture: nil, hiddenCoin: nil, hiddenMine: nil, flicker: 2)
                     } else if element == 4 {
                         
                     }else if element == 9 {
-                        _ = constructionBarrierSetup(zPosition: 5, XPosition: 3, name: "hackDebris", texture: 2, hiddenCoin: nil, hiddenMine: nil)
+                        _ = coinSetup(zPosition: 5, XPosition: 3)
+                        _ = constructionBarrierSetup(zPosition: 5, XPosition: 3, name: "hackDebris", texture: 2, hiddenCoin: nil, hiddenMine: nil, flicker: nil)
                         //addPuzzleGamePics()
                     } else if element == 6 {
                         let hiddenCoin = coinSetup(zPosition: 5, XPosition: 3)
                         hiddenCoin.isHidden = true
-                        _ = constructionBarrierSetup(zPosition: 5, XPosition: 3, name: "glowingMine", texture: 3, hiddenCoin: hiddenCoin, hiddenMine: nil)
+                        _ = constructionBarrierSetup(zPosition: 5, XPosition: 3, name: "glowingMine", texture: 3, hiddenCoin: hiddenCoin, hiddenMine: nil, flicker: nil)
                         //addPuzzleGamePics()
                     } else if element == 7 {
-                        _ = constructionBarrierSetup(zPosition: 5, XPosition: 3, name: "yellowGlowingMineRotating", texture: 4, hiddenCoin: nil, hiddenMine: nil)
+                        _ = constructionBarrierSetup(zPosition: 5, XPosition: 3, name: "yellowGlowingMineRotating", texture: 4, hiddenCoin: nil, hiddenMine: nil, flicker: nil)
                         //addPuzzleGamePics()
                     } else if element == 8 {
                         
-                        _ = constructionBarrierSetup(zPosition: 5, XPosition: 3, name: "yellowGlowingMine", texture: 5, hiddenCoin: nil, hiddenMine: nil)
+                        _ = constructionBarrierSetup(zPosition: 5, XPosition: 3, name: "yellowGlowingMine", texture: 5, hiddenCoin: nil, hiddenMine: nil, flicker: nil)
                         //addPuzzleGamePics()
                     } else if element == 61 {
-                        let hiddenMine = constructionBarrierSetup(zPosition: 5, XPosition: 3, name: nil, texture: nil, hiddenCoin: nil, hiddenMine: nil)
+                        let hiddenMine = constructionBarrierSetup(zPosition: 5, XPosition: 3, name: nil, texture: nil, hiddenCoin: nil, hiddenMine: nil, flicker: nil)
                         hiddenMine.isHidden = true
-                        _ = constructionBarrierSetup(zPosition: 5, XPosition: 3, name: "glowingMine", texture: 3, hiddenCoin: nil, hiddenMine: hiddenMine)
+                        _ = constructionBarrierSetup(zPosition: 5, XPosition: 3, name: "glowingMine", texture: 3, hiddenCoin: nil, hiddenMine: hiddenMine, flicker: nil)
                         //addPuzzleGamePics()
                     }
                     
@@ -3732,9 +4632,9 @@ class GameScene: SKScene, SKPhysicsContactDelegate, GADInterstitialDelegate {
                     if element == 0 {
                         
                     } else if element == 1 {
-                        _ = constructionBarrierSetup(zPosition: 5, XPosition: 1, name: nil, texture: nil, hiddenCoin: nil, hiddenMine: nil)
+                        _ = constructionBarrierSetup(zPosition: 5, XPosition: 1, name: nil, texture: nil, hiddenCoin: nil, hiddenMine: nil, flicker: nil)
                     } else if element == 2 {
-                        _ = coinSetup(zPosition: 5, XPosition: 1)
+                        _ = coinSetup(zPosition: 5, XPosition: 1.5)
                     } else if element == 4 {
                         middleBarrierSetup(zPosition: 5, XPosition: 1)
                     }
@@ -3743,30 +4643,35 @@ class GameScene: SKScene, SKPhysicsContactDelegate, GADInterstitialDelegate {
                     if element == 0 {
                         
                     } else if element == 1 {
-                        _ = constructionBarrierSetup(zPosition: 5, XPosition: 2, name: nil, texture: nil, hiddenCoin: nil, hiddenMine: nil)
+                        _ = constructionBarrierSetup(zPosition: 5, XPosition: 2, name: nil, texture: nil, hiddenCoin: nil, hiddenMine: nil, flicker: nil)
                     } else if element == 2 {
                         _ = coinSetup(zPosition: 5, XPosition: 2)
+                    } else if element == 3 {
+                        _ = constructionBarrierSetup(zPosition: 5, XPosition: 2, name: nil, texture: nil, hiddenCoin: nil, hiddenMine: nil, flicker: 1)
+                    } else if element == 31 {
+                        _ = constructionBarrierSetup(zPosition: 5, XPosition: 2, name: nil, texture: nil, hiddenCoin: nil, hiddenMine: nil, flicker: 2)
                     } else if element == 4 {
                         
                     } else if element == 9 {
-                        _ = constructionBarrierSetup(zPosition: 5, XPosition: 2, name: "hackDebris", texture: 2, hiddenCoin: nil, hiddenMine: nil)
+                        _ = coinSetup(zPosition: 5, XPosition: 2)
+                        _ = constructionBarrierSetup(zPosition: 5, XPosition: 2, name: "hackDebris", texture: 2, hiddenCoin: nil, hiddenMine: nil, flicker: nil)
                         //addPuzzleGamePics()
                     } else if element == 6 {
                         let hiddenCoin = coinSetup(zPosition: 5, XPosition: 2)
                         hiddenCoin.isHidden = true
-                        _ = constructionBarrierSetup(zPosition: 5, XPosition: 2, name: "glowingMine", texture: 3, hiddenCoin: hiddenCoin, hiddenMine: nil)
+                        _ = constructionBarrierSetup(zPosition: 5, XPosition: 2, name: "glowingMine", texture: 3, hiddenCoin: hiddenCoin, hiddenMine: nil, flicker: nil)
                         //addPuzzleGamePics()
                     } else if element == 7 {
-                        _ = constructionBarrierSetup(zPosition: 5, XPosition: 2, name: "yellowGlowingMineRotating", texture: 4, hiddenCoin: nil, hiddenMine: nil)
+                        _ = constructionBarrierSetup(zPosition: 5, XPosition: 2, name: "yellowGlowingMineRotating", texture: 4, hiddenCoin: nil, hiddenMine: nil, flicker: nil)
                         //addPuzzleGamePics()
                     } else if element == 8 {
                         
-                        _ = constructionBarrierSetup(zPosition: 5, XPosition: 2, name: "yellowGlowingMine", texture: 5, hiddenCoin: nil, hiddenMine: nil)
+                        _ = constructionBarrierSetup(zPosition: 5, XPosition: 2, name: "yellowGlowingMine", texture: 5, hiddenCoin: nil, hiddenMine: nil, flicker: nil)
                         //addPuzzleGamePics()
                     } else if element == 61 {
-                        let hiddenMine = constructionBarrierSetup(zPosition: 5, XPosition: 2, name: nil, texture: nil, hiddenCoin: nil, hiddenMine: nil)
+                        let hiddenMine = constructionBarrierSetup(zPosition: 5, XPosition: 2, name: nil, texture: nil, hiddenCoin: nil, hiddenMine: nil, flicker: nil)
                         hiddenMine.isHidden = true
-                        _ = constructionBarrierSetup(zPosition: 5, XPosition: 2, name: "glowingMine", texture: 3, hiddenCoin: nil, hiddenMine: hiddenMine)
+                        _ = constructionBarrierSetup(zPosition: 5, XPosition: 2, name: "glowingMine", texture: 3, hiddenCoin: nil, hiddenMine: hiddenMine, flicker: nil)
                         //addPuzzleGamePics()
                     }
                     
@@ -3774,9 +4679,9 @@ class GameScene: SKScene, SKPhysicsContactDelegate, GADInterstitialDelegate {
                     if element == 0 {
                         
                     } else if element == 1 {
-                        _ = constructionBarrierSetup(zPosition: 5, XPosition: 1, name: nil, texture: nil, hiddenCoin: nil, hiddenMine: nil)
+                        _ = constructionBarrierSetup(zPosition: 5, XPosition: 1, name: nil, texture: nil, hiddenCoin: nil, hiddenMine: nil, flicker: nil)
                     } else if element == 2 {
-                        _ = coinSetup(zPosition: 5, XPosition: 1)
+                        _ = coinSetup(zPosition: 5, XPosition: 2.5)
                     } else if element == 4 {
                         middleBarrierSetup(zPosition: 5, XPosition: 2)
                         //constructionBarrierSetup(zPosition: 5, XPosition: 2)
@@ -3786,30 +4691,35 @@ class GameScene: SKScene, SKPhysicsContactDelegate, GADInterstitialDelegate {
                     if element == 0 {
                         
                     } else if element == 1 {
-                        _ = constructionBarrierSetup(zPosition: 5, XPosition: 1, name: nil, texture: nil, hiddenCoin: nil, hiddenMine: nil)
+                        _ = constructionBarrierSetup(zPosition: 5, XPosition: 1, name: nil, texture: nil, hiddenCoin: nil, hiddenMine: nil, flicker: nil)
                     } else if element == 2 {
                         _ = coinSetup(zPosition: 5, XPosition: 1)
+                    } else if element == 3 {
+                        _ = constructionBarrierSetup(zPosition: 5, XPosition: 1, name: nil, texture: nil, hiddenCoin: nil, hiddenMine: nil, flicker: 1)
+                    } else if element == 31 {
+                        _ = constructionBarrierSetup(zPosition: 5, XPosition: 1, name: nil, texture: nil, hiddenCoin: nil, hiddenMine: nil, flicker: 2)
                     } else if element == 4 {
                         
                     } else if element == 9 {
-                        _ = constructionBarrierSetup(zPosition: 5, XPosition: 1, name: "hackDebris", texture: 2, hiddenCoin: nil, hiddenMine: nil)
+                        _ = coinSetup(zPosition: 5, XPosition: 1)
+                        _ = constructionBarrierSetup(zPosition: 5, XPosition: 1, name: "hackDebris", texture: 2, hiddenCoin: nil, hiddenMine: nil, flicker: nil)
                         //addPuzzleGamePics()
                     } else if element == 6 {
                         let hiddenCoin = coinSetup(zPosition: 5, XPosition: 1)
                         hiddenCoin.isHidden = true
-                        _ = constructionBarrierSetup(zPosition: 5, XPosition: 1, name: "glowingMine", texture: 3, hiddenCoin: hiddenCoin, hiddenMine: nil)
+                        _ = constructionBarrierSetup(zPosition: 5, XPosition: 1, name: "glowingMine", texture: 3, hiddenCoin: hiddenCoin, hiddenMine: nil, flicker: nil)
                         //addPuzzleGamePics()
                     } else if element == 7 {
-                        _ = constructionBarrierSetup(zPosition: 5, XPosition: 1, name: "yellowGlowingMineRotating", texture: 4, hiddenCoin: nil, hiddenMine: nil)
+                        _ = constructionBarrierSetup(zPosition: 5, XPosition: 1, name: "yellowGlowingMineRotating", texture: 4, hiddenCoin: nil, hiddenMine: nil, flicker: nil)
                         //addPuzzleGamePics()
                     } else if element == 8 {
                         
-                        _ = constructionBarrierSetup(zPosition: 5, XPosition: 1, name: "yellowGlowingMine", texture: 5, hiddenCoin: nil, hiddenMine: nil)
+                        _ = constructionBarrierSetup(zPosition: 5, XPosition: 1, name: "yellowGlowingMine", texture: 5, hiddenCoin: nil, hiddenMine: nil, flicker: nil)
                         //addPuzzleGamePics()
                     } else if element == 61 {
-                        let hiddenMine = constructionBarrierSetup(zPosition: 5, XPosition: 1, name: nil, texture: nil, hiddenCoin: nil, hiddenMine: nil)
+                        let hiddenMine = constructionBarrierSetup(zPosition: 5, XPosition: 1, name: nil, texture: nil, hiddenCoin: nil, hiddenMine: nil, flicker: nil)
                         hiddenMine.isHidden = true
-                        _ = constructionBarrierSetup(zPosition: 5, XPosition: 1, name: "glowingMine", texture: 3, hiddenCoin: nil, hiddenMine: hiddenMine)
+                        _ = constructionBarrierSetup(zPosition: 5, XPosition: 1, name: "glowingMine", texture: 3, hiddenCoin: nil, hiddenMine: hiddenMine, flicker: nil)
                         //addPuzzleGamePics()
                     }
                     
@@ -3873,9 +4783,9 @@ class GameScene: SKScene, SKPhysicsContactDelegate, GADInterstitialDelegate {
         }
         
     }
-    
+    private var levelComplited = false
     // MARK: Construction delay
-    func constructionDelay() {
+    private func constructionDelay() {
         constructionTimer?.invalidate()
         constructionTimeInterval += 1
         if constructionTimeInterval < constructionLevelDurationTimerInterval /*14*/ {
@@ -3890,16 +4800,250 @@ class GameScene: SKScene, SKPhysicsContactDelegate, GADInterstitialDelegate {
                 //print("planet2 \(planet)")
             }
         } else if constructionTimeInterval == constructionLevelDurationTimerInterval /*14*/ {
-            constructionTimer = Timer.scheduledTimer(timeInterval: constructionBarrierAnimationDuration /*TimeInterval(constructionTimeIntervalArray[constructionTimeInterval]*/, target: self, selector: #selector(GameScene.runGameOver), userInfo: nil, repeats: false)
+            if constructionBarrierAnimationDuration < 5 {
+                constructionTimer = Timer.scheduledTimer(timeInterval: (constructionBarrierAnimationDuration/* + (showAdsLevel ? 4 : 2)*/) /*TimeInterval(constructionTimeIntervalArray[constructionTimeInterval]*/, target: self, selector: #selector(GameScene.runGameOver), userInfo: nil, repeats: false)
+            } else {
+                constructionTimer = Timer.scheduledTimer(timeInterval: constructionBarrierAnimationDuration/* + (showAdsLevel ? 2 : 0)*/ /*TimeInterval(constructionTimeIntervalArray[constructionTimeInterval]*/, target: self, selector: #selector(GameScene.runGameOver), userInfo: nil, repeats: false)
+            }
+           levelComplited = true
+            if constructionBarrierAnimationDuration < 5 {
+                levelComplitedTimer = Timer.scheduledTimer(timeInterval: (constructionBarrierAnimationDuration - 0.5) /*TimeInterval(constructionTimeIntervalArray[constructionTimeInterval]*/, target: self, selector: #selector(GameScene.levelComplitedFunc), userInfo: nil, repeats: false)
+            } else {
+                levelComplitedTimer = Timer.scheduledTimer(timeInterval: (constructionBarrierAnimationDuration - 1.0) /*TimeInterval(constructionTimeIntervalArray[constructionTimeInterval]*/, target: self, selector: #selector(GameScene.levelComplitedFunc), userInfo: nil, repeats: false)
+            }
             //runGameOver()
             //print("planetewrwr \(planet)")
             //print("constructionBarrierAnimationDuration \(constructionBarrierAnimationDuration)")
         }
        //print("planet \(planet)")
     }
+    private var threeSecondsDone: Bool = false
+    private func adsPrepareMessage() {
+        let fadeInAction = SKAction.fadeIn(withDuration: 0.3)
+        if (adsAttemtps == 0) && (!programmIsPaid) {
+            let adsWillShowEND = SKSpriteNode(imageNamed: "ads")
+            if preferredLanguage == .ru {
+                adsWillShowEND.texture = SKTexture(imageNamed: "adsRU")
+            } else if preferredLanguage == .ch {
+                adsWillShowEND.texture = SKTexture(imageNamed: "adsCH")
+            } else if preferredLanguage == .es {
+                adsWillShowEND.texture = SKTexture(imageNamed: "adsES")
+            } else if preferredLanguage == .jp {
+                adsWillShowEND.texture = SKTexture(imageNamed: "adsJP")
+            } else if preferredLanguage == .fr {
+                adsWillShowEND.texture = SKTexture(imageNamed: "adsFR")
+            } else if preferredLanguage == .gr {
+                adsWillShowEND.texture = SKTexture(imageNamed: "adsDE")
+            } else {
+                adsWillShowEND.texture = SKTexture(imageNamed: "ads")
+            }
+            
+            adsWillShowEND.position = CGPoint(x: self.size.width / 2, y: (self.size.height / 2) - 100)
+            adsWillShowEND.zPosition = 50   //evelNumberLabel.zPosition - 1
+            //levelPlanetBackground.zRotation = CGFloat(Double.pi / 6)
+            adsWillShowEND.yScale = 1.2
+            adsWillShowEND.xScale = 1.2
+            adsWillShowEND.alpha = 0.0
+            
+            self.gameLayer.addChild(adsWillShowEND)
+            
+            adsWillShowEND.run(fadeInAction)
+            /*
+            if !threeSecondsDone {
+                let defaults = UserDefaults()
+                InvisibleTimeActive += 3
+                rougeOneTimeActive += 3
+                trioTimeActive += 3
+                defaults.set(InvisibleTimeActive, forKey: "InvisibleSeconds")
+                defaults.set(rougeOneTimeActive, forKey: "RougeSeconds")
+                defaults.set(trioTimeActive, forKey: "TrioSeconds")
+                threeSecondsDone = true
+            }
+             */
+        }
+    }
+    
+    @objc private func levelComplitedFunc() {
+        if levelComplited {
+            
+            let fadeInAction = SKAction.fadeIn(withDuration: 0.3)
+            
+            let levelComplitedLabel = SKLabelNode(fontNamed: SomeNames.fontNameVenusrising)
+            levelComplitedLabel.position = CGPoint(x: self.size.width / 2, y: (self.size.height / 2) + 600)
+            levelComplitedLabel.fontColor = UIColor(red: 194.0/255, green: 194.0/255, blue: 194.0/255, alpha: 1.0)
+            levelComplitedLabel.fontSize = 70
+            levelComplitedLabel.alpha = 0.0
+            levelComplitedLabel.zPosition = 21
+            
+            let levelComplitedLabel2 = SKLabelNode(fontNamed: SomeNames.fontNameVenusrising)
+            levelComplitedLabel2.position = CGPoint(x: self.size.width / 2, y: (self.size.height / 2) + 500)
+            levelComplitedLabel2.fontColor = UIColor(red: 194.0/255, green: 194.0/255, blue: 194.0/255, alpha: 1.0)
+            levelComplitedLabel2.fontSize = 70
+            levelComplitedLabel2.alpha = 0.0
+            levelComplitedLabel2.zPosition = 21
+            if preferredLanguage == .ru {
+                levelComplitedLabel.text = "Уровень \(level+1)"
+                levelComplitedLabel2.text = "пройден"
+            } else if preferredLanguage == .ch {
+                levelComplitedLabel.text = "\(level+1) 級完成"
+            } else if preferredLanguage == .es {
+                levelComplitedLabel.text = "Nivel \(level+1)"
+                levelComplitedLabel2.text = "completado"
+            } else if preferredLanguage == .jp {
+                levelComplitedLabel.text = "レベル \(level+1)"
+                levelComplitedLabel2.text = "が完了しました"
+            } else if preferredLanguage == .fr {
+                levelComplitedLabel.text = "Niveau \(level+1)"
+                levelComplitedLabel2.text = "complété"
+            } else if preferredLanguage == .gr {
+                levelComplitedLabel.text = "Niveau \(level+1)"
+                levelComplitedLabel2.text = "abgeschlossen"
+            } else {
+                levelComplitedLabel.text = "Level \(level+1)"
+                levelComplitedLabel2.text = "completed"
+            }
+            
+            adsPrepareMessage()
+            let levelPlanetBackground = SKSpriteNode(imageNamed: "levelPlanetLabelBackground42")
+            //levelPlanetBackground.position = levelNumberLabel.position
+            levelPlanetBackground.position.y = levelComplitedLabel.position.y - 150
+            levelPlanetBackground.position.x = levelComplitedLabel.position.x - 100
+            levelPlanetBackground.zPosition = 20   //evelNumberLabel.zPosition - 1
+            //levelPlanetBackground.zRotation = CGFloat(Double.pi / 6)
+            levelPlanetBackground.yScale = 2.0
+            levelPlanetBackground.xScale = 2.0
+            levelPlanetBackground.alpha = 0.0
+            if showAdsLevel {
+                levelPlanetBackground.position.y = levelComplitedLabel.position.y - 300
+                levelPlanetBackground.position.x = levelComplitedLabel.position.x - 100
+                levelPlanetBackground.yScale = 3.0
+                levelPlanetBackground.xScale = 3.0
+            }
+            
+            
+            
+            let nextLevelUnlockedLabel = SKLabelNode(fontNamed: SomeNames.fontNameVenusrising)
+            let nextLevelUnlockedLabel2 = SKLabelNode(fontNamed: SomeNames.fontNameVenusrising)
+            
+            nextLevelUnlockedLabel.position = CGPoint(x: self.size.width / 2, y: (self.size.height / 2) + 350)
+            nextLevelUnlockedLabel.fontColor = UIColor(red: 194.0/255, green: 194.0/255, blue: 194.0/255, alpha: 1.0)
+            nextLevelUnlockedLabel.fontSize = 40
+            nextLevelUnlockedLabel.alpha = 0.0
+            nextLevelUnlockedLabel.zPosition = 21
+            
+            nextLevelUnlockedLabel2.position = CGPoint(x: self.size.width / 2, y: (self.size.height / 2) + 300)
+            nextLevelUnlockedLabel2.fontColor = UIColor(red: 194.0/255, green: 194.0/255, blue: 194.0/255, alpha: 1.0)
+            nextLevelUnlockedLabel2.fontSize = 40
+            nextLevelUnlockedLabel2.alpha = 0.0
+            nextLevelUnlockedLabel2.zPosition = 21
+            
+            if (planet == 1 && level < 11) || (planet == 2 && level < 11) || (planet == 3 && level < 11) {
+                if score >= scoreOneStar && activeLevels[level + 1] == 0 {
+                    
+                    if preferredLanguage == .ru {
+                        nextLevelUnlockedLabel.text = "Следующий уровень"
+                        nextLevelUnlockedLabel2.text = " ра3блокирован"
+                    } else if preferredLanguage == .ch {
+                        nextLevelUnlockedLabel.text = "Next level unlocked"
+                    } else if preferredLanguage == .es {
+                        nextLevelUnlockedLabel.text = "Next level"
+                        nextLevelUnlockedLabel2.text = "unlocked"
+                    } else if preferredLanguage == .jp {
+                        nextLevelUnlockedLabel.text = "Next level"
+                        nextLevelUnlockedLabel2.text = "unlocked"
+                    } else if preferredLanguage == .fr {
+                        nextLevelUnlockedLabel.text = "Next level"
+                        nextLevelUnlockedLabel2.text = "unlocked"
+                    } else if preferredLanguage == .gr {
+                        nextLevelUnlockedLabel.text = "Next level"
+                        nextLevelUnlockedLabel2.text = "unlocked"
+                    } else {
+                        nextLevelUnlockedLabel.text = "Next level"
+                        nextLevelUnlockedLabel2.text = "unlocked"
+                    }
+                    self.gameLayer.addChild(nextLevelUnlockedLabel)
+                    self.gameLayer.addChild(nextLevelUnlockedLabel2)
+                    
+                    nextLevelUnlockedLabel.run(fadeInAction)
+                    nextLevelUnlockedLabel2.run(fadeInAction)
+                }
+            } else if (planet == 1 && level == 11) || (planet == 2 && level == 11) || (planet == 3 && level == 11) {
+                if (planet == 1 && active2Level[0] == 0) || (planet == 2 && active3Level[0] == 0) {
+                    if score >= scoreOneStar && nextActiveLevels[0] == 0 {
+                        if preferredLanguage == .ru {
+                            nextLevelUnlockedLabel.text = "Следующая планета"
+                            nextLevelUnlockedLabel2.text = " ра3блокированa"
+                        } else if preferredLanguage == .ch {
+                            nextLevelUnlockedLabel.text = "Next planet unlocked"
+                        } else if preferredLanguage == .es {
+                            nextLevelUnlockedLabel.text = "Next planet"
+                            nextLevelUnlockedLabel2.text = "unlocked"
+                        } else if preferredLanguage == .jp {
+                            nextLevelUnlockedLabel.text = "Next planet"
+                            nextLevelUnlockedLabel2.text = "unlocked"
+                        } else if preferredLanguage == .fr {
+                            nextLevelUnlockedLabel.text = "Next planet"
+                            nextLevelUnlockedLabel2.text = "unlocked"
+                        } else if preferredLanguage == .gr {
+                            nextLevelUnlockedLabel.text = "Next planet"
+                            nextLevelUnlockedLabel2.text = "unlocked"
+                        } else {
+                            nextLevelUnlockedLabel.text = "Next planet"
+                            nextLevelUnlockedLabel2.text = "unlocked"
+                        }
+                        self.gameLayer.addChild(nextLevelUnlockedLabel)
+                        self.gameLayer.addChild(nextLevelUnlockedLabel2)
+                        
+                        nextLevelUnlockedLabel.run(fadeInAction)
+                        nextLevelUnlockedLabel2.run(fadeInAction)
+                    } else if planet == 3 {
+                        if preferredLanguage == .ru {
+                            nextLevelUnlockedLabel.text = "!!! :))"
+                            nextLevelUnlockedLabel2.text = "!!! :))"
+                        } else if preferredLanguage == .ch {
+                            nextLevelUnlockedLabel.text = "!!! :))"
+                        } else if preferredLanguage == .es {
+                            nextLevelUnlockedLabel.text = "!!! :))"
+                            nextLevelUnlockedLabel2.text = "!!! :))"
+                        } else if preferredLanguage == .jp {
+                            nextLevelUnlockedLabel.text = "!!! :))"
+                            nextLevelUnlockedLabel2.text = "!!! :))"
+                        } else if preferredLanguage == .fr {
+                            nextLevelUnlockedLabel.text = "!!! :))"
+                            nextLevelUnlockedLabel2.text = "!!! :))"
+                        } else if preferredLanguage == .gr {
+                            nextLevelUnlockedLabel.text = "!!! :))"
+                            nextLevelUnlockedLabel2.text = "!!! :))"
+                        } else {
+                            nextLevelUnlockedLabel.text = "Next planet"
+                            nextLevelUnlockedLabel2.text = "unlocked"
+                        }
+                        self.gameLayer.addChild(nextLevelUnlockedLabel)
+                        self.gameLayer.addChild(nextLevelUnlockedLabel2)
+                        
+                        nextLevelUnlockedLabel.run(fadeInAction)
+                        nextLevelUnlockedLabel2.run(fadeInAction)
+                    }
+                }
+                
+            }
+            
+            self.gameLayer.addChild(levelComplitedLabel)
+            self.gameLayer.addChild(levelComplitedLabel2)
+            self.gameLayer.addChild(levelPlanetBackground)
+            
+            
+            
+            levelComplitedLabel.run(fadeInAction)
+            levelComplitedLabel2.run(fadeInAction)
+            levelPlanetBackground.run(fadeInAction)
+            
+            
+        }
+    }
     
     // MARK: Remove swipe gestures
-    func removeSwipeGestures() {
+    private func removeSwipeGestures() {
         for gesture in (self.view?.gestureRecognizers)! {
             if gesture is UISwipeGestureRecognizer {
                 self.view?.removeGestureRecognizer(gesture)
@@ -3909,7 +5053,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate, GADInterstitialDelegate {
     
     // MARK: Lose coins or anemy
     
-    func loseCoinsOrAnemy() {
+    private func loseCoinsOrAnemy() {
         lostCoins -= 1
         //lostCoins += 1
         
@@ -3918,7 +5062,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate, GADInterstitialDelegate {
         }
     }
     
-    func triggerNormalStatus() {
+    private func triggerNormalStatus() {
         
         //switch shipStatus {
         //case:
@@ -3962,8 +5106,9 @@ class GameScene: SKScene, SKPhysicsContactDelegate, GADInterstitialDelegate {
             
         //switch }
     }
-    
-    func triggerTrioStatus() {
+    //var SPAppearanceSoundDisabled = false
+    private func triggerTrioStatus() {
+        //SPAppearanceSoundDisabled = true
         if trioIsAvaliable {
             for position in 1...3 {
                 let trioShip = PlayerShip(name: nil, texture: nil)
@@ -4089,7 +5234,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate, GADInterstitialDelegate {
         }
     }
     
-    func checkSP() {
+    private func checkSP() {
         if (InvisibleTimeActive <= 0) {
             invisibilitiIsAvailable = false
         }
@@ -4103,8 +5248,8 @@ class GameScene: SKScene, SKPhysicsContactDelegate, GADInterstitialDelegate {
         }
     }
     
-    var trioIsAvaliable = true
-    @objc func trioCounter() {
+    private var trioIsAvaliable = true
+    @objc private func trioCounter() {
         if trioTimeActive > 0 {
             trioTimeActive -= 0.1
             trioTimerLabel.text = String(describing: trioTimeActive.truncate(places: 1))
@@ -4121,7 +5266,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate, GADInterstitialDelegate {
 
     }
     
-    func triggerRogueOneStatus() {
+    private func triggerRogueOneStatus() {
         if rougeOneIsAvaliable {
             /*
              let allShips = self.children
@@ -4170,8 +5315,8 @@ class GameScene: SKScene, SKPhysicsContactDelegate, GADInterstitialDelegate {
         }
     }
     
-    var rougeOneIsAvaliable = true
-    @objc func rougeOneCounter() {
+    private var rougeOneIsAvaliable = true
+    @objc private func rougeOneCounter() {
         if rougeOneTimeActive > 0 {
             rougeOneTimeActive -= 0.1
             rougeOneTimerLabel.text = String(describing: rougeOneTimeActive.truncate(places: 1))
@@ -4188,7 +5333,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate, GADInterstitialDelegate {
 
     }
     
-    func triggerInvisibleStatus() {
+    private func triggerInvisibleStatus() {
         if invisibilitiIsAvailable {
             /*
              let allShips = self.children
@@ -4238,8 +5383,8 @@ class GameScene: SKScene, SKPhysicsContactDelegate, GADInterstitialDelegate {
             shipStatus = .invisible
         }
     }
-    var invisibilitiIsAvailable = true
-    @objc func invisibleCounter() {
+    private var invisibilitiIsAvailable = true
+    @objc private func invisibleCounter() {
         
         if (InvisibleTimeActive > 0) {
             InvisibleTimeActive -= 0.1
@@ -4256,39 +5401,42 @@ class GameScene: SKScene, SKPhysicsContactDelegate, GADInterstitialDelegate {
         }
     }
     
-    var playerShip = PlayerShip()
+    private var playerShip = PlayerShip()
     //playerShip.name = "testName"
-    var rougeOneShip = PlayerShip()
+    private var rougeOneShip = PlayerShip()
     //rougeOneShip.name = "RougeTestName"
     
-    var shipIsActive = true
-    var rougeIsActive = false
+    private var shipIsActive = true
+    private var rougeIsActive = false
     
     override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
         
-        var settingsButtonLoc = SKSpriteNode()
+        //var settingsButtonLoc = SKSpriteNode()
         var hint = SKSpriteNode()
         /*var shipUpgradesClose = SKSpriteNode()*/
         
-        /*if*/ let allNodes = gameLayer.children /*scene?.children*/ /*{*/
-        for ship in allNodes {
-            if let _ship = ship as? PlayerShip {
-                if _ship.name == "playerShip" /*&& _ship.rougeIsActive == true*/  {
-                    playerShip = _ship
+        if puzzleCurrentGameStatus || shipStatus == .rogueOne {   // run only when this happen. Preventy start game jurkines.
+            /*if*/ let allNodes = gameLayer.children /*scene?.children*/ /*{*/
+            for ship in allNodes {
+                if let _ship = ship as? PlayerShip {
+                    if _ship.name == "playerShip" /*&& _ship.rougeIsActive == true*/  {
+                        playerShip = _ship
+                    }
+                    
+                    if _ship.name == "rougeOneShip" /*&& _ship.rougeIsActive == true*/ {
+                        rougeOneShip = _ship
+                    }
+                    
                 }
-                if _ship.name == "rougeOneShip" /*&& _ship.rougeIsActive == true*/ {
-                    rougeOneShip = _ship
-                }
+//                if let node = ship as? SKSpriteNode {
+//                    if node.name == "settingsButton" {
+//                        settingsButtonLoc = node
+//                    }
+//                }
                 
             }
-            if let node = ship as? SKSpriteNode {
-                if node.name == "settingsButton" {
-                    settingsButtonLoc = node
-                }
-            }
-            
+            /*}*/
         }
-        /*}*/
         
         let allNodesPause = pauseLayer.children
         for node in allNodesPause {
@@ -4298,7 +5446,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate, GADInterstitialDelegate {
                 }
             }
         }
-        
+ 
         
         
         for touch in touches {
@@ -4322,7 +5470,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate, GADInterstitialDelegate {
                         //rougeOneShipT = tempShipRouge
                         tempShipRouge.rougeIsActive = false
                         ship.rougeIsActive = true
-                        print("rouge 3")
+                        //print("rouge 3")
                     }
                     
                     if !rougeIsActive {
@@ -4332,9 +5480,9 @@ class GameScene: SKScene, SKPhysicsContactDelegate, GADInterstitialDelegate {
                         ship.rougeOneEffect()
                         shipIsActive = false
                         rougeIsActive = true
-                        print("rouge 1")
+                        //print("rouge 1")
                     }
-                    print("rouge 2")
+                    //print("rouge 2")
                     
                 }
                 if playerShip.contains(pointTouch) {
@@ -4357,7 +5505,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate, GADInterstitialDelegate {
                         //rougeOneShipT = tempShipRouge
                         tempShipRouge.rougeIsActive = false
                         ship.rougeIsActive = true
-                        print("rouge 31")
+                        //print("rouge 31")
                     }
                     
                     if !shipIsActive {
@@ -4365,11 +5513,12 @@ class GameScene: SKScene, SKPhysicsContactDelegate, GADInterstitialDelegate {
                         rougeOneShipGlobal?.stopRougeOneEffect()
                         rougeIsActive = false
                         shipIsActive = true
-                        print("ship 11")
+                        //print("ship 11")
                     }
-                    print("ship 21")
+                    //print("ship 21")
                 }
             }
+            
             
             if hackableDebris.contains(pointTouch) /*.contains("1")*/ /*== redDot.name*/ {
                 //redDot.texture = SKTexture(imageNamed: "puzzleRedDot")
@@ -4389,8 +5538,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate, GADInterstitialDelegate {
                        // print("RED first DOt puzzle game !!1")
                         drawLineToDot(position: redDot.position)
                         firstDot = true
-                    } else
-                    if blueDot.contains(pointTouch) && puzzleGameArray[0] == Int(blueDot.name!) /*.contains("2")*/ /*== blueDot.name*/ {
+                    } else if blueDot.contains(pointTouch) && puzzleGameArray[0] == Int(blueDot.name!) /*.contains("2")*/ /*== blueDot.name*/ {
                         //blueDot.texture = SKTexture(imageNamed: "puzzleBlueDot")
                         blueDot.xScale -= 0.5
                         blueDot.yScale -= 0.5
@@ -4398,8 +5546,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate, GADInterstitialDelegate {
                         //print("BLUE first DOt puzzle game !!1")
                         drawLineToDot(position: blueDot.position)
                         firstDot = true
-                    } else
-                    if yellowDot.contains(pointTouch) && puzzleGameArray[0] == Int(yellowDot.name!)  /*.contains("3")*/ /*== yellowDot.name*/ {
+                    } else if yellowDot.contains(pointTouch) && puzzleGameArray[0] == Int(yellowDot.name!)  /*.contains("3")*/ /*== yellowDot.name*/ {
                         //yellowDot.texture = SKTexture(imageNamed: "puzzleYellowDot")
                         yellowDot.xScale -= 0.5
                         yellowDot.yScale -= 0.5
@@ -4609,7 +5756,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate, GADInterstitialDelegate {
             }
             
             //MARK: PAUSE game SETTINGS. Sets timer to weit to buttons to appear.
-            if settingsButtonLoc.contains(pointTouch) {
+            if settingsButton.contains(pointTouch) {
                 //print("first")
                 if buttonStatus == .settings && !shipExplode || buttonStatus == .none && !shipExplode {
                     if !puzzleDotsOnTheScreen {
@@ -4624,6 +5771,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate, GADInterstitialDelegate {
                             buttonStatus = .settings
                             
                             levelNumberLabel.isHidden = true
+                            planetNumberLabel.isHidden = true
                             pushedPause = true
                         } else if !canMove {
                             gameLayer.isPaused = false
@@ -4635,37 +5783,11 @@ class GameScene: SKScene, SKPhysicsContactDelegate, GADInterstitialDelegate {
                             buttonStatus = .none
                             
                             levelNumberLabel.isHidden = false
+                            planetNumberLabel.isHidden = false
                             pushedPause = false
                         }
                     }  else if puzzleDotsOnTheScreen {
-                        let youCantPauseHere = SKLabelNode(fontNamed: SomeNames.fontNameVenusrising)
-                        if preferredLanguage == .ru {
-                            youCantPauseHere.text = "Пау3а не активна."
-                        } else if preferredLanguage == .ch {
-                            youCantPauseHere.text = "Пау3а не активна."
-                        } else {
-                            youCantPauseHere.text = "You can't pause here."
-                        }
-                        //popupCoinsLabel.text = "0"
-                        youCantPauseHere.position = CGPoint(x: self.size.width / 2, y: self.size.height / 2)
-                        youCantPauseHere.fontColor = UIColor(red: 194.0/255, green: 194.0/255, blue: 194.0/255, alpha: 1.0)
-                        youCantPauseHere.fontSize = 60
-                        youCantPauseHere.zPosition = 100
-                        youCantPauseHere.alpha = 0.0
-                        
-                        self.gameLayer.addChild(youCantPauseHere)
-                        
-                        let fadeInAction = SKAction.fadeIn(withDuration: 0.3)
-                        let waitAction = SKAction.wait(forDuration: 1)
-                        let fadeOutAction = SKAction.fadeOut(withDuration: 0.3)
-                        let removeLabel = SKAction.removeFromParent()
-                        
-                        
-                        let popupLabelSequence = SKAction.sequence([fadeInAction, waitAction, fadeOutAction, removeLabel])
-                        popupLabelSequence.timingMode = SKActionTimingMode.easeInEaseOut
-                        
-                        youCantPauseHere.run(popupLabelSequence)
-                        //pushedPause = false
+                        youCantPuauseHere()
                     }
                 }////////////////fsdffsdfsdfsd
                 if scene?.isPaused == true {
@@ -4681,6 +5803,23 @@ class GameScene: SKScene, SKPhysicsContactDelegate, GADInterstitialDelegate {
                     }
                     musicIsPlaying = false
                     musicPlayIcon.texture = SKTexture(imageNamed: "musicMute")
+                    
+                    if preferredLanguage == .ru {
+                        musicOnOffButton.texture = SKTexture(imageNamed: "musicOffButtonRU1")
+                    } else if preferredLanguage == .ch {
+                        musicOnOffButton.texture = SKTexture(imageNamed: "musicOffButtonCH1")
+                    } else if preferredLanguage == .es {
+                        musicOnOffButton.texture = SKTexture(imageNamed: "musicOffButtonSP1")
+                    } else if preferredLanguage == .jp {
+                        musicOnOffButton.texture = SKTexture(imageNamed: "musicOffButtonJP1")
+                    } else if preferredLanguage == .fr {
+                        musicOnOffButton.texture = SKTexture(imageNamed: "musicOffButtonFR1")
+                    } else if preferredLanguage == .gr {
+                        musicOnOffButton.texture = SKTexture(imageNamed: "musicOffButtonDE1")
+                    } else {
+                        musicOnOffButton.texture = SKTexture(imageNamed: "musicOffButton1")
+                    }
+                    
                 } else {
                     player.play()
                     if soundsIsOn {
@@ -4688,16 +5827,81 @@ class GameScene: SKScene, SKPhysicsContactDelegate, GADInterstitialDelegate {
                     }
                     musicIsPlaying = true
                     musicPlayIcon.texture = SKTexture(imageNamed: "musicPlay")
+                    
+                    if preferredLanguage == .ru {
+                        musicOnOffButton.texture = SKTexture(imageNamed: "musicOnButtonRU1")
+                    } else if preferredLanguage == .ch {
+                        musicOnOffButton.texture = SKTexture(imageNamed: "musicOnButtonCH1")
+                    } else if preferredLanguage == .es {
+                        musicOnOffButton.texture = SKTexture(imageNamed: "musicOnButtonSP1")
+                    } else if preferredLanguage == .jp {
+                        musicOnOffButton.texture = SKTexture(imageNamed: "musicOnButtonJP1")
+                    } else if preferredLanguage == .fr {
+                        musicOnOffButton.texture = SKTexture(imageNamed: "musicOnButtonFR1")
+                    } else if preferredLanguage == .gr {
+                        musicOnOffButton.texture = SKTexture(imageNamed: "musicOnButtonDE1")
+                    } else {
+                        musicOnOffButton.texture = SKTexture(imageNamed: "musicOnButton1")
+                    }
+                }
+                
+            } else if purchaseButton.contains(pointTouch) {
+                //print("1")
+                if buttonStatus == .buyWindow && !shipExplode || buttonStatus == .none && !shipExplode {
+                    //print("2")
+                    if !puzzleDotsOnTheScreen {
+                        //print("3")
+                        if canMove {
+                            //print("4")
+                            animateShipUpgradesWindow(animate: "buy") //setupShipUpgradesWindow()//animateMenuButtons()
+                            pauseFuncSettings()
+                            gameLayer.isPaused = true
+                            canMove = false
+                            buttonStatus = .buyWindow
+                            levelNumberLabel.isHidden = true
+                            planetNumberLabel.isHidden = true
+                            pushedPause = true
+                            
+                            trioStatusButton.isHidden = true
+                            rougeOneStatusButton.isHidden = true
+                            invisibleStatusButton.isHidden = true
+                            
+                            trioTimerLabel.isHidden = true
+                            rougeOneTimerLabel.isHidden = true
+                            invisibleTimerLabel.isHidden = true
+                        } else if !canMove {
+                            //print("5")
+                            gameLayer.isPaused = false
+                            pauseLayer.isPaused = false
+                            self.isPaused = false
+                            pauseFuncSettings()
+                            canMove = true
+                            buttonStatus = .none
+                            animateHideShipUpgradesWindow(animate: "buy")
+                            levelNumberLabel.isHidden = false
+                            planetNumberLabel.isHidden = false
+                            pushedPause = false
+                            stopNewAcitvityIndicator()
+                            
+                            trioStatusButton.isHidden = false
+                            rougeOneStatusButton.isHidden = false
+                            invisibleStatusButton.isHidden = false
+                            
+                            trioTimerLabel.isHidden = false
+                            rougeOneTimerLabel.isHidden = false
+                            invisibleTimerLabel.isHidden = false
+                        }
+                    } else if puzzleDotsOnTheScreen {
+                        youCantPuauseHere()
+                    }
                 }
                 
                 /*
-                if buttonStatus == .hintWindow {
-                    self.view?.isPaused = false
-                    constructionTimer = Timer.scheduledTimer(timeInterval: TimeInterval(constructionTimerfireDate), target: self, selector: #selector(GameScene.constructionSetup), userInfo: nil, repeats: false)
-                    canMove = true
-                    hint.removeFromParent()
-                    buttonStatus = .none
-                }*/
+                purchasedPushed = true
+                newScene = NewSceneEnum.PurchaseScene
+                newScene(newSceneLoc: newScene)
+                 */
+                
             } else if hint.contains(pointTouch) {
                 if buttonStatus == .hintWindow {
                     pauseFuncSettings()
@@ -4706,50 +5910,82 @@ class GameScene: SKScene, SKPhysicsContactDelegate, GADInterstitialDelegate {
                     if soundsIsOn {
                         run(SKAction.playSoundFileNamed("pause1.m4a", waitForCompletion: false))
                     }
-                    //constructionTimer = Timer.scheduledTimer(timeInterval: TimeInterval(constructionTimerfireDate), target: self, selector: #selector(GameScene.constructionSetup), userInfo: nil, repeats: false)
                     
-                    //if !hintDone && !hintNowVisible {
-                        //pauseFuncSettings()
-                    //}
                     hintNowVisible = false
                     canMove = true
                     hint.removeFromParent()
                     buttonStatus = .none
                     hintDone = true
                     levelNumberLabel.isHidden = false
+                    planetNumberLabel.isHidden = false
                     pushedPause = false
                     
                 }
             } else if restartButton.contains(pointTouch) {
-                //runAds()
+                //let defaults = UserDefaults()
+                newActivityIndicator = nil
+                //IAPService.sharedInstance.dispose()
                 changeShipStatus()
+                clean()
                 restatrButtonPressedForAds = true
-                if !programmIsPaid {
-                    runAds()
-                } else {
-                    newScene()
-                }
+                
+                checkProgrammIsPaid()
+                
                 //newScene()
                 
             } else if goToMenuButton.contains(pointTouch) {
                 if buttonStatus == .settings || buttonStatus == .none {
+                    let defaults = UserDefaults()
+                    newActivityIndicator = nil
+                    //IAPService.sharedInstance.dispose()
                     changeShipStatus()
                     mainMenuButtonPressedForAds = true
                     if !programmIsPaid {
-                        runAds()
+                        if adsAttemtps <= 0 {
+                            adsAttemtps = 4
+                            defaults.set(adsAttemtps, forKey: "adsAttempts")
+                            runAds()
+                        } else {
+                            adsAttemtps -= 1
+                            defaults.set(adsAttemtps, forKey: "adsAttempts")
+                            newMainMenuSceneForAds()
+                        }
+                        //defaults.set(adsAttemtps, forKey: "adsAttempts")
+                        //runAds()
                     } else {
                         newMainMenuSceneForAds()
+                    }
+                    if planet == 5 {
+                        planet = 3
                     }
                    
                 }
             } else if levelsButton.contains(pointTouch) /*controlButton.contains(pointTouch)*/ {
+                let defaults = UserDefaults()
                 if buttonStatus == .settings || buttonStatus == .none {
+                    newActivityIndicator = nil
+                    //IAPService.sharedInstance.dispose()
                     changeShipStatus()
                     newLevelButtonPressedForAds = true
+                    
                     if !programmIsPaid {
-                        runAds()
+                        if adsAttemtps <= 0 {
+                            adsAttemtps = 4
+                            defaults.set(adsAttemtps, forKey: "adsAttempts")
+                            runAds()
+                        } else {
+                            adsAttemtps -= 1
+                            defaults.set(adsAttemtps, forKey: "adsAttempts")
+                            newLevelMenuSceneForAds()
+                        }
+                        //defaults.set(adsAttemtps, forKey: "adsAttempts")
+                        //runAds()
                     } else {
                         newLevelMenuSceneForAds()
+                    }
+                    
+                    if planet == 5 {
+                        planet = 3
                     }
                     
                 }
@@ -4765,6 +6001,12 @@ class GameScene: SKScene, SKPhysicsContactDelegate, GADInterstitialDelegate {
                         musicOnOffButton.texture = SKTexture(imageNamed: "musicOffButtonCH1")
                     } else if preferredLanguage == .es {
                         musicOnOffButton.texture = SKTexture(imageNamed: "musicOffButtonSP1")
+                    } else if preferredLanguage == .jp {
+                        musicOnOffButton.texture = SKTexture(imageNamed: "musicOffButtonJP1")
+                    } else if preferredLanguage == .fr {
+                        musicOnOffButton.texture = SKTexture(imageNamed: "musicOffButtonFR1")
+                    } else if preferredLanguage == .gr {
+                        musicOnOffButton.texture = SKTexture(imageNamed: "musicOffButtonDE1")
                     } else {
                         musicOnOffButton.texture = SKTexture(imageNamed: "musicOffButton1")
                     }
@@ -4778,6 +6020,12 @@ class GameScene: SKScene, SKPhysicsContactDelegate, GADInterstitialDelegate {
                         musicOnOffButton.texture = SKTexture(imageNamed: "musicOnButtonCH1")
                     } else if preferredLanguage == .es {
                         musicOnOffButton.texture = SKTexture(imageNamed: "musicOnButtonSP1")
+                    } else if preferredLanguage == .jp {
+                        musicOnOffButton.texture = SKTexture(imageNamed: "musicOnButtonJP1")
+                    } else if preferredLanguage == .fr {
+                        musicOnOffButton.texture = SKTexture(imageNamed: "musicOnButtonFR1")
+                    } else if preferredLanguage == .gr {
+                        musicOnOffButton.texture = SKTexture(imageNamed: "musicOnButtonDE1")
                     } else {
                         musicOnOffButton.texture = SKTexture(imageNamed: "musicOnButton1")
                     }
@@ -4788,26 +6036,38 @@ class GameScene: SKScene, SKPhysicsContactDelegate, GADInterstitialDelegate {
                     soundsIsOn = false
                     //engineSoundsAction.speed = 0.0
                     //removeAction(forKey: "shipEngineSound")
-                    playerEngine.pause()
+                    //playerEngine.pause()
                     if preferredLanguage == .ru {
                         soundsOnOffButton.texture = SKTexture(imageNamed: "soundsOffButtonRU1")
                     } else if preferredLanguage == .ch {
                         soundsOnOffButton.texture = SKTexture(imageNamed: "soundsOffButtonCH1")
                     } else if preferredLanguage == .es {
                         soundsOnOffButton.texture = SKTexture(imageNamed: "soundsOffButtonSP1")
+                    } else if preferredLanguage == .jp {
+                        soundsOnOffButton.texture = SKTexture(imageNamed: "soundsOffButtonJP1")
+                    } else if preferredLanguage == .fr {
+                        soundsOnOffButton.texture = SKTexture(imageNamed: "soundsOffButtonFR1")
+                    } else if preferredLanguage == .gr {
+                        soundsOnOffButton.texture = SKTexture(imageNamed: "soundsOffButtonDE1")
                     } else {
                         soundsOnOffButton.texture = SKTexture(imageNamed: "soundsOffButton1")
                     }
                 } else if !soundsIsOn {
                     soundsIsOn = true
                     //shipEngineSound()
-                    playerEngine.play()
+                    //playerEngine.play()
                     if preferredLanguage == .ru {
                         soundsOnOffButton.texture = SKTexture(imageNamed: "soundsOnButtonRU1")
                     } else if preferredLanguage == .ch {
                         soundsOnOffButton.texture = SKTexture(imageNamed: "soundsOnButtonCH1")
                     } else if preferredLanguage == .es {
                         soundsOnOffButton.texture = SKTexture(imageNamed: "soundsOnButtonSP1")
+                    } else if preferredLanguage == .jp {
+                        soundsOnOffButton.texture = SKTexture(imageNamed: "soundsOnButtonJP1")
+                    } else if preferredLanguage == .fr {
+                        soundsOnOffButton.texture = SKTexture(imageNamed: "soundsOnButtonFR1")
+                    } else if preferredLanguage == .gr {
+                        soundsOnOffButton.texture = SKTexture(imageNamed: "soundsOnButtonDE1")
                     } else {
                         soundsOnOffButton.texture = SKTexture(imageNamed: "soundsOnButton1")
                     }
@@ -4817,50 +6077,26 @@ class GameScene: SKScene, SKPhysicsContactDelegate, GADInterstitialDelegate {
                 if buttonStatus == .shipUpgrades && !shipExplode || buttonStatus == .none && !shipExplode {
                     if !puzzleDotsOnTheScreen {
                         if canMove {
-                            animateShipUpgradesWindow() //setupShipUpgradesWindow()//animateMenuButtons()
+                            animateShipUpgradesWindow(animate: "upgrade") //setupShipUpgradesWindow()//animateMenuButtons()
                             pauseFuncSettings()
                             gameLayer.isPaused = true
                             canMove = false
                             buttonStatus = .shipUpgrades
                             levelNumberLabel.isHidden = true
+                            planetNumberLabel.isHidden = true
                             pushedPause = true
                         } else if !canMove {
                             gameLayer.isPaused = false
                             pauseFuncSettings()
                             canMove = true
                             buttonStatus = .none
-                            animateHideShipUpgradesWindow()
+                            animateHideShipUpgradesWindow(animate: "upgrade")
                             levelNumberLabel.isHidden = false
+                            planetNumberLabel.isHidden = false
                             pushedPause = false
                         }
                     } else if puzzleDotsOnTheScreen {
-                        let youCantPauseHere = SKLabelNode(fontNamed: SomeNames.fontNameVenusrising)
-                        if preferredLanguage == .ru {
-                            youCantPauseHere.text = "Пау3а не активна."
-                        } else if preferredLanguage == .ch {
-                            youCantPauseHere.text = "Пау3а не активна."
-                        } else {
-                            youCantPauseHere.text = "You can't pause here."
-                        }
-                        //popupCoinsLabel.text = "0"
-                        youCantPauseHere.position = CGPoint(x: self.size.width / 2, y: self.size.height / 2)
-                        youCantPauseHere.fontColor = UIColor(red: 194.0/255, green: 194.0/255, blue: 194.0/255, alpha: 1.0)
-                        youCantPauseHere.fontSize = 60
-                        youCantPauseHere.zPosition = 100
-                        youCantPauseHere.alpha = 0.0
-                        
-                        self.gameLayer.addChild(youCantPauseHere)
-                        
-                        let fadeInAction = SKAction.fadeIn(withDuration: 0.3)
-                        let waitAction = SKAction.wait(forDuration: 1)
-                        let fadeOutAction = SKAction.fadeOut(withDuration: 0.3)
-                        let removeLabel = SKAction.removeFromParent()
-                        
-                        
-                        let popupLabelSequence = SKAction.sequence([fadeInAction, waitAction, fadeOutAction, removeLabel])
-                        popupLabelSequence.timingMode = SKActionTimingMode.easeInEaseOut
-                        
-                        youCantPauseHere.run(popupLabelSequence)
+                        youCantPuauseHere()
                     }
                 }
                 //self.view?.isPaused = false
@@ -4870,31 +6106,35 @@ class GameScene: SKScene, SKPhysicsContactDelegate, GADInterstitialDelegate {
                 
             } else if hintExclamationIcon.contains(pointTouch) {
                 if buttonStatus == .hintWindow && !shipExplode || buttonStatus == .none && !shipExplode {
-                    
-                    if canMove {
-                        //animateMenuButtons()
-                        showHintByButton()
-                        pauseFuncSettings()
-                        
-                        buttonStatus = .hintWindow
-                        gameLayer.isPaused = true
-                        canMove = false
-                        levelNumberLabel.isHidden = true
-                        pushedPause = true
-                    } else if !canMove {
-                        pauseFuncSettings()
-                        //menuButtonsHide()
-                        hint.removeFromParent()
-                        hintDone = true
-                        
-                        gameLayer.isPaused = false
-                        canMove = true
-                        buttonStatus = .none
-                        levelNumberLabel.isHidden = false
-                        pushedPause = false
+                    if !puzzleDotsOnTheScreen {
+                        if canMove {
+                            //animateMenuButtons()
+                            showHintByButton()
+                            pauseFuncSettings()
+                            
+                            buttonStatus = .hintWindow
+                            gameLayer.isPaused = true
+                            canMove = false
+                            levelNumberLabel.isHidden = true
+                            planetNumberLabel.isHidden = true
+                            pushedPause = true
+                        } else if !canMove {
+                            pauseFuncSettings()
+                            //menuButtonsHide()
+                            hint.removeFromParent()
+                            hintDone = true
+                            
+                            gameLayer.isPaused = false
+                            canMove = true
+                            buttonStatus = .none
+                            levelNumberLabel.isHidden = false
+                            planetNumberLabel.isHidden = false
+                            pushedPause = false
+                        }
+                    } else if puzzleDotsOnTheScreen {
+                        youCantPuauseHere()
                     }
                 }
-                
                 
             } else if shipUpgradesWindow.contains(pointTouch) {
                 if buttonStatus == .shipUpgrades {
@@ -4905,19 +6145,21 @@ class GameScene: SKScene, SKPhysicsContactDelegate, GADInterstitialDelegate {
                     }
                     constructionTimer = Timer.scheduledTimer(timeInterval: TimeInterval(constructionTimerfireDate), target: self, selector: #selector(GameScene.constructionSetup), userInfo: nil, repeats: false)
                     canMove = true
-                    animateHideShipUpgradesWindow() //shipUpgradesWindow.removeFromParent()
+                    animateHideShipUpgradesWindow(animate: "upgrade") //shipUpgradesWindow.removeFromParent()
                     //print("upgradesWindow pushed")
                     buttonStatus = .none
+                    levelNumberLabel.isHidden = false
+                    planetNumberLabel.isHidden = false
                 }
             } else if spacestation.contains(pointTouch) {
                 if !pushedPause {
                     let wichSP = Int(arc4random()%3)
                     if wichSP == 0 {
-                        trioTimeActiveLoc += 0.1
+                        trioTimeActiveLoc += 0.4
                     } else if wichSP == 1 {
-                        rougeOneTimeActiveLoc += 0.1
+                        rougeOneTimeActiveLoc += 0.4
                     } else if wichSP == 2 {
-                        InvisibleTimeActiveLoc += 0.1
+                        InvisibleTimeActiveLoc += 0.4
                     }
                 }
             } else if musicPlayIcon.contains(pointTouch) {
@@ -4938,16 +6180,152 @@ class GameScene: SKScene, SKPhysicsContactDelegate, GADInterstitialDelegate {
                     musicPlayIcon.texture = SKTexture(imageNamed: "musicPlay")
                 }
                 
+            } else if atPoint(pointTouch).name == "buyStatusTrioButton" {
+                if canBuy {
+                    IAPService.shared.purchase(product: .trioProduct)
+                    //IAPService.sharedInstance.purchase(product: .trioProduct)
+                    //startAcitivityIndicator()
+                    startNewAcitivityIndicator()
+                }
+                //print("dsf")
+                
+            } else if atPoint(pointTouch).name == "buyStatusRougeOneButton" {
+                if canBuy {
+                    IAPService.shared.purchase(product: .rougeProduct)
+                    //IAPService.sharedInstance.purchase(product: .rougeProduct)
+                    //startAcitivityIndicator()
+                    startNewAcitivityIndicator()
+                }
+                
+            } else if atPoint(pointTouch).name == "buyStatusInvisibleButton" {
+                if canBuy {
+                    IAPService.shared.purchase(product: .invisibleProduct)
+                    //IAPService.sharedInstance.purchase(product: .invisibleProduct)
+                    //startAcitivityIndicator()
+                    startNewAcitivityIndicator()
+                }
+                //print("dsf")
+            } else if atPoint(pointTouch).name == "buyRemoveAd" {
+                if canBuy {
+                    IAPService.shared.purchase(product: .deleteAds)
+                    //IAPService.sharedInstance.purchase(product: .deleteAds)
+                    //startAcitivityIndicator()
+                    startNewAcitivityIndicator()
+                }
+                //print("dsf")
+            } else if atPoint(pointTouch).name == "restorePurchase" {
+                if canBuy {
+                    IAPService.shared.restorePurchases()
+                    //IAPService.sharedInstance.restorePurchases()
+                    //startAcitivityIndicator()
+                    startNewAcitivityIndicator()
+                }
+                //print("dsf")
+            } else if atPoint(pointTouch).name == "visualyImpaired" {
+                visualyImpairedPressedForAds = true
+                let defaults = UserDefaults()
+                
+                if visualyImpairedStatus {
+                    visualyImpairedStatus = false
+                    puzzleIsColors = true
+                    defaults.set(visualyImpairedStatus, forKey: "visualyImpaired")
+                    //atPoint(pointTouch).alpha = 0.5
+                    
+                    checkProgrammIsPaid()
+                } else if !visualyImpairedStatus {
+                    visualyImpairedStatus = true
+                    puzzleIsColors = false
+                    defaults.set(visualyImpairedStatus, forKey: "visualyImpaired")
+                    //atPoint(pointTouch).alpha = 1.0
+                    
+                    checkProgrammIsPaid()
+                }
+             //print("dsf")
+            }
+            
+            if runingDevice == .pad {
+                if atPoint(pointTouch).name == "swipeClickButton" {
+                    if !swipeActiveGesture {
+                        removeSteerArrows()
+                        swipeClickButton.texture = SKTexture(imageNamed: "clickButton1")
+                        swipeActiveGesture = true
+                    } else if swipeActiveGesture {
+                        addSteeringArrows()
+                        leftSteerButtonsSetup()
+                        swipeClickButton.texture = SKTexture(imageNamed: "swipeButton1")
+                        swipeActiveGesture = false
+                    }
+                    
+                } else if atPoint(pointTouch).name == "leftSteerButton" {
+                    if steerButtonRight {
+                        changeSteerArrowsPosition()
+                        steerButtonRight = false
+                    } else if !steerButtonRight {
+                        changeSteerArrowsPosition()
+                        steerButtonRight = true
+                    }
+                } else if atPoint(pointTouch).name == "rightSteerButton" {
+                    if steerButtonRight {
+                        changeSteerArrowsPosition()
+                        steerButtonRight = false
+                    } else if !steerButtonRight {
+                        changeSteerArrowsPosition()
+                        steerButtonRight = true
+                    }
+                }
+                
+//                else if atPoint(pointTouch).name == "arrowUp" && canMoveUpAndDown {
+//                    swipeUp()
+//                } else if atPoint(pointTouch).name == "arrowRight" {
+//                    swipeRight()
+//                } else if atPoint(pointTouch).name == "arrowDown" && canMoveUpAndDown {
+//                    swipeDown()
+//                } else if atPoint(pointTouch).name == "arrowLeft" {
+//                    swipeLeft()
+//                }
+                else if !swipeActiveGesture {
+                    if let sAU = steerArrowUpG, let sAR = steerArrowRightG, let sAD = steerArrowDownG, let sAL = steerArrowLeftG {
+                        if sAU.contains(pointTouch) {
+                            swipeUp()
+                        } else if sAR.contains(pointTouch) {
+                            swipeRight()
+                        } else if sAD.contains(pointTouch) {
+                            swipeDown()
+                        } else if sAL.contains(pointTouch) {
+                            swipeLeft()
+                        }
+                    }
+                }
             }
             
             
-            let buttons = /*self.children*/ gameLayer.children
+            //let buttons = /*self.children*/ gameLayer.children
             if gameLayer.isPaused == false {
+                if trioStatusButton.contains(pointTouch) {
+                    if showTrioSP {
+                        touchButtonsChangeStatus(button: trioStatusButton, pointTouch: pointTouch)
+                    }
+                } else if rougeOneStatusButton.contains(pointTouch) {
+                    if showRougeSP {
+                        touchButtonsChangeStatus(button: rougeOneStatusButton, pointTouch: pointTouch)
+                    }
+                } else if invisibleStatusButton.contains(pointTouch) && showInvisibleSP {
+                    if showInvisibleSP {
+                        touchButtonsChangeStatus(button: invisibleStatusButton, pointTouch: pointTouch)
+                    }
+                }
+                
+                
+                /*
                 for button in buttons {
-                    if button.name == SomeNames.invisibleStatusButton || button.name == SomeNames.normalStatusButton || button.name == SomeNames.trioStatusButton || button.name == SomeNames.rougeOneStatusButton {
+                    if button.name == SomeNames.invisibleStatusButton /*|| button.name == SomeNames.normalStatusButton*/ || button.name == SomeNames.trioStatusButton || button.name == SomeNames.rougeOneStatusButton {
                         touchButtonsChangeStatus(button: button, pointTouch: pointTouch)
                     }
                 }
+                */
+//                let trioStatusButton = SKSpriteNode(imageNamed: "statusTrio1" /*"statusTrioN140.png"*/)
+//                let rougeOneStatusButton = SKSpriteNode(imageNamed: "statusRougeOne1" /*"statusRougeOneN140.png"*/)
+//                let invisibleStatusButton = SKSpriteNode(imageNamed: "statusInvisible1" /*"statusInvisibleN140.png"*/)
             }
             
             if levelWithChargedMine {
@@ -5026,13 +6404,75 @@ class GameScene: SKScene, SKPhysicsContactDelegate, GADInterstitialDelegate {
         
     }
     
-    let detonateButton = SKSpriteNode(imageNamed: "buttonDetonate1")
-    var detonateDebris = Debris()
-    var detonateDebrisArray = [Debris]()
+    private func checkProgrammIsPaid() {
+        let defaults = UserDefaults()
+        if !programmIsPaid {
+            if adsAttemtps <= 0 {
+                adsAttemtps = 4
+                defaults.set(adsAttemtps, forKey: "adsAttempts")
+                runAds()
+            } else {
+                adsAttemtps -= 1
+                defaults.set(adsAttemtps, forKey: "adsAttempts")
+                newScene = NewSceneEnum.GameScene
+                newScene(newSceneLoc: newScene)
+            }
+            
+        } else {
+            newScene = NewSceneEnum.GameScene
+            newScene(newSceneLoc: newScene)
+        }
+    }
     
-    func pauseFuncSettings() {
+    private func youCantPuauseHere() {
+        let youCantPauseHere = SKLabelNode(fontNamed: SomeNames.fontNameVenusrising)
+        if preferredLanguage == .ru {
+            youCantPauseHere.text = "Пау3а отключена"
+        } else if preferredLanguage == .ch {
+            youCantPauseHere.text = "暫停禁用"
+        } else if preferredLanguage == .es {
+            youCantPauseHere.text = "pausa deshabilitada"
+        } else if preferredLanguage == .jp {
+            youCantPauseHere.text = "一時停止を無効にする"
+        } else if preferredLanguage == .fr {
+            youCantPauseHere.text = "pause désactivée"
+        } else if preferredLanguage == .gr {
+            youCantPauseHere.text = "Pause deaktiviert"
+        } else {
+            youCantPauseHere.text = "You can't pause here."
+        }
+        //popupCoinsLabel.text = "0"
+        youCantPauseHere.position = CGPoint(x: self.size.width / 2, y: self.size.height / 2)
+        youCantPauseHere.fontColor = UIColor(red: 194.0/255, green: 194.0/255, blue: 194.0/255, alpha: 1.0)
+        youCantPauseHere.fontSize = 60
+        youCantPauseHere.zPosition = 100
+        youCantPauseHere.alpha = 0.0
+        
+        self.gameLayer.addChild(youCantPauseHere)
+        
+        let fadeInAction = SKAction.fadeIn(withDuration: 0.3)
+        let waitAction = SKAction.wait(forDuration: 1)
+        let fadeOutAction = SKAction.fadeOut(withDuration: 0.3)
+        let removeLabel = SKAction.removeFromParent()
+        
+        
+        let popupLabelSequence = SKAction.sequence([fadeInAction, waitAction, fadeOutAction, removeLabel])
+        popupLabelSequence.timingMode = SKActionTimingMode.easeInEaseOut
+        
+        youCantPauseHere.run(popupLabelSequence)
+    }
+    
+    private let detonateButton = SKSpriteNode(imageNamed: "buttonDetonate1")
+    private var detonateDebris = Debris()
+    private var detonateDebrisArray = [Debris]()
+    
+    private func pauseFuncSettings() {
         if gameMode == .normal {
             if canMove {
+//                if levelComplited {
+//                    levelComplitedFireDate = levelComplitedTimer!.fireDate.timeIntervalSinceNow
+//                    levelComplitedTimer?.invalidate()
+//                }
                 if soundsIsOn {
                     run(SKAction.playSoundFileNamed("pause1.m4a", waitForCompletion: false))
                 }
@@ -5068,19 +6508,19 @@ class GameScene: SKScene, SKPhysicsContactDelegate, GADInterstitialDelegate {
                         if let show = dotSequnceTimerShow {
                             showHintsTimerfireDate = show.fireDate.timeIntervalSinceNow
                             dotSequnceTimerShow?.invalidate()
-                            print("puz1")
+                            //print("puz1")
                         }
-                        print("puz2")
+                        //print("puz2")
                     }
                     if puzzleColocHitVisible {
                         if let hide = dotSequnceTimerHide {
                             hideHintsTimerfireDate = hide.fireDate.timeIntervalSinceNow
                             dotSequnceTimerHide?.invalidate()
-                            print("puz3")
+                            //print("puz3")
                         }
-                        print("puz4")
+                        //print("puz4")
                     }
-                    print("puz5")
+                    //print("puz5")
                 }
                 
                 stopSPCounters()
@@ -5089,6 +6529,9 @@ class GameScene: SKScene, SKPhysicsContactDelegate, GADInterstitialDelegate {
                 //waitToHideDotsActionDuration = waitToHideDots.duration
                 
             } else if !canMove {
+//                if levelComplited {
+//                    levelComplitedTimer = Timer.scheduledTimer(timeInterval: (constructionBarrierAnimationDuration - 1.5), target: self, selector: #selector(GameScene.levelComplitedFunc), userInfo: nil, repeats: false)
+//                }
                 if soundsIsOn {
                     run(SKAction.playSoundFileNamed("pause1.m4a", waitForCompletion: false))
                 }
@@ -5116,21 +6559,26 @@ class GameScene: SKScene, SKPhysicsContactDelegate, GADInterstitialDelegate {
                     if !showHintOneTime {
                         if !puzzleColocHitVisible {
                             dotSequnceTimerShow = Timer.scheduledTimer(timeInterval: TimeInterval(showHintsTimerfireDate), target: self, selector: #selector(GameScene.showDotSequence), userInfo: nil, repeats: false)
-                            print("puz21")
+                            //print("puz21")
                         }
-                        print("puz22")
+                        //print("puz22")
                     }
                     if !showHintOneTime {
                         if puzzleColocHitVisible {
                             dotSequnceTimerHide = Timer.scheduledTimer(timeInterval: TimeInterval(hideHintsTimerfireDate), target: self, selector: #selector(GameScene.hideDotsHitns), userInfo: nil, repeats: false)
-                            print("puz23")
+                            //print("puz23")
                         }
-                        print("puz24")
+                        //print("puz24")
                     }
-                    print("puz25")
+                   // print("puz25")
                 }
                 
                 runSPCountersAfterPause()
+                
+                
+                trioTimerLabel.text = "\(trioTimeActive.truncate(places: 1))"
+                rougeOneTimerLabel.text = "\(rougeOneTimeActive.truncate(places: 1))"
+                invisibleTimerLabel.text = "\(InvisibleTimeActive.truncate(places: 1))"
                 
                 //waitToHideDots.duration = waitToHideDotsActionDuration
             }
@@ -5162,7 +6610,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate, GADInterstitialDelegate {
         
     }
     
-    func runSPCountersAfterPause() {
+    private func runSPCountersAfterPause() {
         if shipStatus == .trio {
             trioTimer = Timer.scheduledTimer(timeInterval: 0.1, target: self, selector: #selector(GameScene.trioCounter), userInfo: nil, repeats: true)
         } else if shipStatus == .rogueOne {
@@ -5172,7 +6620,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate, GADInterstitialDelegate {
         }
     }
     
-    func stopSPCounters() {
+    private func stopSPCounters() {
         if shipStatus == .trio {
             trioTimer.invalidate()
         } else if shipStatus == .rogueOne {
@@ -5182,19 +6630,27 @@ class GameScene: SKScene, SKPhysicsContactDelegate, GADInterstitialDelegate {
         }
     }
     
-    @objc func repeatInvokeConstructionBarrierSetupForSurvival () {
+    @objc private func repeatInvokeConstructionBarrierSetupForSurvival () {
         invokeConstructionBarrierSetupForSurvival()
         constructionTimer?.invalidate()
         constructionTimer = Timer.scheduledTimer(timeInterval: TimeInterval(survivorDebrisTimeInterval), target: self, selector: #selector(GameScene.invokeConstructionBarrierSetupForSurvival), userInfo: nil, repeats: true)
     }
-    @objc func repeatInvokeCoinSetupForSurvival () {
+    @objc private func repeatInvokeCoinSetupForSurvival () {
         invokeCoinSetupForSurvival()
         survivalCoinSetupTimer?.invalidate()
         survivalCoinSetupTimer = Timer.scheduledTimer(timeInterval: TimeInterval(survivorCoinTimeInterval), target: self, selector: #selector(GameScene.invokeCoinSetupForSurvival), userInfo: nil, repeats: true)
     }
+    
+    enum NewSceneEnum {
+        case GameScene
+        case PurchaseScene
+    }
+    private var newScene = NewSceneEnum.PurchaseScene
+    private var purchasedPushed: Bool = false
+    
     // MARK: Run new scene after explosion or restartButton
-    func newScene() {
-        if /*self.view!.isPaused*/ gameLayer.isPaused {
+    private func newScene(newSceneLoc: NewSceneEnum) {
+        if /*self.view!.isPaused*/ gameLayer.isPaused || purchasedPushed {
             //self.view?.isPaused = false
             saveTimeActiveSeconds()
             gameLayer.isPaused = false
@@ -5209,6 +6665,11 @@ class GameScene: SKScene, SKPhysicsContactDelegate, GADInterstitialDelegate {
             partitionTimer?.invalidate()
             planetTimer?.invalidate()
             spacestationTimer?.invalidate()
+            constructionTimer?.invalidate()
+            showHintTimer?.invalidate()
+            survivalCoinSetupTimer?.invalidate()
+            puzzleCurrentGameStatusFalseTimer?.invalidate()
+            levelComplitedTimer?.invalidate()
             clean()
             //constructionTimer?.invalidate()
             
@@ -5224,12 +6685,20 @@ class GameScene: SKScene, SKPhysicsContactDelegate, GADInterstitialDelegate {
             canMove = false
             
             //_ = Timer.scheduledTimer(timeInterval: TimeInterval(0.5), target: self, selector: #selector(GameScene.newScene), userInfo: nil, repeats: false)
+            var scene = SKScene()
+            switch newSceneLoc {
+            case .GameScene:
+                scene = GameScene(size: CGSize(width: 1536, height: 2048))
+                //print("GAME SCENE")
+            case .PurchaseScene:
+                scene = PurchaseScene(size: CGSize(width: 1536, height: 2048))
+                //print("PURCHASE SCENE")
+            }
             
-            let scene = GameScene(size: CGSize(width: 1536, height: 2048))
             // Set the scale mode to scale to fit the window
             scene.scaleMode = .aspectFill
             
-            let startGameTransition = SKTransition.doorsCloseHorizontal(withDuration: 0.5)
+            let startGameTransition = SKTransition.fade(with: UIColor(red: 23.0/255, green: 1.0/255, blue: 47.0/255, alpha: 1.0), duration: 0.8) //SKTransition.doorsCloseHorizontal(withDuration: 0.5)
             // Present the scene
             view?.presentScene(scene, transition: startGameTransition)
             if #available(iOS 10.0, *) {
@@ -5249,6 +6718,10 @@ class GameScene: SKScene, SKPhysicsContactDelegate, GADInterstitialDelegate {
             partitionTimer?.invalidate()
             planetTimer?.invalidate()
             spacestationTimer?.invalidate()
+            showHintTimer?.invalidate()
+            survivalCoinSetupTimer?.invalidate()
+            puzzleCurrentGameStatusFalseTimer?.invalidate()
+            levelComplitedTimer?.invalidate()
             clean()
             //constructionTimer?.invalidate()
             
@@ -5269,7 +6742,9 @@ class GameScene: SKScene, SKPhysicsContactDelegate, GADInterstitialDelegate {
             // Set the scale mode to scale to fit the window
             scene.scaleMode = .aspectFill
             
-            let startGameTransition = SKTransition.doorsCloseHorizontal(withDuration: 0.5)
+            let startGameTransition = SKTransition.fade(with: UIColor(red: 23.0/255, green: 1.0/255, blue: 47.0/255, alpha: 1.0), duration: 0.8) //SKTransition.doorsCloseHorizontal(withDuration: 0.5)
+            //let startGameTransition = SKTransition.crossFade(withDuration: 0.8)
+            //let startGameTransition = SKTransition.crossFade(withDuration: 0.8)
             // Present the scene
             view?.presentScene(scene, transition: startGameTransition)
             if #available(iOS 10.0, *) {
@@ -5283,69 +6758,13 @@ class GameScene: SKScene, SKPhysicsContactDelegate, GADInterstitialDelegate {
 
         
         
-//        for touch in touches {
-//
-//            let pointTouch = touch.location(in: self)
-//            let allShips = self.children
-//
-//            for rougeOneShip in allShips {
-//
-//                if shipStatus == .rogueOne {
-//
-//                    if rougeOneShip is PlayerShip && rougeOneShip.name == "rougeOneShip" {
-//
-//                        if rougeOneShip.contains(pointTouch) {
-//                            let rougeOneShipT = rougeOneShip as! PlayerShip
-//
-//                            if rougeOneShipT.rougeIsActive == true {
-//
-//                            } else {
-//                                tempShipRouge = ship
-//                                //tempShipRouge.texture = SKTexture(imageNamed: "heroRougeOne")
-//                                ship = rougeOneShipT
-//                                //ship.texture = SKTexture(imageNamed: "ship10001")
-//                                //rougeOneShipT = tempShipRouge
-//                                tempShipRouge.rougeIsActive = false
-//                                ship.rougeIsActive = true
-//                            }
-//                        }
-//                    } else if rougeOneShip is PlayerShip && rougeOneShip.name == "playerShip" {
-//                        if rougeOneShip.contains(pointTouch) {
-//                            let rougeOneShipT = rougeOneShip as! PlayerShip
-//
-//                            if rougeOneShipT.rougeIsActive == true {
-//
-//                            } else {
-//                                tempShipRouge = ship
-//                                ship = rougeOneShipT
-//                                //tempShipRouge = rougeOneShipT
-//
-//
-//                                   //tempShipRouge = ship
-//                                //tempShipRouge.texture = SKTexture(imageNamed: "heroRougeOne")
-//                                   //ship = rougeOneShipT
-//                                //ship.texture = SKTexture(imageNamed: "ship10001")
-//                                //rougeOneShipT = tempShipRouge
-//                                tempShipRouge.rougeIsActive = false
-//                                ship.rougeIsActive = true
-//                            }
-//                        }
-//                    }
-//                }
-//
-//                // MARK: Changing status by button USAGE
-//                touchButtonsChangeStatus(button: rougeOneShip, pointTouch: pointTouch)
-//
-//            }
-//
-//
-//        }
-    //}
+
     
     // MARK: Changing status by button FUNCTION
-    func touchButtonsChangeStatus(button: SKNode, pointTouch: CGPoint) {
+    private let spSound = SKAction.playSoundFileNamed("spActivated1.m4a", waitForCompletion: true)
+    private func touchButtonsChangeStatus(button: SKNode, pointTouch: CGPoint) {
         //print("touch buttons CHANGE STATUS")
-        let spSound = SKAction.playSoundFileNamed("spActivated1.m4a", waitForCompletion: true)
+        
         let waitSPActivated = SKAction.wait(forDuration: TimeInterval(1))
         let spSoundSequens = SKAction.sequence([spSound, waitSPActivated])
         
@@ -5368,7 +6787,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate, GADInterstitialDelegate {
                 if button.contains(pointTouch) {
                     changeShipStatus()
                     triggerTrioStatus()
-                    print("trio")
+                    //print("trio")
                     superButtonStatus = .trio
                     rougeOneStatusButton.alpha = 0.3
                     invisibleStatusButton.alpha = 0.3
@@ -5383,13 +6802,18 @@ class GameScene: SKScene, SKPhysicsContactDelegate, GADInterstitialDelegate {
                 if button.contains(pointTouch) {
                     changeShipStatus()
                     triggerNormalStatus()
-                    print("normal")
+                    //print("normal")
                     superButtonStatus = .normal
-                    rougeOneStatusButton.alpha = 1
-                    invisibleStatusButton.alpha = 1
-                    rougeOneTimerLabel.alpha = 1
-                    invisibleTimerLabel.alpha = 1
+                    if showRougeSP {
+                        rougeOneStatusButton.alpha = 1
+                        rougeOneTimerLabel.alpha = 1
+                    }
+                    if showInvisibleSP {
+                        invisibleStatusButton.alpha = 1
+                        invisibleTimerLabel.alpha = 1
+                    }
                     self.removeAction(forKey: "spSound")
+                    diactPartitionOnTrioOrRouge()
                 }
             }
             
@@ -5401,7 +6825,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate, GADInterstitialDelegate {
                 if button.contains(pointTouch) {
                     changeShipStatus()
                     triggerRogueOneStatus()
-                    print("rouge")
+                    //print("rouge")
                     superButtonStatus = .rouge
                     trioStatusButton.alpha = 0.3
                     invisibleStatusButton.alpha = 0.3
@@ -5462,13 +6886,18 @@ class GameScene: SKScene, SKPhysicsContactDelegate, GADInterstitialDelegate {
                     
                     changeShipStatus()
                     triggerNormalStatus()
-                    print("normal")
+                    //print("normal")
                     superButtonStatus = .normal
-                    trioStatusButton.alpha = 1
-                    invisibleStatusButton.alpha = 1
-                    trioTimerLabel.alpha = 1
-                    invisibleTimerLabel.alpha = 1
+                    if showTrioSP {
+                        trioStatusButton.alpha = 1
+                        trioTimerLabel.alpha = 1
+                    }
+                    if showInvisibleSP {
+                        invisibleStatusButton.alpha = 1
+                        invisibleTimerLabel.alpha = 1
+                    }
                     self.removeAction(forKey: "spSound")
+                    diactPartitionOnTrioOrRouge()
                 }
             }
             
@@ -5478,7 +6907,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate, GADInterstitialDelegate {
                 if button.contains(pointTouch) {
                     changeShipStatus()
                     triggerInvisibleStatus()
-                    print("invisible")
+                    //print("invisible")
                     superButtonStatus = .invisible
                     trioStatusButton.alpha = 0.3
                     rougeOneStatusButton.alpha = 0.3
@@ -5493,12 +6922,16 @@ class GameScene: SKScene, SKPhysicsContactDelegate, GADInterstitialDelegate {
                 if button.contains(pointTouch) {
                     changeShipStatus()
                     triggerNormalStatus()
-                    print("normal")
+                    //print("normal")
                     superButtonStatus = .normal
-                    trioStatusButton.alpha = 1
-                    rougeOneStatusButton.alpha = 1
-                    trioTimerLabel.alpha = 1
-                    rougeOneTimerLabel.alpha = 1
+                    if showTrioSP {
+                        trioStatusButton.alpha = 1
+                        trioTimerLabel.alpha = 1
+                    }
+                    if showRougeSP {
+                        rougeOneStatusButton.alpha = 1
+                        rougeOneTimerLabel.alpha = 1
+                    }
                     self.removeAction(forKey: "spSound")
                 }
             }
@@ -5506,11 +6939,11 @@ class GameScene: SKScene, SKPhysicsContactDelegate, GADInterstitialDelegate {
     }
     
     // MARK: moving backgroup variables
-    var lastUpdateTime: TimeInterval = 0
-    var deltaFrameTime: TimeInterval = 0
-    var amountToMovePerSecond: CGFloat = 0 //15.0
-    var amountToMovePerSecondPNG: CGFloat = 0 //30.0
-    var amountToMovePerSecondPNG2: CGFloat = 0 //45.0
+    private var lastUpdateTime: TimeInterval = 0
+    private var deltaFrameTime: TimeInterval = 0
+    private var amountToMovePerSecond: CGFloat = 0 //15.0
+    private var amountToMovePerSecondPNG: CGFloat = 0 //30.0
+    private var amountToMovePerSecondPNG2: CGFloat = 0 //45.0
     
     override func update(_ currentTime: TimeInterval) {
         
@@ -5535,43 +6968,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate, GADInterstitialDelegate {
                 amountToMovePerSecondPNG2 -= 2.6
             }
         }
-        /*
-        if constructionTimeInterval == constructionLevelDurationTimerInterval && currentGameStatus == .afterGame {  // MARK: Smooth stop
-            if amountToMovePerSecond <= 90 {
-                amountToMovePerSecond -= 0.5
-            }
-            if amountToMovePerSecondPNG <= 127 {
-                amountToMovePerSecondPNG -= 1
-            }
-            if amountToMovePerSecondPNG2 <= 165 {
-                amountToMovePerSecondPNG2 -= 1.5
-            }
-        }
-         
-         
-         e.name == "coinDebris" {
-         node.speed -= 0.5
-         }
-         }
-         // stop galaxy
-         enumerateChildNodes(withName: "galaxy") { (node, _) in
-         if node.name == "galaxy" {
-         node.speed -= 0.5
-         }
-         }
-         // stop station
-         enumerateChildNodes(withName: "station") { (node, _) in
-         if node.name == "station" {
-         node.speed -= 0.5
-         }
-         }
-         // stop construction
-         enumerateChildNodes(withName: "constructionDebris") { (node, _) in
-         if node.name == "constructionDebris"
-         
-         
-         
- */
+        
         
         
         // MARK: ++++++++++++++++++ moving backgroup
@@ -5653,7 +7050,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate, GADInterstitialDelegate {
 
     }
     
-    func saveTimeActiveSeconds() {
+    private func saveTimeActiveSeconds() {
         let defaults = UserDefaults()
         
         defaults.set(InvisibleTimeActive, forKey: "InvisibleSeconds")
@@ -5661,7 +7058,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate, GADInterstitialDelegate {
         defaults.set(trioTimeActive, forKey: "TrioSeconds")
     }
     
-    func loadTimeActiveSeconds() {
+    private func loadTimeActiveSeconds() {
         let defaults = UserDefaults()
         
         trioTimeActive = defaults.double(forKey: "TrioSeconds")
@@ -5672,10 +7069,13 @@ class GameScene: SKScene, SKPhysicsContactDelegate, GADInterstitialDelegate {
         
     }
     
+    private var explosionSoundAction = SKAction.playSoundFileNamed("boom1.m4a", waitForCompletion: false)
+    
     func explosion(pos: CGPoint, zPos: CGFloat) {
         if let explosion = SKEmitterNode(fileNamed: "explosion.sks") {
             if soundsIsOn {
-                run(SKAction.playSoundFileNamed("boom1.m4a", waitForCompletion: false))
+                run(explosionSoundAction)
+                //run(SKAction.playSoundFileNamed("boom1.m4a", waitForCompletion: false))
                 //engineSoundsAction.speed = 0.0
                 removeAction(forKey: "shipEngineSound")
             }
@@ -5696,10 +7096,11 @@ class GameScene: SKScene, SKPhysicsContactDelegate, GADInterstitialDelegate {
         
     }
     
-    func mineDetonation(pos: CGPoint, zPos: CGFloat) {
+    private func mineDetonation(pos: CGPoint, zPos: CGFloat) {
         if let explosion = SKEmitterNode(fileNamed: "explosion.sks") {
             if soundsIsOn {
-                run(SKAction.playSoundFileNamed("boom1.m4a", waitForCompletion: false))
+                run(explosionSoundAction)
+                //run(SKAction.playSoundFileNamed("boom1.m4a", waitForCompletion: false))
                 //engineSoundsAction.speed = 0.0
                 removeAction(forKey: "shipEngineSound")
             }
@@ -5712,13 +7113,14 @@ class GameScene: SKScene, SKPhysicsContactDelegate, GADInterstitialDelegate {
         
     }
     
-    func isKeyPresentInUserDefaults(key: String) -> Bool {
+    private func isKeyPresentInUserDefaults(key: String) -> Bool {
         return UserDefaults.standard.object(forKey: key) != nil
     }
     
     
     deinit {
-        print("scene deinit")
+        //playerIsSetup = false
+        //print("scene deinit")
         //levelWithChargedMine = false
         //self.view?.gestureRecognizers?.removeAll()
     }
@@ -5733,140 +7135,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate, GADInterstitialDelegate {
     
     
     
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-//    private var label : SKLabelNode?
-//    private var spinnyNode : SKShapeNode?
-//    
-//    override func didMove(to view: SKView) {
-//        
-//        // Get label node from scene and store it for use later
-//        self.label = self.childNode(withName: "//helloLabel") as? SKLabelNode
-//        if let label = self.label {
-//            label.alpha = 0.0
-//            label.run(SKAction.fadeIn(withDuration: 2.0))
-//        }
-//        
-//        // Create shape node to use during mouse interaction
-//        let w = (self.size.width + self.size.height) * 0.05
-//        self.spinnyNode = SKShapeNode.init(rectOf: CGSize.init(width: w, height: w), cornerRadius: w * 0.3)
-//        
-//        if let spinnyNode = self.spinnyNode {
-//            spinnyNode.lineWidth = 2.5
-//            
-//            spinnyNode.run(SKAction.repeatForever(SKAction.rotate(byAngle: CGFloat(Double.pi), duration: 1)))
-//            spinnyNode.run(SKAction.sequence([SKAction.wait(forDuration: 0.5),
-//                                              SKAction.fadeOut(withDuration: 0.5),
-//                                              SKAction.removeFromParent()]))
-//        }
-//    }
-//    
-//    
-//    func touchDown(atPoint pos : CGPoint) {
-//        if let n = self.spinnyNode?.copy() as! SKShapeNode? {
-//            n.position = pos
-//            n.strokeColor = SKColor.green
-//            self.addChild(n)
-//        }
-//    }
-//    
-//    func touchMoved(toPoint pos : CGPoint) {
-//        if let n = self.spinnyNode?.copy() as! SKShapeNode? {
-//            n.position = pos
-//            n.strokeColor = SKColor.blue
-//            self.addChild(n)
-//        }
-//    }
-//    
-//    func touchUp(atPoint pos : CGPoint) {
-//        if let n = self.spinnyNode?.copy() as! SKShapeNode? {
-//            n.position = pos
-//            n.strokeColor = SKColor.red
-//            self.addChild(n)
-//        }
-//    }
-//    
-//    override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
-//        if let label = self.label {
-//            label.run(SKAction.init(named: "Pulse")!, withKey: "fadeInOut")
-//        }
-//        
-//        for t in touches { self.touchDown(atPoint: t.location(in: self)) }
-//    }
-//    
-//    override func touchesMoved(_ touches: Set<UITouch>, with event: UIEvent?) {
-//        for t in touches { self.touchMoved(toPoint: t.location(in: self)) }
-//    }
-//    
-//    override func touchesEnded(_ touches: Set<UITouch>, with event: UIEvent?) {
-//        for t in touches { self.touchUp(atPoint: t.location(in: self)) }
-//    }
-//    
-//    override func touchesCancelled(_ touches: Set<UITouch>, with event: UIEvent?) {
-//        for t in touches { self.touchUp(atPoint: t.location(in: self)) }
-//    }
-//    
-//    
-//    override func update(_ currentTime: TimeInterval) {
-//        // Called before each frame is rendered
-//    }
+
     
 }
 
@@ -5882,21 +7151,6 @@ extension MutableCollection {
         }
     }
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 

@@ -68,12 +68,17 @@ class HighscoreViewController: UIViewController, UITableViewDelegate, UITableVie
             backButton.setTitle("后退", for: .normal)
         } else if preferredLanguage == .es {
             backButton.setTitle("Atrás", for: .normal)
+        } else if preferredLanguage == .jp {
+            backButton.setTitle("戻る", for: .normal)
+        } else if preferredLanguage == .fr {
+            backButton.setTitle("Retour", for: .normal)
+        } else if preferredLanguage == .gr {
+            backButton.setTitle("Zurück", for: .normal)
         } else {
             backButton.setTitle("back", for: .normal)
         }
-        
-        
         highScoreTableView.estimatedRowHeight = 50
+        
         //highScoreTableView.rowHeight = UITableViewAutomaticDimension
         
         placeTimer = Timer.scheduledTimer(timeInterval: TimeInterval(1), target: self, selector: #selector(HighscoreViewController.setPlace), userInfo: nil, repeats: false)
@@ -94,7 +99,7 @@ class HighscoreViewController: UIViewController, UITableViewDelegate, UITableVie
                 }
             }
         } else if nicknameArray.isEmpty {
-            let alertView = UIAlertController(title: "Error.", message: "Try later.", preferredStyle: .alert)
+            let alertView = UIAlertController(title: "Connection error.", message: "Try again later.", preferredStyle: .alert)
             let action = UIAlertAction(title: "Ok.", style: .default, handler: { (alert) in
                 
             })
@@ -376,6 +381,12 @@ class HighscoreViewController: UIViewController, UITableViewDelegate, UITableVie
                 return "你的积分 / 得分"
             } else if preferredLanguage == .es {
                 return "Tu puntuación"
+            } else if preferredLanguage == .jp {
+                return "あなたのスコア"
+            } else if preferredLanguage == .fr {
+                return "Score total"
+            } else if preferredLanguage == .gr {
+                return "Gesamtpunkte"
             } else {
                 return "Your score"
             }
@@ -387,6 +398,12 @@ class HighscoreViewController: UIViewController, UITableViewDelegate, UITableVie
                 return "开始"
             } else if preferredLanguage == .es {
                 return "Puntuación máxima"
+            } else if preferredLanguage == .jp {
+                return "最高のスコア"
+            } else if preferredLanguage == .fr {
+                return "Meilleurs scores"
+            } else if preferredLanguage == .gr {
+                return "Höchste Punktzahl"
             } else {
                 return "Highscore"
             }
@@ -491,7 +508,7 @@ class HighscoreViewController: UIViewController, UITableViewDelegate, UITableVie
     */
     
     deinit {
-        print("high score scene deinit")
+        //print("high score scene deinit")
     }
 
 }

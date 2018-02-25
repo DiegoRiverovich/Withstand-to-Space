@@ -8,40 +8,48 @@
 
 import UIKit
 import SpriteKit
+import NVActivityIndicatorView
 
 class LevelsScene: SKScene {
     
+    private var newActivityIndicator: NVActivityIndicatorView?
+    
+    private let levelsLabelNode = SKLabelNode(fontNamed: SomeNames.fontNameVenusrising)
+    //var levelTenButtonPosition: CGPoint?
+    @objc private  var distortTimer: Timer?
+    private var levelTenDistortButton: SKSpriteNode?
+    
     // Swige gestures
-    let swipeRightRecLvl = UISwipeGestureRecognizer()
-    let swipeLeftRecLvl = UISwipeGestureRecognizer()
+    private let swipeRightRecLvl = UISwipeGestureRecognizer()
+    private let swipeLeftRecLvl = UISwipeGestureRecognizer()
     
-    var stars1LvlArray = [SKSpriteNode]()
-    var stars2LvlArray = [SKSpriteNode]()
-    var stars3LvlArray = [SKSpriteNode]()
+    private var stars1LvlArray = [SKSpriteNode]()
+    private var stars2LvlArray = [SKSpriteNode]()
+    private var stars3LvlArray = [SKSpriteNode]()
     
-    var buttons1LvlArray = [SKSpriteNode]()
-    var buttons2LvlArray = [SKSpriteNode]()
-    var buttons3LvlArray = [SKSpriteNode]()
+    private var buttons1LvlArray = [SKSpriteNode]()
+    private var buttons2LvlArray = [SKSpriteNode]()
+    private var buttons3LvlArray = [SKSpriteNode]()
     
-    let arrowLeft = SKSpriteNode(imageNamed: "lvlsArrowLeft")
-    let arrowRight = SKSpriteNode(imageNamed: "lvlsArrowRight")
+    private let arrowLeft = SKSpriteNode(imageNamed: "lvlsArrowLeft")
+    private let arrowRight = SKSpriteNode(imageNamed: "lvlsArrowRight")
     
-    let dotLeft = SKSpriteNode(imageNamed: "lvlMenuDot")
-    let dotLeft1 = SKSpriteNode(imageNamed: "lvlMenuDot")
-    let dotCenter = SKSpriteNode(imageNamed: "lvlMenuDot")
-    let dotRight1 = SKSpriteNode(imageNamed: "lvlMenuDot")
-    let dotRight = SKSpriteNode(imageNamed: "lvlMenuDot")
+    private let dotLeft = SKSpriteNode(imageNamed: "lvlMenuDot")
+    private let dotLeft1 = SKSpriteNode(imageNamed: "lvlMenuDot")
+    private let dotCenter = SKSpriteNode(imageNamed: "lvlMenuDot")
+    private let dotRight1 = SKSpriteNode(imageNamed: "lvlMenuDot")
+    private let dotRight = SKSpriteNode(imageNamed: "lvlMenuDot")
     
-    let backgroundPlanet = SKSpriteNode(imageNamed: "planet01_400")
-    let backgroundPlanet2 = SKSpriteNode(imageNamed: "venus_500")
-    let backgroundPlanet3 = SKSpriteNode(imageNamed: "planet_31")
-    let backgroundPlanet4 = SKSpriteNode(imageNamed: "planet_411")
-    let backgroundAsteroid5 = SKSpriteNode(imageNamed: "Asteroids")
+    private let backgroundPlanet = SKSpriteNode(imageNamed: "planet01_400")
+    private let backgroundPlanet2 = SKSpriteNode(imageNamed: "venus_500")
+    private let backgroundPlanet3 = SKSpriteNode(imageNamed: "planet_31")
+    private let backgroundPlanet4 = SKSpriteNode(imageNamed: "planet_411")
+    private let backgroundAsteroid5 = SKSpriteNode(imageNamed: "Asteroids")
     
-    var comingSoonNode = SKSpriteNode(imageNamed: "comingSoonLogo")
-    var infinityNode = SKSpriteNode(imageNamed: "Infinity")
+    private var comingSoonNode = SKSpriteNode(imageNamed: "comingSoonLogo")
+    private var infinityNode = SKSpriteNode(imageNamed: "Infinity")
     
-    let movingBackground = SKSpriteNode(imageNamed: "backgroundPngStars2")
+    private let movingBackground = SKSpriteNode(imageNamed: "backgroundPngStars2")
     
     override func didMove(to view: SKView) {
         loadMainScene()
@@ -49,13 +57,15 @@ class LevelsScene: SKScene {
     
     //var scrollViewVar: UIScrollView?
     
-    func loadMainScene() {
+    private func loadMainScene() {
+        changePlanetOnFourAndFive()
         
         backgroundSetup()
         levelButtonsSetup()
         level2ButtonsSetup()
         level3ButtonsSetup()
-        levelsLabel()
+        //levelsLabel()
+        levelsLabelSetup()
         scoreLableSetup()
         
         backToMenuButtonsSetup()
@@ -63,7 +73,8 @@ class LevelsScene: SKScene {
         
         lvlsPage = 1
         
-        print(lvlsPage)
+        
+        //print(lvlsPage)
         
         addArrosAndDots()
         
@@ -72,10 +83,195 @@ class LevelsScene: SKScene {
         
         comingSoonFunc()
         infinityFunc()
+        
+        pageSetup()
+        
+        
+        distortTimer = Timer.scheduledTimer(timeInterval: TimeInterval(2), target: self, selector: #selector(LevelsScene.levelButtonDistortNew), userInfo: nil, repeats: false)
+    }
+    
+    private func startNewAcitivityIndicator() {
+        if let viewLoc = view {
+            newActivityIndicator = NVActivityIndicatorView(frame: CGRect(x: (viewLoc.center.x - 50), y: (viewLoc.center.y - 50), width: 100, height: 100),
+                                                           type: .ballTrianglePath,
+                                                           color: UIColor.white,
+                                                           padding: nil)
+        } else {
+            newActivityIndicator?.center = CGPoint(x: 700, y: 900)
+        }
+        //newActivityIndicator.
+        //myActivityIndicator.hidesWhenStopped = true
+        newActivityIndicator?.startAnimating()
+        //scene!.view?.addSubview(newActivityIndicator!)
+        
+        DispatchQueue.main.async { [weak self] in
+            self?.scene!.view?.addSubview(self!.newActivityIndicator!)
+
+        }
+    }
+    
+    private func stopNewAcitvityIndicator() {
+        newActivityIndicator?.stopAnimating()
+        newActivityIndicator?.removeFromSuperview()
+    }
+    
+    //MARK: func button distort
+    @objc private func levelButtonDistortNew() {
+        let animationAction = SKAction.animate(with: [SKTexture(imageNamed: "lvl10beige1Dist1"), SKTexture(imageNamed: "lvl10beige1")], timePerFrame: 0.3)
+        let waitAction = SKAction.wait(forDuration: TimeInterval(2))
+        let sequence = SKAction.sequence([animationAction, waitAction])
+        levelTenDistortButton?.run(SKAction.repeatForever(sequence))
+    }
+    
+    // MARK: Levels planets page setup
+    private func pageSetup() {
+        if planet == 1 {
+            
+        } else if planet == 2 {
+            for i in 1...buttons2LvlArray.count {
+                let button = buttons2LvlArray[i-1]
+                button.position.x = button.position.x - 100
+                if active2Level[i-1] == 1 {
+                    button.alpha = 1.0
+                } else {
+                    button.alpha = 0.5
+                }
+                //button.alpha = 1.0
+            }
+            for i in 1...buttons1LvlArray.count {
+                let button = buttons1LvlArray[i-1]
+                button.position.x = button.position.x - 100
+                button.alpha = 0.0
+            }
+            
+            lvlsPage = 2
+            
+            if !stars1LvlArray.isEmpty {
+                for i in 1...stars1LvlArray.count {
+                    let stars = stars1LvlArray[i-1]
+                    stars.alpha = 0.0
+                }
+            }
+            if !stars2LvlArray.isEmpty {
+                for i in 1...stars2LvlArray.count {
+                    let stars = stars2LvlArray[i-1]
+                    stars.alpha = 1.0
+                }
+            }
+            
+            enumerateChildNodes(withName: "score1LvlLabel") { (node, _) in
+                node.alpha = 0.0
+                
+            }
+            
+            enumerateChildNodes(withName: "score2LvlLabel") { (node, _) in
+                node.alpha = 1.0
+                
+            }
+            
+            arrowLeft.alpha = 1.0
+            arrowRight.alpha = 1.0
+            dotLeft.alpha = 0.5
+            dotLeft1.alpha = 1.0
+            dotCenter.alpha = 0.5
+            dotRight.alpha = 0.5
+            dotRight1.alpha = 0.5
+            
+            backgroundPlanet.position = CGPoint(x: self.size.width * (-3), y: self.size.height * 1)
+            backgroundPlanet2.position = CGPoint(x: self.size.width/2, y: self.size.height * (-0.1))
+            backgroundPlanet2.alpha = 1.0
+            
+            movingBackground.position.x = movingBackground.position.x - 100
+            
+        } else if planet == 3 {
+            
+            for i in 1...buttons3LvlArray.count {
+                let button = buttons3LvlArray[i-1]
+                button.position.x = button.position.x - 100
+                if active3Level[i-1] == 1 {
+                    button.alpha = 1.0
+                } else {
+                    button.alpha = 0.5
+                }
+                //button.alpha = 1.0
+            }
+            
+            for i in 1...buttons2LvlArray.count {
+                let button = buttons2LvlArray[i-1]
+                button.position.x = button.position.x - 200
+                button.alpha = 0.0
+            }
+            for i in 1...buttons1LvlArray.count {
+                let button = buttons1LvlArray[i-1]
+                button.position.x = button.position.x - 100
+                button.alpha = 0.0
+            }
+            
+            lvlsPage = 3
+            
+            if !stars1LvlArray.isEmpty {
+                for i in 1...stars1LvlArray.count {
+                    let stars = stars1LvlArray[i-1]
+                    stars.alpha = 0.0
+                }
+            }
+            if !stars2LvlArray.isEmpty {
+                for i in 1...stars2LvlArray.count {
+                    let stars = stars2LvlArray[i-1]
+                    stars.alpha = 0.0
+                }
+            }
+            if !stars3LvlArray.isEmpty {
+                for i in 1...stars3LvlArray.count {
+                    let stars = stars3LvlArray[i-1]
+                    stars.alpha = 1.0
+                }
+            }
+            
+            enumerateChildNodes(withName: "score1LvlLabel") { (node, _) in
+                node.alpha = 0.0
+                
+            }
+            
+            enumerateChildNodes(withName: "score2LvlLabel") { (node, _) in
+                node.alpha = 0.0
+                
+            }
+            
+            enumerateChildNodes(withName: "score3LvlLabel") { (node, _) in
+                node.alpha = 1.0
+                
+            }
+            
+            arrowLeft.alpha = 1.0
+            arrowRight.alpha = 1.0
+            dotLeft.alpha = 0.5
+            dotLeft1.alpha = 0.5
+            dotCenter.alpha = 1.0
+            dotRight.alpha = 0.5
+            dotRight1.alpha = 0.5
+            
+            backgroundPlanet.position = CGPoint(x: self.size.width * (-3), y: self.size.height * 1)
+            backgroundPlanet2.position = CGPoint(x: self.size.width * (-3), y: self.size.height * (-0.1))
+            backgroundPlanet2.alpha = 1.0
+            
+            backgroundPlanet3.position = CGPoint(x: self.size.width * 0.2, y: self.size.height * (0.8))
+            backgroundPlanet3.alpha = 1.0
+            
+            movingBackground.position.x = movingBackground.position.x - 200
+            
+        } else if planet == 4 {
+            
+        } else if planet == 5 {
+            
+        } else {
+            // do nothingy
+        }
+        
     }
     
     // MARK: Coming soon setup
-    func comingSoonFunc() {
+    private func comingSoonFunc() {
         if preferredLanguage == .ru {
             comingSoonNode = SKSpriteNode(imageNamed: "comingSoonLogoRU")
         } else if preferredLanguage == .ch {
@@ -96,7 +292,7 @@ class LevelsScene: SKScene {
     }
     
     // MARK: Infinity label
-    func infinityFunc() {
+    private func infinityFunc() {
         if preferredLanguage == .ru {
             infinityNode = SKSpriteNode(imageNamed: "InfinityRU")
         } else if preferredLanguage == .ch {
@@ -119,7 +315,7 @@ class LevelsScene: SKScene {
     }
     
     // MARK: Moving background
-    func movingBackgroundSetup() {
+    private func movingBackgroundSetup() {
         //let backgroundPlanet = SKSpriteNode(imageNamed: "planet01_900")
         //backgroundPlanet.size = self.size
         movingBackground.position = CGPoint(x: self.size.width / 5, y: self.size.height / 2)
@@ -132,7 +328,7 @@ class LevelsScene: SKScene {
     }
     
     // MARK: Planet on backbround
-    func backgroundPlanetSetup() {
+    private func backgroundPlanetSetup() {
         //let backgroundPlanet = SKSpriteNode(imageNamed: "planet01_900")
         //backgroundPlanet.size = self.size
         backgroundPlanet.position = CGPoint(x: self.size.width * 0.7, y: self.size.height * 1)
@@ -175,7 +371,7 @@ class LevelsScene: SKScene {
     
     // MARK: Arrows and dots
     
-    func addArrosAndDots() {
+    private func addArrosAndDots() {
         
         arrowLeft.position = CGPoint(x: ((self.size.width/2) - 330), y: self.size.height * 0.08)
         arrowLeft.zPosition = -99
@@ -218,7 +414,7 @@ class LevelsScene: SKScene {
     }
     
     // MARK: adding scroll view
-    func setupRecognizers() {
+    private func setupRecognizers() {
         
         //RIGHT
         swipeRightRecLvl.addTarget(self, action: #selector(LevelsScene.swipeRight))
@@ -230,8 +426,28 @@ class LevelsScene: SKScene {
         self.view?.addGestureRecognizer(swipeLeftRecLvl)
 
     }
+    /*
+    override func willMove(from view: SKView) {
+        if view.gestureRecognizers != nil {
+            for gesture in view.gestureRecognizers! {
+                if let recoginzer = gesture as? UISwipeGestureRecognizer {
+                    view.removeGestureRecognizer(recoginzer)
+                }
+            }
+        }
+    }
+    */
+    private func removeGestureRocognizers() {
+        if view?.gestureRecognizers != nil {
+            for gesture in view!.gestureRecognizers! {
+                if let recoginzer = gesture as? UISwipeGestureRecognizer {
+                    view!.removeGestureRecognizer(recoginzer)
+                }
+            }
+        }
+    }
     
-    @objc func swipeRight() {
+    @objc private func swipeRight() {
         if lvlsPage == 2 {
             
             if !buttons2LvlArray.isEmpty {
@@ -269,6 +485,22 @@ class LevelsScene: SKScene {
             }
             
             lvlsPage = 1
+            planet = 1
+            if preferredLanguage == .ru {
+                levelsLabelNode.text = "Планета \(planet)"
+            } else if preferredLanguage == .ch {
+                levelsLabelNode.text = "行星 \(planet)"
+            } else if preferredLanguage == .es {
+                levelsLabelNode.text = "Planeta \(planet)"
+            } else if preferredLanguage == .jp {
+                levelsLabelNode.text = "惑星 \(planet)"
+            } else if preferredLanguage == .fr {
+                levelsLabelNode.text = "Planète \(planet)"
+            } else if preferredLanguage == .gr {
+                levelsLabelNode.text = "Planet \(planet)"
+            } else {
+                levelsLabelNode.text = "Planet \(planet)"
+            }
             
             let fadeStarsAnimOut = SKAction.fadeOut(withDuration: 0.5)
             let fadeStarsAnimIn = SKAction.fadeIn(withDuration: 0.5)
@@ -356,7 +588,7 @@ class LevelsScene: SKScene {
                     
                     let fadeNodeAction: SKAction
                     let moveNodeAction = SKAction.move(to: CGPoint(x: button.position.x + 100 , y: button.position.y) , duration:0.2)
-                    if activeLevel[i-1] == 1 {
+                    if active2Level[i-1] == 1 {
                         fadeNodeAction = SKAction.fadeIn(withDuration: 0.1)
                     } else {
                         fadeNodeAction = SKAction.fadeAlpha(to: 0.5, duration: 0.1)
@@ -369,6 +601,22 @@ class LevelsScene: SKScene {
             }
             
             lvlsPage = 2
+            planet = 2
+            if preferredLanguage == .ru {
+                levelsLabelNode.text = "Планета \(planet)"
+            } else if preferredLanguage == .ch {
+                levelsLabelNode.text = "行星 \(planet)"
+            } else if preferredLanguage == .es {
+                levelsLabelNode.text = "Planeta \(planet)"
+            } else if preferredLanguage == .jp {
+                levelsLabelNode.text = "惑星 \(planet)"
+            } else if preferredLanguage == .fr {
+                levelsLabelNode.text = "Planète \(planet)"
+            } else if preferredLanguage == .gr {
+                levelsLabelNode.text = "Planet \(planet)"
+            } else {
+                levelsLabelNode.text = "Planet \(planet)"
+            }
             
             let fadeStarsAnimOut = SKAction.fadeOut(withDuration: 0.5)
             let fadeStarsAnimIn = SKAction.fadeIn(withDuration: 0.5)
@@ -464,6 +712,22 @@ class LevelsScene: SKScene {
             }
             
             lvlsPage = 3
+            planet = 3
+            if preferredLanguage == .ru {
+                levelsLabelNode.text = "Планета \(planet)"
+            } else if preferredLanguage == .ch {
+                levelsLabelNode.text = "行星 \(planet)"
+            } else if preferredLanguage == .es {
+                levelsLabelNode.text = "Planeta \(planet)"
+            } else if preferredLanguage == .jp {
+                levelsLabelNode.text = "惑星 \(planet)"
+            } else if preferredLanguage == .fr {
+                levelsLabelNode.text = "Planète \(planet)"
+            } else if preferredLanguage == .gr {
+                levelsLabelNode.text = "Planet \(planet)"
+            } else {
+                levelsLabelNode.text = "Planet \(planet)"
+            }
             
             arrowLeft.alpha = 1.0
             arrowRight.alpha = 1.0
@@ -502,6 +766,23 @@ class LevelsScene: SKScene {
             let infinityGroupAction = SKAction.group([moveInfinityAction, fadeInfintyAction])
             
             lvlsPage = 4
+            planet = 4
+            levelsLabelNode.alpha = 1.0
+            if preferredLanguage == .ru {
+                levelsLabelNode.text = "Планета \(planet)"
+            } else if preferredLanguage == .ch {
+                levelsLabelNode.text = "行星 \(planet)"
+            } else if preferredLanguage == .es {
+                levelsLabelNode.text = "Planeta \(planet)"
+            } else if preferredLanguage == .jp {
+                levelsLabelNode.text = "惑星 \(planet)"
+            } else if preferredLanguage == .fr {
+                levelsLabelNode.text = "Planète \(planet)"
+            } else if preferredLanguage == .gr {
+                levelsLabelNode.text = "Planet \(planet)"
+            } else {
+                levelsLabelNode.text = "Planet \(planet)"
+            }
             
             arrowLeft.alpha = 1.0
             arrowRight.alpha = 1.0
@@ -529,10 +810,10 @@ class LevelsScene: SKScene {
             let moveBackground = SKAction.moveTo(x: movingBackground.position.x - 100, duration: 0.5)
             movingBackground.run(moveBackground)
         }
-        print("swipe right")
+        //print("swipe right")
     }
     
-    @objc func swipeLeft() {
+    @objc private func swipeLeft() {
         
         if lvlsPage == 1 {
             
@@ -568,6 +849,22 @@ class LevelsScene: SKScene {
             }
             
             lvlsPage = 2
+            planet = 2
+            if preferredLanguage == .ru {
+                levelsLabelNode.text = "Планета \(planet)"
+            } else if preferredLanguage == .ch {
+                levelsLabelNode.text = "行星 \(planet)"
+            } else if preferredLanguage == .es {
+                levelsLabelNode.text = "Planeta \(planet)"
+            } else if preferredLanguage == .jp {
+                levelsLabelNode.text = "惑星 \(planet)"
+            } else if preferredLanguage == .fr {
+                levelsLabelNode.text = "Planète \(planet)"
+            } else if preferredLanguage == .gr {
+                levelsLabelNode.text = "Planet \(planet)"
+            } else {
+                levelsLabelNode.text = "Planet \(planet)"
+            }
             
             let fadeStarsAnimOut = SKAction.fadeOut(withDuration: 0.5)
             let fadeStarsAnimIn = SKAction.fadeIn(withDuration: 0.5)
@@ -645,7 +942,7 @@ class LevelsScene: SKScene {
                 }
             }
             if !buttons3LvlArray.isEmpty {
-                print("button3LvlArtay not empty")
+                //print("button3LvlArtay not empty")
                 for i in 1...buttons3LvlArray.count {
                     let button = buttons3LvlArray[i-1]
                     
@@ -663,6 +960,22 @@ class LevelsScene: SKScene {
             }
             
             lvlsPage = 3
+            planet = 3
+            if preferredLanguage == .ru {
+                levelsLabelNode.text = "Планета \(planet)"
+            } else if preferredLanguage == .ch {
+                levelsLabelNode.text = "行星 \(planet)"
+            } else if preferredLanguage == .es {
+                levelsLabelNode.text = "Planeta \(planet)"
+            } else if preferredLanguage == .jp {
+                levelsLabelNode.text = "惑星 \(planet)"
+            } else if preferredLanguage == .fr {
+                levelsLabelNode.text = "Planète \(planet)"
+            } else if preferredLanguage == .gr {
+                levelsLabelNode.text = "Planet \(planet)"
+            } else {
+                levelsLabelNode.text = "Planet \(planet)"
+            }
             
             let fadeStarsAnimOut = SKAction.fadeOut(withDuration: 0.5)
             let fadeStarsAnimIn = SKAction.fadeIn(withDuration: 0.5)
@@ -755,6 +1068,22 @@ class LevelsScene: SKScene {
             }
             
             lvlsPage = 4
+            planet = 4
+            if preferredLanguage == .ru {
+                levelsLabelNode.text = "Планета \(planet)"
+            } else if preferredLanguage == .ch {
+                levelsLabelNode.text = "行星 \(planet)"
+            } else if preferredLanguage == .es {
+                levelsLabelNode.text = "Planeta \(planet)"
+            } else if preferredLanguage == .jp {
+                levelsLabelNode.text = "惑星 \(planet)"
+            } else if preferredLanguage == .fr {
+                levelsLabelNode.text = "Planète \(planet)"
+            } else if preferredLanguage == .gr {
+                levelsLabelNode.text = "Planet \(planet)"
+            } else {
+                levelsLabelNode.text = "Planet \(planet)"
+            }
             
             arrowLeft.alpha = 1.0
             arrowRight.alpha = 1.0
@@ -795,6 +1124,17 @@ class LevelsScene: SKScene {
             
             
             lvlsPage = 5
+            planet = 5
+            levelsLabelNode.alpha = 0.0
+//            if preferredLanguage == .ru {
+//                levelsLabelNode.text = "Планета \(planet)"
+//            } else if preferredLanguage == .ch {
+//                levelsLabelNode.text = "行星 \(planet)"
+//            } else if preferredLanguage == .es {
+//                levelsLabelNode.text = "Planeta \(planet)"
+//            } else {
+//                levelsLabelNode.text = "Planet \(planet)"
+//            }
             
             arrowLeft.alpha = 1.0
             arrowRight.alpha = 0.5
@@ -825,9 +1165,8 @@ class LevelsScene: SKScene {
         //print("swipe left")
     }
     
-    
     // MARK: Background setup
-    func backgroundSetup() {
+    private func backgroundSetup() {
          let background = SKSpriteNode(imageNamed: "backgroundStars")
          background.size = self.size
          background.position = CGPoint(x: self.size.width/2, y: self.size.height/2)
@@ -835,7 +1174,7 @@ class LevelsScene: SKScene {
          self.addChild(background)
     }
     
-    func levelsLabel() {
+    private func levelsLabel() {
         var levelsLabel = SKSpriteNode()
         if preferredLanguage == .ru {
             levelsLabel = SKSpriteNode(imageNamed: "levelsLableRU1")
@@ -852,7 +1191,31 @@ class LevelsScene: SKScene {
         self.addChild(levelsLabel)
     }
     
-    func levelButtonsSetup() {
+    private func levelsLabelSetup() {
+        if preferredLanguage == .ru {
+            levelsLabelNode.text = "Планета \(planet)"
+        } else if preferredLanguage == .ch {
+            levelsLabelNode.text = "行星 \(planet)"
+        } else if preferredLanguage == .es {
+            levelsLabelNode.text = "Planeta \(planet)"
+        } else if preferredLanguage == .jp {
+            levelsLabelNode.text = "惑星 \(planet)"
+        } else if preferredLanguage == .fr {
+            levelsLabelNode.text = "Planète \(planet)"
+        } else if preferredLanguage == .gr {
+            levelsLabelNode.text = "Planet \(planet)"
+        } else {
+            levelsLabelNode.text = "Planet \(planet)"
+        }
+        //levelsLabel.size = self.size
+        levelsLabelNode.fontSize = 70
+        levelsLabelNode.fontColor = UIColor(red: 194.0/255, green: 194.0/255, blue: 194.0/255, alpha: 1.0) //UIColor.white //UIColor.white
+        levelsLabelNode.position = CGPoint(x: self.size.width/2, y: self.size.height * 0.88)
+        levelsLabelNode.zPosition = -99
+        self.addChild(levelsLabelNode)
+    }
+    
+    private func levelButtonsSetup() {
         var x = 1
         var y = 1
         var z = 1
@@ -927,6 +1290,10 @@ class LevelsScene: SKScene {
                     lvlButton.position = CGPoint(x: self.size.width * 0.1 + CGFloat(300 * z), y: self.size.height * 0.80 - CGFloat(1120))
                     lvlButton.alpha = 0.5
                 }
+                if i == 10 {
+                    //levelTenButtonPosition = lvlButton.position
+                    levelTenDistortButton = lvlButton
+                }
                 z += 1
             }
             
@@ -953,7 +1320,7 @@ class LevelsScene: SKScene {
         }
     }
     
-    func level2ButtonsSetup() {
+    private func level2ButtonsSetup() {
         var x = 1
         var y = 1
         var z = 1
@@ -1095,7 +1462,7 @@ class LevelsScene: SKScene {
         }
     }
     
-    func level3ButtonsSetup() {
+    private func level3ButtonsSetup() {
         var x = 1
         var y = 1
         var z = 1
@@ -1238,7 +1605,7 @@ class LevelsScene: SKScene {
     }
     
     
-    func scoreStars(index: Int, button: SKSpriteNode) {
+    private func scoreStars(index: Int, button: SKSpriteNode) {
         var score: Int = 0
         if button.name!.contains("ONE") /*== "lvlButton"*/ {
             score = lvlScore[index-1]
@@ -1252,7 +1619,7 @@ class LevelsScene: SKScene {
         
         
         if score < scoreOneStar {
-            print("zore")
+            //print("zore")
         } else if score >= scoreOneStar && score < scoreTwoStar {
             let scoreStar = SKSpriteNode(imageNamed: "scoreOneStar200")
             if button.name!.contains("ONE") /*== "lvlButton"*/ {
@@ -1275,7 +1642,7 @@ class LevelsScene: SKScene {
             scoreStar.zPosition = -98
             //button.addChild(scoreStar)
             self.addChild(scoreStar)
-            print("one")
+            //print("one")
         } else if score >= scoreTwoStar && score < scoreThreeStars {
             let scoreStar = SKSpriteNode(imageNamed: "scoreTwoStar200")
             if button.name!.contains("ONE") /*== "lvlButton"*/ {
@@ -1298,7 +1665,7 @@ class LevelsScene: SKScene {
             scoreStar.zPosition = -98
             //button.addChild(scoreStar)
             self.addChild(scoreStar)
-            print("two")
+            //print("two")
         } else if score >= scoreThreeStars {
             let scoreStar = SKSpriteNode(imageNamed: "scoreThreeStar200")
             if button.name!.contains("ONE") /*== "lvlButton"*/ {
@@ -1321,18 +1688,18 @@ class LevelsScene: SKScene {
             scoreStar.zPosition = -98
             //button.addChild(scoreStar)
             self.addChild(scoreStar)
-            print("three")
+            //print("three")
         }
     }
     
-    func scoreLableSetup() {
+    private func scoreLableSetup() {
         
         var x = 1
         var y = 1
         var z = 1
         
         for i in 1...lvlScore.count {
-            let scoreLabel = SKLabelNode(fontNamed: SomeNames.fontName)
+            let scoreLabel = SKLabelNode(fontNamed: SomeNames.fontNameVenusrising)
             scoreLabel.name = "score1LvlLabel"
             //scoreLabel.text = "\(23)"
             
@@ -1350,8 +1717,8 @@ class LevelsScene: SKScene {
                 z += 1
             }
             
-            scoreLabel.fontSize = 80
-            scoreLabel.fontColor = UIColor.white
+            scoreLabel.fontSize = 40
+            scoreLabel.fontColor = UIColor(red: 194.0/255, green: 194.0/255, blue: 194.0/255, alpha: 1.0) //UIColor.white
             scoreLabel.zPosition = -99
             self.addChild(scoreLabel)
             
@@ -1365,7 +1732,7 @@ class LevelsScene: SKScene {
         z = 1
         
         for i in 1...lvl2Score.count {
-            let scoreLabel = SKLabelNode(fontNamed: SomeNames.fontName)
+            let scoreLabel = SKLabelNode(fontNamed: SomeNames.fontNameVenusrising)
             scoreLabel.name = "score2LvlLabel"
             ///scoreLabel.text = "\(23)"
             
@@ -1383,8 +1750,10 @@ class LevelsScene: SKScene {
                 z += 1
             }
             
-            scoreLabel.fontSize = 80
-            scoreLabel.fontColor = UIColor.white
+            scoreLabel.fontSize = 40
+            scoreLabel.fontColor = UIColor(red: 194.0/255, green: 194.0/255, blue: 194.0/255, alpha: 1.0) //UIColor.white
+            //scoreLabel.fontSize = 80
+            //scoreLabel.fontColor = UIColor.white
             scoreLabel.zPosition = -99
             scoreLabel.alpha = 0.0
             self.addChild(scoreLabel)
@@ -1400,7 +1769,7 @@ class LevelsScene: SKScene {
         z = 1
         
         for i in 1...lvl3Score.count {
-            let scoreLabel = SKLabelNode(fontNamed: SomeNames.fontName)
+            let scoreLabel = SKLabelNode(fontNamed: SomeNames.fontNameVenusrising)
             scoreLabel.name = "score3LvlLabel"
             ///scoreLabel.text = "\(23)"
             
@@ -1418,8 +1787,10 @@ class LevelsScene: SKScene {
                 z += 1
             }
             
-            scoreLabel.fontSize = 80
-            scoreLabel.fontColor = UIColor.white
+            scoreLabel.fontSize = 40
+            scoreLabel.fontColor = UIColor(red: 194.0/255, green: 194.0/255, blue: 194.0/255, alpha: 1.0) //UIColor.white
+            //scoreLabel.fontSize = 80
+            //scoreLabel.fontColor = UIColor.white
             scoreLabel.zPosition = -99
             scoreLabel.alpha = 0.0
             self.addChild(scoreLabel)
@@ -1431,28 +1802,508 @@ class LevelsScene: SKScene {
         
     }
     
-    func backToMenuButtonsSetup() {
+    private func backToMenuButtonsSetup() {
         
         let backToMenuButton = SKLabelNode(fontNamed: SomeNames.fontNameVenusrising)
         backToMenuButton.name = "Back to menu"
-        backToMenuButton.fontColor = UIColor(red: 194.0/255, green: 194.0/255, blue: 194.0/255, alpha: 1.0) //UIColor.white //UIColor.white
+        backToMenuButton.fontColor = UIColor.white//UIColor(red: 194.0/255, green: 194.0/255, blue: 194.0/255, alpha: 1.0) //UIColor.white
+        if preferredLanguage == .ch || preferredLanguage == .jp {
+            backToMenuButton.fontSize = 85
+        } else {
+            backToMenuButton.fontSize = 70
+        }
         if preferredLanguage == .ru {
             backToMenuButton.text = "НА3АД"
         } else if preferredLanguage == .ch {
             backToMenuButton.text = "后退"
         } else if preferredLanguage == .es {
             backToMenuButton.text = "Atrás"
+        } else if preferredLanguage == .jp {
+            backToMenuButton.text = "戻る"
+        } else if preferredLanguage == .fr {
+            backToMenuButton.text = "Retour"
+        } else if preferredLanguage == .gr {
+            backToMenuButton.text = "Zurück"
         } else {
             backToMenuButton.text = "BACK"
         }
         
         backToMenuButton.position = CGPoint(x: self.size.width * 0.26, y: self.size.height * 0.94)
         backToMenuButton.zPosition = 1
-        backToMenuButton.fontSize = 60
+        
+        let backgroundForLabel = SKSpriteNode(imageNamed: "backBackground5")
+        backgroundForLabel.name = "backBackground"
+        backgroundForLabel.position = backToMenuButton.position
+        backgroundForLabel.zPosition = backToMenuButton.zPosition - 1
+        
+        
 //        backToMenuButton.xScale += 0.4
 //        backToMenuButton.yScale += 0.4
         self.addChild(backToMenuButton)
+        self.addChild(backgroundForLabel)
     }
+    
+    private func scaleButton(button: SKSpriteNode) {
+        button.xScale -= 0.4
+        button.yScale -= 0.4
+    }
+    
+    override func touchesEnded(_ touches: Set<UITouch>, with event: UIEvent?) {
+        if !levelButtonTouched {
+            for touch in touches {
+                let location = touch.location(in: self)
+                if lvlsPage == 1 {
+                    gameMode = GameMode.normal
+                    if atPoint(location).name == "lvl1ButtonONE" && atPoint(location) == firstTouchButton {
+                        if activeLevel[0] == 1 {
+                            scaleButton(button: atPoint(location) as! SKSpriteNode)
+                            //atPoint(location).colori
+                            startNewAcitivityIndicator()
+                            level = 0  // 1
+                            planet = 1
+                            timerFunc()
+                            //nextLevelFunc()
+                            //presentScene(sceneName: "Game scene")
+                        }
+                        
+                    } else if atPoint(location).name == "lvl2ButtonONE" && atPoint(location) == firstTouchButton {
+                        if activeLevel[1] == 1 {
+                            scaleButton(button: atPoint(location) as! SKSpriteNode)
+                            startNewAcitivityIndicator()
+                            planet = 1
+                            level = 1 // 2
+                            
+                            
+                            timerFunc()
+                            //print("level2")
+                        }
+                    } else if atPoint(location).name == "lvl3ButtonONE" && atPoint(location) == firstTouchButton {
+                        if activeLevel[2] == 1 {
+                            scaleButton(button: atPoint(location) as! SKSpriteNode)
+                            startNewAcitivityIndicator()
+                            planet = 1
+                            level = 2 //3
+                            
+                            
+                            timerFunc()
+                            //print("level3")
+                        }
+                    } else if atPoint(location).name == "lvl4ButtonONE" && atPoint(location) == firstTouchButton {
+                        if activeLevel[3] == 1 {
+                            scaleButton(button: atPoint(location) as! SKSpriteNode)
+                            startNewAcitivityIndicator()
+                            level = 3 //4
+                            planet = 1
+                            
+                            
+                            timerFunc()
+                            //print("level4")
+                        }
+                    } else if atPoint(location).name == "lvl5ButtonONE" && atPoint(location) == firstTouchButton {
+                        if activeLevel[4] == 1 {
+                            scaleButton(button: atPoint(location) as! SKSpriteNode)
+                            startNewAcitivityIndicator()
+                            level = 4 //5
+                            planet = 1
+                            
+                            
+                            timerFunc()
+                            //print("level5")
+                        }
+                    } else if atPoint(location).name == "lvl6ButtonONE" && atPoint(location) == firstTouchButton {
+                        if activeLevel[5] == 1 && paidLevel[5] == 1 {
+                            scaleButton(button: atPoint(location) as! SKSpriteNode)
+                            startNewAcitivityIndicator()
+                            level = 5 //6
+                            planet = 1
+                            
+                            
+                            timerFunc()
+                            //print("level6")
+                        }
+                    } else if atPoint(location).name == "lvl7ButtonONE" && atPoint(location) == firstTouchButton {
+                        if activeLevel[6] == 1 && paidLevel[6] == 1 {
+                            scaleButton(button: atPoint(location) as! SKSpriteNode)
+                            startNewAcitivityIndicator()
+                            level = 6 //7
+                            planet = 1
+                            
+                            
+                            timerFunc()
+                            //print("level7")
+                        }
+                    } else if atPoint(location).name == "lvl8ButtonONE" && atPoint(location) == firstTouchButton {
+                        if activeLevel[7] == 1 && paidLevel[7] == 1 {
+                            scaleButton(button: atPoint(location) as! SKSpriteNode)
+                            startNewAcitivityIndicator()
+                            level = 7 //8
+                            planet = 1
+                            
+                            
+                            timerFunc()
+                            //print("level8")
+                        }
+                    } else if atPoint(location).name == "lvl9ButtonONE" && atPoint(location) == firstTouchButton {
+                        if activeLevel[8] == 1 && paidLevel[8] == 1 {
+                            scaleButton(button: atPoint(location) as! SKSpriteNode)
+                            startNewAcitivityIndicator()
+                            level = 8 //9
+                            planet = 1
+                            
+                            
+                            timerFunc()
+                            //print("level9")
+                        }
+                    } else if atPoint(location).name == "lvl10ButtonONE" && atPoint(location) == firstTouchButton {
+                        if activeLevel[9] == 1 && paidLevel[9] == 1 {
+                            scaleButton(button: atPoint(location) as! SKSpriteNode)
+                            startNewAcitivityIndicator()
+                            level = 9 //10
+                            planet = 1
+                            
+                            
+                            timerFunc()
+                            //print("level10")
+                        }
+                    } else if atPoint(location).name == "lvl11ButtonONE" && atPoint(location) == firstTouchButton {
+                        if activeLevel[10] == 1 && paidLevel[10] == 1 {
+                            scaleButton(button: atPoint(location) as! SKSpriteNode)
+                            startNewAcitivityIndicator()
+                            level = 10 //11
+                            planet = 1
+                            
+                            
+                            timerFunc()
+                            //print("level11")
+                        }
+                    } else if atPoint(location).name == "lvl12ButtonONE" && atPoint(location) == firstTouchButton {
+                        if activeLevel[11] == 1 && paidLevel[11] == 1 {
+                            scaleButton(button: atPoint(location) as! SKSpriteNode)
+                            startNewAcitivityIndicator()
+                            level = 11 //12
+                            planet = 1
+                            
+                            
+                            timerFunc()
+                            //     print("level12")
+                        }
+                        // lvl\(i)ButtonTWO
+                    } /*else if atPoint(location).name == "Back to menu" && atPoint(location) == firstTouchBackButton || atPoint(location).name == "backBackground" && atPoint(location) == firstTouchBackButton {
+                        //level = 11 //12
+                        presentScene(sceneName: "Menu scene")
+                        //print("level12")  backBackground
+                    }*/
+                } else if lvlsPage == 2 {                                                              // SECOND PLANET ---------------------------
+                    gameMode = GameMode.normal
+                    /*if atPoint(location).name == "Back to menu" && atPoint(location) == firstTouchBackButton || atPoint(location).name == "backBackground" && atPoint(location) == firstTouchBackButton {
+                        //level = 11 //12
+                        presentScene(sceneName: "Menu scene")
+                        //print("level12")
+                    } else*/ if atPoint(location).name == "lvl1ButtonTWO" && atPoint(location) == firstTouchButton {
+                        if active2Level[0] == 1 && paid2Level[0] == 1 {
+                            scaleButton(button: atPoint(location) as! SKSpriteNode)
+                            startNewAcitivityIndicator()
+                            level = 0 //1
+                            planet = 2
+                            
+                            timerFunc()
+                            //print("level1 Planet 2")
+                        }
+                        // lvl\(i)ButtonTWO
+                    } else if atPoint(location).name == "lvl2ButtonTWO" && atPoint(location) == firstTouchButton {
+                        if active2Level[1] == 1 && paid2Level[1] == 1 {
+                            scaleButton(button: atPoint(location) as! SKSpriteNode)
+                            startNewAcitivityIndicator()
+                            level = 1 //1
+                            planet = 2
+                            
+                            timerFunc()
+                            //print("level1 Planet 2")
+                        }
+                        // lvl\(i)ButtonTWO
+                    }  else if atPoint(location).name == "lvl3ButtonTWO" && atPoint(location) == firstTouchButton {
+                        if active2Level[2] == 1 && paid2Level[2] == 1 {
+                            scaleButton(button: atPoint(location) as! SKSpriteNode)
+                            startNewAcitivityIndicator()
+                            level = 2 //1
+                            planet = 2
+                            
+                            timerFunc()
+                            //print("level1 Planet 2")
+                        }
+                        // lvl\(i)ButtonTWO
+                    }  else if atPoint(location).name == "lvl4ButtonTWO" && atPoint(location) == firstTouchButton {
+                        if active2Level[3] == 1 && paid2Level[3] == 1 {
+                            scaleButton(button: atPoint(location) as! SKSpriteNode)
+                            startNewAcitivityIndicator()
+                            level = 3 //1
+                            planet = 2
+                            
+                            timerFunc()
+                            //print("level1 Planet 2")
+                        }
+                        // lvl\(i)ButtonTWO
+                    }  else if atPoint(location).name == "lvl5ButtonTWO" && atPoint(location) == firstTouchButton {
+                        if active2Level[4] == 1 && paid2Level[4] == 1 {
+                            scaleButton(button: atPoint(location) as! SKSpriteNode)
+                            startNewAcitivityIndicator()
+                            level = 4 //1
+                            planet = 2
+                            
+                            timerFunc()
+                            //print("level1 Planet 2")
+                        }
+                        // lvl\(i)ButtonTWO
+                    }  else if atPoint(location).name == "lvl6ButtonTWO" && atPoint(location) == firstTouchButton {
+                        if active2Level[5] == 1 && paid2Level[5] == 1 {
+                            scaleButton(button: atPoint(location) as! SKSpriteNode)
+                            startNewAcitivityIndicator()
+                            level = 5 //1
+                            planet = 2
+                            
+                            timerFunc()
+                            //print("level1 Planet 2")
+                        }
+                        // lvl\(i)ButtonTWO
+                    }  else if atPoint(location).name == "lvl7ButtonTWO" && atPoint(location) == firstTouchButton {
+                        if active2Level[6] == 1 && paid2Level[6] == 1 {
+                            scaleButton(button: atPoint(location) as! SKSpriteNode)
+                            startNewAcitivityIndicator()
+                            level = 6 //1
+                            planet = 2
+                            
+                            timerFunc()
+                            //print("level1 Planet 2")
+                        }
+                        // lvl\(i)ButtonTWO
+                    }  else if atPoint(location).name == "lvl8ButtonTWO" && atPoint(location) == firstTouchButton {
+                        if active2Level[7] == 1 && paid2Level[7] == 1 {
+                            scaleButton(button: atPoint(location) as! SKSpriteNode)
+                            startNewAcitivityIndicator()
+                            level = 7 //1
+                            planet = 2
+                            
+                            timerFunc()
+                            //print("level1 Planet 2")
+                        }
+                        // lvl\(i)ButtonTWO
+                    }  else if atPoint(location).name == "lvl9ButtonTWO" && atPoint(location) == firstTouchButton {
+                        if active2Level[8] == 1 && paid2Level[8] == 1 {
+                            scaleButton(button: atPoint(location) as! SKSpriteNode)
+                            startNewAcitivityIndicator()
+                            level = 8 //1
+                            planet = 2
+                            
+                            timerFunc()
+                            //print("level1 Planet 2")
+                        }
+                        // lvl\(i)ButtonTWO
+                    }  else if atPoint(location).name == "lvl10ButtonTWO" && atPoint(location) == firstTouchButton {
+                        if active2Level[9] == 1 && paid2Level[9] == 1 {
+                            scaleButton(button: atPoint(location) as! SKSpriteNode)
+                            startNewAcitivityIndicator()
+                            level = 9 //1
+                            planet = 2
+                            
+                            timerFunc()
+                            //print("level1 Planet 2")
+                        }
+                        // lvl\(i)ButtonTWO
+                    }   else if atPoint(location).name == "lvl11ButtonTWO" && atPoint(location) == firstTouchButton {
+                        if active2Level[10] == 1 && paid2Level[10] == 1 {
+                            scaleButton(button: atPoint(location) as! SKSpriteNode)
+                            startNewAcitivityIndicator()
+                            level = 10 //1
+                            planet = 2
+                            
+                            timerFunc()
+                            //print("level1 Planet 2")
+                        }
+                        // lvl\(i)ButtonTWO
+                    }   else if atPoint(location).name == "lvl12ButtonTWO" && atPoint(location) == firstTouchButton {
+                        if active2Level[11] == 1 && paid2Level[11] == 1 {
+                            scaleButton(button: atPoint(location) as! SKSpriteNode)
+                            startNewAcitivityIndicator()
+                            level = 11 //1
+                            planet = 2
+                            
+                            timerFunc()
+                            //print("level1 Planet 2")
+                        }
+                        // lvl\(i)ButtonTWO
+                    }
+                } else if lvlsPage == 3 {                                                              //  THIRD PLANET ---------------------------
+                    gameMode = GameMode.normal
+                    /* if atPoint(location).name == "Back to menu" && atPoint(location) == firstTouchBackButton || atPoint(location).name == "backBackground" && atPoint(location) == firstTouchBackButton {
+                        //level = 11 //12
+                        presentScene(sceneName: "Menu scene")
+                        //print("level12")
+                    } else */ if atPoint(location).name == "lvl1ButtonTREE" && atPoint(location) == firstTouchButton {
+                        if active3Level[0] == 1 && paid3Level[0] == 1 {
+                            scaleButton(button: atPoint(location) as! SKSpriteNode)
+                            startNewAcitivityIndicator()
+                            level = 0 //1
+                            planet = 3
+                            
+                            timerFunc()
+                            //print("level1 Planet 2")
+                        }
+                        // lvl\(i)ButtonTWO
+                    } else if atPoint(location).name == "lvl2ButtonTREE" && atPoint(location) == firstTouchButton {
+                        if active3Level[1] == 1 && paid3Level[1] == 1 {
+                            scaleButton(button: atPoint(location) as! SKSpriteNode)
+                            startNewAcitivityIndicator()
+                            level = 1 //1
+                            planet = 3
+                            
+                            timerFunc()
+                            //print("level1 Planet 2")
+                        }
+                        // lvl\(i)ButtonTWO
+                    }  else if atPoint(location).name == "lvl3ButtonTREE" && atPoint(location) == firstTouchButton {
+                        if active3Level[2] == 1 && paid3Level[2] == 1 {
+                            scaleButton(button: atPoint(location) as! SKSpriteNode)
+                            startNewAcitivityIndicator()
+                            level = 2 //1
+                            planet = 3
+                            
+                            timerFunc()
+                            //print("level1 Planet 2")
+                        }
+                        // lvl\(i)ButtonTWO
+                    }  else if atPoint(location).name == "lvl4ButtonTREE" && atPoint(location) == firstTouchButton {
+                        if active3Level[3] == 1 && paid3Level[3] == 1 {
+                            scaleButton(button: atPoint(location) as! SKSpriteNode)
+                            startNewAcitivityIndicator()
+                            level = 3 //1
+                            planet = 3
+                            
+                            timerFunc()
+                            //print("level1 Planet 2")
+                        }
+                        // lvl\(i)ButtonTWO
+                    }  else if atPoint(location).name == "lvl5ButtonTREE" && atPoint(location) == firstTouchButton {
+                        if active3Level[4] == 1 && paid3Level[4] == 1 {
+                            scaleButton(button: atPoint(location) as! SKSpriteNode)
+                            startNewAcitivityIndicator()
+                            level = 4 //1
+                            planet = 3
+                            
+                            timerFunc()
+                            //print("level1 Planet 2")
+                        }
+                        // lvl\(i)ButtonTWO
+                    }  else if atPoint(location).name == "lvl6ButtonTREE" && atPoint(location) == firstTouchButton {
+                        if active3Level[5] == 1 && paid3Level[5] == 1 {
+                            scaleButton(button: atPoint(location) as! SKSpriteNode)
+                            startNewAcitivityIndicator()
+                            level = 5 //1
+                            planet = 3
+                            
+                            timerFunc()
+                            //print("level1 Planet 2")
+                        }
+                        // lvl\(i)ButtonTWO
+                    }  else if atPoint(location).name == "lvl7ButtonTREE" && atPoint(location) == firstTouchButton {
+                        if active3Level[6] == 1 && paid3Level[6] == 1 {
+                            scaleButton(button: atPoint(location) as! SKSpriteNode)
+                            startNewAcitivityIndicator()
+                            level = 6 //1
+                            planet = 3
+                            
+                            timerFunc()
+                            //print("level1 Planet 2")
+                        }
+                        // lvl\(i)ButtonTWO
+                    }  else if atPoint(location).name == "lvl8ButtonTREE" && atPoint(location) == firstTouchButton {
+                        if active3Level[7] == 1 && paid3Level[7] == 1 {
+                            scaleButton(button: atPoint(location) as! SKSpriteNode)
+                            startNewAcitivityIndicator()
+                            level = 7 //1
+                            planet = 3
+                            
+                            timerFunc()
+                            //print("level1 Planet 2")
+                        }
+                        // lvl\(i)ButtonTWO
+                    }  else if atPoint(location).name == "lvl9ButtonTREE" && atPoint(location) == firstTouchButton {
+                        if active3Level[8] == 1 && paid3Level[8] == 1 {
+                            scaleButton(button: atPoint(location) as! SKSpriteNode)
+                            startNewAcitivityIndicator()
+                            level = 8 //1
+                            planet = 3
+                            
+                            timerFunc()
+                            //print("level1 Planet 2")
+                        }
+                        // lvl\(i)ButtonTWO
+                    }  else if atPoint(location).name == "lvl10ButtonTREE" && atPoint(location) == firstTouchButton {
+                        if active3Level[9] == 1 && paid3Level[9] == 1 {
+                            scaleButton(button: atPoint(location) as! SKSpriteNode)
+                            startNewAcitivityIndicator()
+                            level = 9 //1
+                            planet = 3
+                            
+                            timerFunc()
+                            //print("level1 Planet 2")
+                        }
+                        // lvl\(i)ButtonTWO
+                    }   else if atPoint(location).name == "lvl11ButtonTREE" && atPoint(location) == firstTouchButton {
+                        if active3Level[10] == 1 && paid3Level[10] == 1 {
+                            scaleButton(button: atPoint(location) as! SKSpriteNode)
+                            startNewAcitivityIndicator()
+                            level = 10 //1
+                            planet = 3
+                            
+                            timerFunc()
+                            //print("level1 Planet 2")
+                        }
+                        // lvl\(i)ButtonTWO
+                    }   else if atPoint(location).name == "lvl12ButtonTREE" && atPoint(location) == firstTouchButton {
+                        if active3Level[11] == 1 && paid3Level[11] == 1 {
+                            scaleButton(button: atPoint(location) as! SKSpriteNode)
+                            startNewAcitivityIndicator()
+                            level = 11 //1
+                            planet = 3
+                            
+                            timerFunc()
+                            //print("level1 Planet 2")
+                        }
+                        // lvl\(i)ButtonTWO
+                    }
+                } else if lvlsPage == 4 {                                                              //  THIRD PLANET ---------------------------
+                    /*if atPoint(location).name == "Back to menu" && atPoint(location) == firstTouchBackButton || atPoint(location).name == "backBackground" && atPoint(location) == firstTouchBackButton {
+                        //changePlanetOnFourAndFive()
+                        //level = 11 //12
+                        presentScene(sceneName: "Menu scene")
+                        //print("level12")
+                    }*/
+                }  else if lvlsPage == 5 {
+                    gameMode = GameMode.survival
+                    /*if atPoint(location).name == "Back to menu" && atPoint(location) == firstTouchBackButton || atPoint(location).name == "backBackground" && atPoint(location) == firstTouchBackButton {
+                        //changePlanetOnFourAndFive()
+                        //level = 11 //12
+                        presentScene(sceneName: "Menu scene")
+                        //print("level12")
+                    } else */ if atPoint(location).name == "suvivalMode" && atPoint(location) == firstTouchButton {
+                        scaleButton(button: atPoint(location) as! SKSpriteNode)
+                        startNewAcitivityIndicator()
+                        level = 51
+                        planet = 5
+                        timerFunc()
+                        
+                    }
+                }
+                
+                
+                
+            }
+        }
+    }
+    
+    var firstTouchButton: SKSpriteNode?
+    var firstTouchBackButton: SKLabelNode?
+    var levelButtonTouched: Bool = false
     
     override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
         
@@ -1462,400 +2313,201 @@ class LevelsScene: SKScene {
                 gameMode = GameMode.normal
                 if atPoint(location).name == "lvl1ButtonONE" {
                     if activeLevel[0] == 1 {
-                        level = 0  // 1
-                        planet = 1
-                        
-                        nextLevelFunc()
-                        presentScene(sceneName: "Game scene")
+                        firstTouchButton = atPoint(location) as? SKSpriteNode
                     }
-                    
                 } else if atPoint(location).name == "lvl2ButtonONE" {
                     if activeLevel[1] == 1 {
-                        planet = 1
-                        level = 1 // 2
-                        
-                        
-                        nextLevelFunc()
-                        presentScene(sceneName: "Game scene")
-                        print("level2")
+                        firstTouchButton = atPoint(location) as? SKSpriteNode
                     }
                 } else if atPoint(location).name == "lvl3ButtonONE" {
                     if activeLevel[2] == 1 {
-                        planet = 1
-                        level = 2 //3
-                        
-                        
-                        nextLevelFunc()
-                        presentScene(sceneName: "Game scene")
-                        print("level3")
+                        firstTouchButton = atPoint(location) as? SKSpriteNode
                     }
                 } else if atPoint(location).name == "lvl4ButtonONE" {
                     if activeLevel[3] == 1 {
-                        level = 3 //4
-                        planet = 1
-                        
-                        
-                        nextLevelFunc()
-                        presentScene(sceneName: "Game scene")
-                        print("level4")
+                        firstTouchButton = atPoint(location) as? SKSpriteNode
                     }
                 } else if atPoint(location).name == "lvl5ButtonONE" {
                     if activeLevel[4] == 1 {
-                        level = 4 //5
-                        planet = 1
-                        
-                        
-                        nextLevelFunc()
-                        presentScene(sceneName: "Game scene")
-                        print("level5")
+                        firstTouchButton = atPoint(location) as? SKSpriteNode
                     }
                 } else if atPoint(location).name == "lvl6ButtonONE" {
                     if activeLevel[5] == 1 && paidLevel[5] == 1 {
-                        level = 5 //6
-                        planet = 1
-                        
-                        
-                        nextLevelFunc()
-                        presentScene(sceneName: "Game scene")
-                        print("level6")
+                        firstTouchButton = atPoint(location) as? SKSpriteNode
                     }
                 } else if atPoint(location).name == "lvl7ButtonONE" {
                     if activeLevel[6] == 1 && paidLevel[6] == 1 {
-                        level = 6 //7
-                        planet = 1
-                        
-                        
-                        nextLevelFunc()
-                        presentScene(sceneName: "Game scene")
-                        print("level7")
+                        firstTouchButton = atPoint(location) as? SKSpriteNode
                     }
                 } else if atPoint(location).name == "lvl8ButtonONE" {
                     if activeLevel[7] == 1 && paidLevel[7] == 1 {
-                        level = 7 //8
-                        planet = 1
-                        
-                        
-                        nextLevelFunc()
-                        presentScene(sceneName: "Game scene")
-                        print("level8")
+                        firstTouchButton = atPoint(location) as? SKSpriteNode
                     }
                 } else if atPoint(location).name == "lvl9ButtonONE" {
                     if activeLevel[8] == 1 && paidLevel[8] == 1 {
-                        level = 8 //9
-                        planet = 1
-                        
-                        
-                        nextLevelFunc()
-                        presentScene(sceneName: "Game scene")
-                        print("level9")
+                        firstTouchButton = atPoint(location) as? SKSpriteNode
                     }
                 } else if atPoint(location).name == "lvl10ButtonONE" {
                     if activeLevel[9] == 1 && paidLevel[9] == 1 {
-                        level = 9 //10
-                        planet = 1
-                        
-                        
-                        nextLevelFunc()
-                        presentScene(sceneName: "Game scene")
-                        print("level10")
+                        firstTouchButton = atPoint(location) as? SKSpriteNode
                     }
                 } else if atPoint(location).name == "lvl11ButtonONE" {
                     if activeLevel[10] == 1 && paidLevel[10] == 1 {
-                        level = 10 //11
-                        planet = 1
-                        
-                        
-                        nextLevelFunc()
-                        presentScene(sceneName: "Game scene")
-                        print("level11")
+                        firstTouchButton = atPoint(location) as? SKSpriteNode
                     }
                 } else if atPoint(location).name == "lvl12ButtonONE" {
                     if activeLevel[11] == 1 && paidLevel[11] == 1 {
-                        level = 11 //12
-                        planet = 1
-                        
-                        
-                        nextLevelFunc()
-                        presentScene(sceneName: "Game scene")
-                        print("level12")
+                        firstTouchButton = atPoint(location) as? SKSpriteNode
                     }
                     // lvl\(i)ButtonTWO
-                } else if atPoint(location).name == "Back to menu" {
-                    //level = 11 //12
+                } else if atPoint(location).name == "Back to menu" || atPoint(location).name == "backBackground" {
+                    //firstTouchBackButton = atPoint(location) as? SKLabelNode
                     presentScene(sceneName: "Menu scene")
-                    //print("level12")
                 }
-            } else if lvlsPage == 2 {                                                              // SECOND PLANET ---------------------------
+            } else if lvlsPage == 2 {                                                              // SECOND PLANET --------------------------- backBackground
                 gameMode = GameMode.normal
-                if atPoint(location).name == "Back to menu" {
-                    //level = 11 //12
+                if atPoint(location).name == "Back to menu" || atPoint(location).name == "backBackground" {
+                    //firstTouchBackButton = atPoint(location) as? SKLabelNode
                     presentScene(sceneName: "Menu scene")
-                    //print("level12")
                 } else if atPoint(location).name == "lvl1ButtonTWO" {
                     if active2Level[0] == 1 && paid2Level[0] == 1 {
-                        level = 0 //1
-                        planet = 2
-                        
-                        nextLevelFunc()
-                        presentScene(sceneName: "Game scene")
-                        print("level1 Planet 2")
+                        firstTouchButton = atPoint(location) as? SKSpriteNode
                     }
                     // lvl\(i)ButtonTWO
                 } else if atPoint(location).name == "lvl2ButtonTWO" {
                     if active2Level[1] == 1 && paid2Level[1] == 1 {
-                        level = 1 //1
-                        planet = 2
-                        
-                        nextLevelFunc()
-                        presentScene(sceneName: "Game scene")
-                        print("level1 Planet 2")
+                        firstTouchButton = atPoint(location) as? SKSpriteNode
                     }
                     // lvl\(i)ButtonTWO
                 }  else if atPoint(location).name == "lvl3ButtonTWO" {
                     if active2Level[2] == 1 && paid2Level[2] == 1 {
-                        level = 2 //1
-                        planet = 2
-                        
-                        nextLevelFunc()
-                        presentScene(sceneName: "Game scene")
-                        print("level1 Planet 2")
+                        firstTouchButton = atPoint(location) as? SKSpriteNode
                     }
                     // lvl\(i)ButtonTWO
                 }  else if atPoint(location).name == "lvl4ButtonTWO" {
                     if active2Level[3] == 1 && paid2Level[3] == 1 {
-                        level = 3 //1
-                        planet = 2
-                        
-                        nextLevelFunc()
-                        presentScene(sceneName: "Game scene")
-                        print("level1 Planet 2")
+                        firstTouchButton = atPoint(location) as? SKSpriteNode
                     }
                     // lvl\(i)ButtonTWO
                 }  else if atPoint(location).name == "lvl5ButtonTWO" {
                     if active2Level[4] == 1 && paid2Level[4] == 1 {
-                        level = 4 //1
-                        planet = 2
-                        
-                        nextLevelFunc()
-                        presentScene(sceneName: "Game scene")
-                        print("level1 Planet 2")
+                        firstTouchButton = atPoint(location) as? SKSpriteNode
                     }
                     // lvl\(i)ButtonTWO
                 }  else if atPoint(location).name == "lvl6ButtonTWO" {
                     if active2Level[5] == 1 && paid2Level[5] == 1 {
-                        level = 5 //1
-                        planet = 2
-                        
-                        nextLevelFunc()
-                        presentScene(sceneName: "Game scene")
-                        print("level1 Planet 2")
+                        firstTouchButton = atPoint(location) as? SKSpriteNode
                     }
                     // lvl\(i)ButtonTWO
                 }  else if atPoint(location).name == "lvl7ButtonTWO" {
                     if active2Level[6] == 1 && paid2Level[6] == 1 {
-                        level = 6 //1
-                        planet = 2
-                        
-                        nextLevelFunc()
-                        presentScene(sceneName: "Game scene")
-                        print("level1 Planet 2")
+                        firstTouchButton = atPoint(location) as? SKSpriteNode
                     }
                     // lvl\(i)ButtonTWO
                 }  else if atPoint(location).name == "lvl8ButtonTWO" {
                     if active2Level[7] == 1 && paid2Level[7] == 1 {
-                        level = 7 //1
-                        planet = 2
-                        
-                        nextLevelFunc()
-                        presentScene(sceneName: "Game scene")
-                        print("level1 Planet 2")
+                        firstTouchButton = atPoint(location) as? SKSpriteNode
                     }
                     // lvl\(i)ButtonTWO
                 }  else if atPoint(location).name == "lvl9ButtonTWO" {
                     if active2Level[8] == 1 && paid2Level[8] == 1 {
-                        level = 8 //1
-                        planet = 2
-                        
-                        nextLevelFunc()
-                        presentScene(sceneName: "Game scene")
-                        print("level1 Planet 2")
+                        firstTouchButton = atPoint(location) as? SKSpriteNode
                     }
                     // lvl\(i)ButtonTWO
                 }  else if atPoint(location).name == "lvl10ButtonTWO" {
                     if active2Level[9] == 1 && paid2Level[9] == 1 {
-                        level = 9 //1
-                        planet = 2
-                        
-                        nextLevelFunc()
-                        presentScene(sceneName: "Game scene")
-                        print("level1 Planet 2")
+                        firstTouchButton = atPoint(location) as? SKSpriteNode
                     }
                     // lvl\(i)ButtonTWO
                 }   else if atPoint(location).name == "lvl11ButtonTWO" {
                     if active2Level[10] == 1 && paid2Level[10] == 1 {
-                        level = 10 //1
-                        planet = 2
-                        
-                        nextLevelFunc()
-                        presentScene(sceneName: "Game scene")
-                        print("level1 Planet 2")
+                        firstTouchButton = atPoint(location) as? SKSpriteNode
                     }
                     // lvl\(i)ButtonTWO
                 }   else if atPoint(location).name == "lvl12ButtonTWO" {
                     if active2Level[11] == 1 && paid2Level[11] == 1 {
-                        level = 11 //1
-                        planet = 2
-                        
-                        nextLevelFunc()
-                        presentScene(sceneName: "Game scene")
-                        print("level1 Planet 2")
+                        firstTouchButton = atPoint(location) as? SKSpriteNode
                     }
                     // lvl\(i)ButtonTWO
                 }
             } else if lvlsPage == 3 {                                                              //  THIRD PLANET ---------------------------
                 gameMode = GameMode.normal
-                if atPoint(location).name == "Back to menu" {
-                    //level = 11 //12
+                if atPoint(location).name == "Back to menu" || atPoint(location).name == "backBackground" {
+                    //firstTouchBackButton = atPoint(location) as? SKLabelNode
                     presentScene(sceneName: "Menu scene")
-                    //print("level12")
                 } else if atPoint(location).name == "lvl1ButtonTREE" {
                     if active3Level[0] == 1 && paid3Level[0] == 1 {
-                        level = 0 //1
-                        planet = 3
-                        
-                        nextLevelFunc()
-                        presentScene(sceneName: "Game scene")
-                        print("level1 Planet 2")
+                        firstTouchButton = atPoint(location) as? SKSpriteNode
                     }
                     // lvl\(i)ButtonTWO
                 } else if atPoint(location).name == "lvl2ButtonTREE" {
                     if active3Level[1] == 1 && paid3Level[1] == 1 {
-                        level = 1 //1
-                        planet = 3
-                        
-                        nextLevelFunc()
-                        presentScene(sceneName: "Game scene")
-                        print("level1 Planet 2")
+                        firstTouchButton = atPoint(location) as? SKSpriteNode
                     }
                     // lvl\(i)ButtonTWO
                 }  else if atPoint(location).name == "lvl3ButtonTREE" {
                     if active3Level[2] == 1 && paid3Level[2] == 1 {
-                        level = 2 //1
-                        planet = 3
-                        
-                        nextLevelFunc()
-                        presentScene(sceneName: "Game scene")
-                        print("level1 Planet 2")
+                        firstTouchButton = atPoint(location) as? SKSpriteNode
                     }
                     // lvl\(i)ButtonTWO
                 }  else if atPoint(location).name == "lvl4ButtonTREE" {
                     if active3Level[3] == 1 && paid3Level[3] == 1 {
-                        level = 3 //1
-                        planet = 3
-                        
-                        nextLevelFunc()
-                        presentScene(sceneName: "Game scene")
-                        print("level1 Planet 2")
+                        firstTouchButton = atPoint(location) as? SKSpriteNode
                     }
                     // lvl\(i)ButtonTWO
                 }  else if atPoint(location).name == "lvl5ButtonTREE" {
                     if active3Level[4] == 1 && paid3Level[4] == 1 {
-                        level = 4 //1
-                        planet = 3
-                        
-                        nextLevelFunc()
-                        presentScene(sceneName: "Game scene")
-                        print("level1 Planet 2")
+                        firstTouchButton = atPoint(location) as? SKSpriteNode
                     }
                     // lvl\(i)ButtonTWO
                 }  else if atPoint(location).name == "lvl6ButtonTREE" {
                     if active3Level[5] == 1 && paid3Level[5] == 1 {
-                        level = 5 //1
-                        planet = 3
-                        
-                        nextLevelFunc()
-                        presentScene(sceneName: "Game scene")
-                        print("level1 Planet 2")
+                        firstTouchButton = atPoint(location) as? SKSpriteNode
                     }
                     // lvl\(i)ButtonTWO
                 }  else if atPoint(location).name == "lvl7ButtonTREE" {
                     if active3Level[6] == 1 && paid3Level[6] == 1 {
-                        level = 6 //1
-                        planet = 3
-                        
-                        nextLevelFunc()
-                        presentScene(sceneName: "Game scene")
-                        print("level1 Planet 2")
+                        firstTouchButton = atPoint(location) as? SKSpriteNode
                     }
                     // lvl\(i)ButtonTWO
                 }  else if atPoint(location).name == "lvl8ButtonTREE" {
                     if active3Level[7] == 1 && paid3Level[7] == 1 {
-                        level = 7 //1
-                        planet = 3
-                        
-                        nextLevelFunc()
-                        presentScene(sceneName: "Game scene")
-                        print("level1 Planet 2")
+                        firstTouchButton = atPoint(location) as? SKSpriteNode
                     }
                     // lvl\(i)ButtonTWO
                 }  else if atPoint(location).name == "lvl9ButtonTREE" {
                     if active3Level[8] == 1 && paid3Level[8] == 1 {
-                        level = 8 //1
-                        planet = 3
-                        
-                        nextLevelFunc()
-                        presentScene(sceneName: "Game scene")
-                        print("level1 Planet 2")
+                        firstTouchButton = atPoint(location) as? SKSpriteNode
                     }
                     // lvl\(i)ButtonTWO
                 }  else if atPoint(location).name == "lvl10ButtonTREE" {
                     if active3Level[9] == 1 && paid3Level[9] == 1 {
-                        level = 9 //1
-                        planet = 3
-                        
-                        nextLevelFunc()
-                        presentScene(sceneName: "Game scene")
-                        print("level1 Planet 2")
+                        firstTouchButton = atPoint(location) as? SKSpriteNode
                     }
                     // lvl\(i)ButtonTWO
                 }   else if atPoint(location).name == "lvl11ButtonTREE" {
                     if active3Level[10] == 1 && paid3Level[10] == 1 {
-                        level = 10 //1
-                        planet = 3
-                        
-                        nextLevelFunc()
-                        presentScene(sceneName: "Game scene")
-                        print("level1 Planet 2")
+                        firstTouchButton = atPoint(location) as? SKSpriteNode
                     }
                     // lvl\(i)ButtonTWO
                 }   else if atPoint(location).name == "lvl12ButtonTREE" {
                     if active3Level[11] == 1 && paid3Level[11] == 1 {
-                        level = 11 //1
-                        planet = 3
-                        
-                        nextLevelFunc()
-                        presentScene(sceneName: "Game scene")
-                        print("level1 Planet 2")
+                        firstTouchButton = atPoint(location) as? SKSpriteNode
                     }
                     // lvl\(i)ButtonTWO
                 }
             } else if lvlsPage == 4 {                                                              //  THIRD PLANET ---------------------------
-                if atPoint(location).name == "Back to menu" {
-                    //level = 11 //12
+                if atPoint(location).name == "Back to menu" || atPoint(location).name == "backBackground" {
+                    //firstTouchBackButton = atPoint(location) as? SKLabelNode
                     presentScene(sceneName: "Menu scene")
-                    //print("level12")
                 }
             }  else if lvlsPage == 5 {
                 gameMode = GameMode.survival
-                if atPoint(location).name == "Back to menu" {
-                    //level = 11 //12
+                if atPoint(location).name == "Back to menu" || atPoint(location).name == "backBackground" {
+                    //firstTouchBackButton = atPoint(location) as? SKLabelNode
                     presentScene(sceneName: "Menu scene")
-                    //print("level12")
                 } else if atPoint(location).name == "suvivalMode" {
-                    level = 51
-                    planet = 5
-                    nextLevelFunc()
-                    presentScene(sceneName: "Game scene")
+                    firstTouchButton = atPoint(location) as? SKSpriteNode
                     
                 }
             }
@@ -1865,8 +2517,34 @@ class LevelsScene: SKScene {
         }
         
     }
+
+    private func timerFunc() {
+        levelButtonTouched = true
+        removeGestureRocognizers()
+        _ = Timer.scheduledTimer(timeInterval: TimeInterval(0.0), target: self, selector: #selector(LevelsScene.nextLevelTimerFunc), userInfo: nil, repeats: false)
+    }
     
-    func presentScene(sceneName: String) {
+    @objc private func nextLevelTimerFunc() {
+        nextLevelFunc()
+        presentScene(sceneName: "Game scene")
+    }
+    
+    private func changePlanetOnFourAndFive() {
+        
+        if planet == 4 || planet == 5 {
+            planet = 3
+        }
+        
+    }
+    
+    private func clean() {
+        self.removeAllActions()
+    }
+    
+    private func presentScene(sceneName: String) {
+        clean()
+        //changePlanetOnFourAndFive()
+         
         var scene: SKScene = SKScene()
         if sceneName == "Game scene" {
             scene = GameScene(size: CGSize(width: 1536, height: 2048))
@@ -1878,9 +2556,39 @@ class LevelsScene: SKScene {
         // Set the scale mode to scale to fit the window
         scene.scaleMode = .aspectFill
         
-        let newGameTransition = SKTransition.reveal(with: SKTransitionDirection.up, duration: 0.7)//moveIn(with: SKTransitionDirection.left, duration: 2) //doorsCloseHorizontal(withDuration: 0.5)
-        // Present the scene
+        if sceneName == "Game scene" {
+            _ = Timer.scheduledTimer(timeInterval: TimeInterval(0.5), target: self, selector: #selector(LevelsScene.nextLevelPresentSceneFunc), userInfo: ["newScene" : scene], repeats: false)
+        } else {
+            
+            
+            let newGameTransition = SKTransition.reveal(with: SKTransitionDirection.up, duration: 0.7)//moveIn(with: SKTransitionDirection.left, duration: 2) //doorsCloseHorizontal(withDuration: 0.5)
+            
+            
+            // Present the scene
+            view?.presentScene(scene, transition: newGameTransition)
+            
+            
+            
+            if #available(iOS 10.0, *) {
+                view?.preferredFramesPerSecond = 60
+            } else {
+                // Fallback on earlier versions
+            }
+        }
+ 
+    }
+    
+    @objc private func nextLevelPresentSceneFunc(timer: Timer) {
+        let userInfo = timer.userInfo as! Dictionary<String, Any>
+        let scene: GameScene = (userInfo["newScene"] as! GameScene)
+        
+        
+        //let newGameTransition = SKTransition.reveal(with: SKTransitionDirection.up, duration: 1.7)
+        //let newGameTransition = SKTransition.fade(withDuration: 1.7)
+        let newGameTransition = SKTransition.crossFade(withDuration: 1.4)
+        
         view?.presentScene(scene, transition: newGameTransition)
+        
         if #available(iOS 10.0, *) {
             view?.preferredFramesPerSecond = 60
         } else {
@@ -1890,8 +2598,9 @@ class LevelsScene: SKScene {
     
     
     deinit {
-        print("level deinit")
+        //print("level deinit")
         self.view?.gestureRecognizers?.removeAll()
+        stopNewAcitvityIndicator()
     }
     
     

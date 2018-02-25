@@ -12,14 +12,14 @@ import SpriteKit
 class SpaceStation: SKSpriteNode {
 
     
-    let stations = ["ISS", "Space_Station", "Sputnik"]
-    let positionsX: [CGFloat] = [-500, -500, -500, -500, 1800, 1800, 1800, 1800]
-    let positionsY: [CGFloat] = [1700, 1300, 2000, 1000]
-    let toPositionRight:[CGPoint] = [CGPoint(x: 1800, y: -200), CGPoint(x: 1800, y: 700), CGPoint(x: 1800, y: 1300), CGPoint(x: 1800, y: 2000)]
-    let toPositionLeft:[CGPoint] = [CGPoint(x: -200, y: -200), CGPoint(x: -200, y: 700), CGPoint(x: -200, y: 1300), CGPoint(x: -200, y: 2000)]
+    private let stations = ["ISS", "Space_Station", "Sputnik"]
+    private let positionsX: [CGFloat] = [-500, -500, -500, -500, 1800, 1800, 1800, 1800]
+    private let positionsY: [CGFloat] = [1700, 1300, 2000, 1000]
+    private let toPositionRight:[CGPoint] = [CGPoint(x: 1800, y: -200), CGPoint(x: 1800, y: 700), CGPoint(x: 1800, y: 1300), CGPoint(x: 1800, y: 2000)]
+    private let toPositionLeft:[CGPoint] = [CGPoint(x: -200, y: -200), CGPoint(x: -200, y: 700), CGPoint(x: -200, y: 1300), CGPoint(x: -200, y: 2000)]
     
-    var positionX: CGFloat?
-    var positionY: CGFloat?
+    private var positionX: CGFloat?
+    private var positionY: CGFloat?
     
     init() {
         
@@ -47,7 +47,7 @@ class SpaceStation: SKSpriteNode {
         self.size = texture.size()
     }
     
-    func rundomToPosition() -> CGPoint {
+    public func rundomToPosition() -> CGPoint {
         var toPositionPoint: CGPoint
         if Int(positionX!) < 0 {
             toPositionPoint = toPositionRight[Int(arc4random()%4)]

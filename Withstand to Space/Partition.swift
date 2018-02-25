@@ -23,7 +23,7 @@ class Partition: SKSpriteNode {
     var higherThenShip: Bool {
         didSet {
             if self.contactWithShip && oldValue != higherThenShip /*&& shipStatus != .invisible*/ {
-                print("hello contact")
+                //print("hello contact")
                 var playerShip = PlayerShip()
                 var rougeOneShip = PlayerShip()
                 var trioShips = [PlayerShip]()
@@ -54,14 +54,15 @@ class Partition: SKSpriteNode {
                         mainScene?.ship = mainScene!.rougeOneShipGlobal!
                         mainScene?.ship.rougeIsActive = true
                         mainScene?.changeShipStatus()
-                        print("yo1")
+                        //print("yo1")
                         
                     } else if shipStatus == .noraml /*|| shipStatus == .trio*/ {
                         //explosion(pos: playerShip.position)
                         mainScene?.explosion(pos: playerShipNotDeinit!.position, zPos: playerShipNotDeinit!.zPosition)
                         playerShipNotDeinit!.removeFromParent()
                         NotificationCenter.default.post(name: SomeNames.blowTheShip, object: nil)
-                        print("yo222")
+                        //print("yo222")
+                        //print(self.contactWithShip)
                     } else if shipStatus == .trio {
                         for trioShip in trioShips {
                             explosion(pos: trioShip.position)
@@ -72,7 +73,7 @@ class Partition: SKSpriteNode {
                             
                             NotificationCenter.default.post(name: SomeNames.blowTheShip, object: nil)
                             mainScene?.changeShipStatus()
-                            print("yo3")
+                            //print("yo3")
                         }
                     }
                  
@@ -112,7 +113,7 @@ class Partition: SKSpriteNode {
     
     var contactWithShip: Bool = false
     
-    let partitions = ["testTxtr2.png"]
+    private let partitions = ["testTxtr2.png"]
     
     init() {
         /*
@@ -340,7 +341,7 @@ class Partition: SKSpriteNode {
         
     }
     
-    func explosion(pos: CGPoint) {
+    private func explosion(pos: CGPoint) {
         if let explosion = SKEmitterNode(fileNamed: "explosion.sks") {
             explosion.particlePosition = pos
             scene?.addChild(explosion)
